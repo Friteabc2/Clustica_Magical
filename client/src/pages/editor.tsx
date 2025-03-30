@@ -11,7 +11,6 @@ import EditorContent from '@/components/book/editor-content';
 import PreviewContent from '@/components/book/preview-content';
 import ExportModal from '@/components/book/export-modal';
 import { Button } from '@/components/ui/button';
-import { Save, FileOutput, Settings, BookOpen, ArrowLeft } from 'lucide-react';
 
 export default function Editor() {
   const { id } = useParams<{ id: string }>();
@@ -348,7 +347,7 @@ export default function Editor() {
           <h2 className="text-2xl font-bold text-gray-800 mb-2">Erreur de chargement</h2>
           <p className="text-gray-600 mb-4">Impossible de charger le livre demandé.</p>
           <Button onClick={() => navigate('/')} className="bg-primary hover:bg-primary/90">
-            <ArrowLeft className="h-4 w-4 mr-2" />
+            {/* icône flèche */}
             Retour à la liste des livres
           </Button>
         </div>
@@ -365,16 +364,24 @@ export default function Editor() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center">
-              <Button variant="ghost" onClick={() => navigate('/')} className="mr-2">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => setSidebarCollapsed(!sidebarCollapsed)} 
+                className="mr-2 md:hidden"
+              >
+                {/* icône menu */}
+              </Button>
+              <Button variant="ghost" onClick={() => navigate('/')} className="mr-2 hidden sm:flex">
+                {/* <ArrowLeft className="h-4 w-4 mr-2" /> */}
                 Retour
               </Button>
               <div className="flex-shrink-0 flex items-center">
                 <div className="bg-gradient-to-r from-primary to-secondary rounded-lg w-8 h-8 flex items-center justify-center text-white">
-                  <BookOpen className="h-4 w-4" />
+                  {/* icône livre */}
                 </div>
                 <span className="ml-2 text-xl font-bold text-gray-800">Clustica</span>
-                <span className="ml-1 text-sm text-secondary font-medium">Magical</span>
+                <span className="ml-1 text-sm text-secondary font-medium hidden sm:inline">Magical</span>
               </div>
             </div>
             
@@ -384,40 +391,51 @@ export default function Editor() {
                 onClick={handleSave}
                 disabled={updateBook.isPending || createBook.isPending}
               >
-                <Save className="h-4 w-4 mr-1.5" />
+                {/* icône enregistrer */}
                 {updateBook.isPending || createBook.isPending ? 'Enregistrement...' : 'Enregistrer'}
               </Button>
               <Button 
                 className="bg-primary hover:bg-primary/90"
                 onClick={() => setIsExportOpen(true)}
               >
-                <FileOutput className="h-4 w-4 mr-1.5" />
+                {/* icône export */}
                 Exporter en EPUB
               </Button>
               <Button variant="ghost" size="icon" className="text-gray-500 hover:text-gray-700">
-                <Settings className="h-4 w-4" />
+                {/* icône paramètres */}
               </Button>
             </div>
           </div>
         </div>
       </header>
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar 
-          book={bookContent}
-          setBook={setBookContent}
-          currentChapterIndex={currentChapterIndex}
-          setCurrentChapterIndex={setCurrentChapterIndex}
-          currentPageIndex={currentPageIndex}
-          setCurrentPageIndex={setCurrentPageIndex}
-          addChapter={addChapter}
-          addPage={addPage}
-          updateChapterTitle={updateChapterTitle}
-          deleteChapter={deleteChapter}
-          deletePage={deletePage}
-          collapsed={sidebarCollapsed}
-          setCollapsed={setSidebarCollapsed}
-        />
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Overlay pour fermer la sidebar sur mobile quand elle est ouverte */}
+        {!sidebarCollapsed && (
+          <div 
+            className="md:hidden fixed inset-0 bg-black/50 z-10"
+            onClick={() => setSidebarCollapsed(true)}
+          />
+        )}
+        
+        <div className={`${!sidebarCollapsed ? 'translate-x-0' : '-translate-x-full md:translate-x-0'} 
+          fixed md:relative z-20 transition-transform duration-300 ease-in-out h-full`}>
+          <Sidebar 
+            book={bookContent}
+            setBook={setBookContent}
+            currentChapterIndex={currentChapterIndex}
+            setCurrentChapterIndex={setCurrentChapterIndex}
+            currentPageIndex={currentPageIndex}
+            setCurrentPageIndex={setCurrentPageIndex}
+            addChapter={addChapter}
+            addPage={addPage}
+            updateChapterTitle={updateChapterTitle}
+            deleteChapter={deleteChapter}
+            deletePage={deletePage}
+            collapsed={sidebarCollapsed}
+            setCollapsed={setSidebarCollapsed}
+          />
+        </div>
         
         <main className="flex-1 flex flex-col bg-gray-50 overflow-hidden">
           <div className="px-4 sm:px-6 lg:px-8 border-b border-gray-200 bg-white">
