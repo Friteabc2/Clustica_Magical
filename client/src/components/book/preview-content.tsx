@@ -6,12 +6,14 @@ interface PreviewContentProps {
   book: BookContent;
   currentChapterIndex: number;
   currentPageIndex: number;
+  onNavigate?: (chapterIndex: number, pageIndex: number) => void;
 }
 
 export default function PreviewContent({ 
   book, 
   currentChapterIndex,
-  currentPageIndex
+  currentPageIndex,
+  onNavigate
 }: PreviewContentProps) {
   // Get the current chapter and page
   const currentChapter = book.chapters[currentChapterIndex];
@@ -114,10 +116,8 @@ export default function PreviewContent({
             variant="outline"
             onClick={() => {
               const prev = goToPreviousPage();
-              if (prev) {
-                // Call a function to navigate to this page
-                // This would be passed down from the parent component
-                console.log('Navigate to:', prev);
+              if (prev && onNavigate) {
+                onNavigate(prev.chapterIndex, prev.pageIndex);
               }
             }}
             disabled={!canGoPrevious}
@@ -130,9 +130,8 @@ export default function PreviewContent({
             variant="outline"
             onClick={() => {
               const next = goToNextPage();
-              if (next) {
-                // Call a function to navigate to this page
-                console.log('Navigate to:', next);
+              if (next && onNavigate) {
+                onNavigate(next.chapterIndex, next.pageIndex);
               }
             }}
             disabled={!canGoNext}

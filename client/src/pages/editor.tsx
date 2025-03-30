@@ -374,6 +374,10 @@ export default function Editor() {
               book={bookContent}
               currentChapterIndex={currentChapterIndex}
               currentPageIndex={currentPageIndex}
+              onNavigate={(chapterIndex, pageIndex) => {
+                setCurrentChapterIndex(chapterIndex);
+                setCurrentPageIndex(pageIndex);
+              }}
             />
           )}
         </main>
