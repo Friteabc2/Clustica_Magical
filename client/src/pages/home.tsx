@@ -6,8 +6,9 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, BookOpen, Trash2 } from 'lucide-react';
+import { PlusCircle, BookOpen, Trash2, Sparkles } from 'lucide-react';
 import { type Book as BookType } from '@shared/schema';
+import AIBookModal from '@/components/book/ai-book-modal';
 
 export default function Home() {
   const { toast } = useToast();
@@ -15,6 +16,7 @@ export default function Home() {
   const [newBookTitle, setNewBookTitle] = useState('Nouveau Livre');
   const [newBookAuthor, setNewBookAuthor] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
   // Fetch books
   const { data: books, isLoading } = useQuery<BookType[]>({
@@ -115,10 +117,19 @@ export default function Home() {
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-2xl font-bold text-gray-800">Vos Livres</h1>
             {!isCreating && (
-              <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Nouveau Livre
-              </Button>
+              <div className="flex space-x-2">
+                <Button 
+                  onClick={() => setIsAIModalOpen(true)} 
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Créer avec l'IA
+                </Button>
+                <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
+                  <PlusCircle className="h-4 w-4 mr-2" />
+                  Nouveau Livre
+                </Button>
+              </div>
             )}
           </div>
 
@@ -225,6 +236,16 @@ export default function Home() {
           </p>
         </div>
       </footer>
+
+      {/* Modal pour la génération de livre par IA */}
+      <AIBookModal 
+        isOpen={isAIModalOpen} 
+        onClose={() => setIsAIModalOpen(false)}
+        onBookCreated={(bookId) => {
+          queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+          navigate(`/editor/${bookId}`);
+        }}
+      />
     </div>
   );
 }

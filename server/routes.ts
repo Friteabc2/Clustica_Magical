@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
@@ -10,6 +10,9 @@ import { dirname } from 'path';
 
 // EPUB generation library
 import Epub from 'epub-gen';
+
+// Service d'IA pour la génération de livres
+import { AIService, AIBookRequest } from "./services/ai-service";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -135,6 +138,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting book:', error);
       res.status(500).json({ message: 'Failed to delete book' });
+    }
+  });
+
+  // Endpoint pour la génération de livre avec l'IA
+  app.post('/api/books/generate-ai', async (req: Request, res: Response) => {
+    try {
+      // Validations du prompt et des options
+      const aiBookRequestSchema = z.object({
+        prompt: z.string().min(3, { message: "Le prompt doit contenir au moins 3 caractères" }),
+        chaptersCount: z.number().int().min(1).max(10).optional().default(3),
+        pagesPerChapter: z.number().int().min(1).max(5).optional().default(1)
+      });
+      
+      const validationResult = aiBookRequestSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Données invalides pour la génération AI',
+          errors: validationResult.error.errors
+        });
+      }
+      
+      // Génération du livre avec l'IA
+      const bookContent = await AIService.generateBook(validationResult.data);
+      
+      // Création du livre dans le stockage
+      const book = await storage.createBook({
+        title: bookContent.title,
+        author: bookContent.author,
+      });
+      
+      // Mise à jour du contenu du livre 
+      const updatedBook = await storage.updateBookContent(book.id, bookContent);
+      
+      res.status(201).json(updatedBook);
+    } catch (error) {
+      console.error('Erreur lors de la génération du livre avec l\'IA:', error);
+      res.status(500).json({ message: 'Échec de la génération du livre avec l\'IA' });
     }
   });
 
