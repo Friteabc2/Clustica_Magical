@@ -1,5 +1,6 @@
 // We import from shared schema for consistency, but we define some utility types here
 import { BookContent, Chapter, PageContent } from '@shared/schema';
+import { v4 as uuidv4 } from 'uuid';
 
 // Navigation types
 export interface BookNavigationState {
@@ -32,21 +33,33 @@ export function getEmptyBook(title: string = 'Nouveau Livre', author: string = '
   return {
     title,
     author,
+    coverPage: {
+      content: '<p>Couverture de votre livre</p>',
+      pageNumber: 0,
+      isCover: true
+    },
     chapters: []
   };
 }
 
 export function getEmptyChapter(title: string = 'Nouveau Chapitre'): Chapter {
   return {
-    id: crypto.randomUUID(),
+    id: uuidv4(),
     title,
     pages: [getEmptyPage()]
   };
 }
 
-export function getEmptyPage(pageNumber: number = 1): PageContent {
+export function getEmptyPage(pageNumber: number = 1, isCover: boolean = false): PageContent {
   return {
-    content: '<p>Écrivez votre contenu ici...</p>',
-    pageNumber
+    content: isCover 
+      ? '<p>Couverture de votre livre</p>' 
+      : '<p>Écrivez votre contenu ici...</p>',
+    pageNumber,
+    isCover
   };
+}
+
+export function getCoverPage(): PageContent {
+  return getEmptyPage(0, true);
 }

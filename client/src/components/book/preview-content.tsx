@@ -15,12 +15,18 @@ export default function PreviewContent({
   currentPageIndex,
   onNavigate
 }: PreviewContentProps) {
-  // Get the current chapter and page
-  const currentChapter = book.chapters[currentChapterIndex];
-  const currentPage = currentChapter?.pages[currentPageIndex];
+  // On détermine si on est en train de visualiser la page de couverture
+  const isCoverPage = currentChapterIndex === -1;
+  
+  // Obtention du chapitre et de la page courante
+  const currentChapter = isCoverPage ? null : book.chapters[currentChapterIndex];
+  const currentPage = isCoverPage 
+    ? book.coverPage 
+    : currentChapter?.pages[currentPageIndex];
 
-  // Debug log to verify content is loaded
+  // Journalisation pour le débogage
   console.log('Preview Content:', {
+    isCoverPage,
     currentChapterIndex,
     currentPageIndex,
     chapterExists: !!currentChapter,
@@ -29,69 +35,88 @@ export default function PreviewContent({
     pageContent: currentPage?.content?.slice(0, 50) || 'No content'
   });
   
-  // Handle navigation
-  const canGoPrevious = currentPageIndex > 0 || currentChapterIndex > 0;
-  const canGoNext = 
-    (currentChapter && currentPageIndex < currentChapter.pages.length - 1) || 
-    currentChapterIndex < book.chapters.length - 1;
+  // Gestion de la navigation
+  // Pour la page de couverture, on peut seulement aller à la page suivante (chapitre 0, page 0)
+  const canGoPrevious = !isCoverPage && (currentPageIndex > 0 || currentChapterIndex > 0);
+  const canGoNext = isCoverPage 
+    ? (book.chapters.length > 0) 
+    : ((currentChapter && currentPageIndex < currentChapter.pages.length - 1) || 
+       currentChapterIndex < book.chapters.length - 1);
   
   const goToPreviousPage = () => {
+    if (isCoverPage) {
+      // Pas de page précédente pour la couverture
+      return null;
+    }
+    
     if (currentPageIndex > 0) {
-      // Go to previous page in the same chapter
+      // Aller à la page précédente dans le même chapitre
       return { chapterIndex: currentChapterIndex, pageIndex: currentPageIndex - 1 };
     } else if (currentChapterIndex > 0) {
-      // Go to the last page of the previous chapter
+      // Aller à la dernière page du chapitre précédent
       const prevChapter = book.chapters[currentChapterIndex - 1];
       return { 
         chapterIndex: currentChapterIndex - 1, 
         pageIndex: prevChapter.pages.length - 1 
       };
+    } else if (book.coverPage) {
+      // Si on est à la première page du premier chapitre et qu'il y a une couverture, aller à la couverture
+      return { chapterIndex: -1, pageIndex: 0 };
     }
+    
     return null;
   };
   
   const goToNextPage = () => {
+    if (isCoverPage) {
+      // De la couverture, on va à la première page du premier chapitre
+      if (book.chapters.length > 0) {
+        return { chapterIndex: 0, pageIndex: 0 };
+      }
+      return null;
+    }
+    
     if (currentChapter && currentPageIndex < currentChapter.pages.length - 1) {
-      // Go to next page in the same chapter
+      // Aller à la page suivante dans le même chapitre
       return { chapterIndex: currentChapterIndex, pageIndex: currentPageIndex + 1 };
     } else if (currentChapterIndex < book.chapters.length - 1) {
-      // Go to the first page of the next chapter
+      // Aller à la première page du chapitre suivant
       return { chapterIndex: currentChapterIndex + 1, pageIndex: 0 };
     }
+    
     return null;
   };
   
-  // Determine if we're showing the cover - cover is special page 0 of chapter 0
-  // We'll treat it separately from the regular pages
-  const showCover = currentChapterIndex === 0 && currentPageIndex === 0;
-  
-  // Calculate total pages for display
+  // Calcul du nombre total de pages pour l'affichage
   const getTotalPages = () => {
-    // Count all pages in all chapters
-    return book.chapters.reduce((total, chapter) => total + chapter.pages.length, 0);
+    // Compter toutes les pages dans tous les chapitres
+    const chapterPages = book.chapters.reduce((total, chapter) => total + chapter.pages.length, 0);
+    // Ajouter 1 si la page de couverture existe
+    return chapterPages + (book.coverPage ? 1 : 0);
   };
   
-  // Calculate current page number across all chapters
+  // Calcul du numéro de page actuel à travers tous les chapitres
   const getCurrentPageNumber = () => {
-    // If we're showing the cover, it's page 1
-    if (showCover) {
+    // Si nous montrons la couverture, c'est la page 1
+    if (isCoverPage) {
       return 1;
     }
     
-    // Otherwise, count pages in previous chapters
-    let pageCount = 1; // Start at 1 for the cover
+    // Sinon, compter les pages dans les chapitres précédents
+    let pageCount = book.coverPage ? 1 : 0; // Commencer à 1 si une couverture existe
     
     for (let i = 0; i < currentChapterIndex; i++) {
       pageCount += book.chapters[i].pages.length;
     }
     
-    // Add the current page index
-    pageCount += currentPageIndex;
+    // Ajouter l'index de page courant
+    pageCount += currentPageIndex + 1; // +1 car les indices commencent à 0
     
     return pageCount;
   };
   
-  if (!currentChapter) {
+  // Si nous n'avons ni chapitre ni couverture, ou si nous essayons d'accéder à un chapitre qui n'existe pas
+  if (!isCoverPage && !currentChapter) {
     return (
       <div className="flex-1 overflow-auto p-6 bg-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -105,19 +130,24 @@ export default function PreviewContent({
   return (
     <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-gray-100">
       <div className="max-w-3xl mx-auto">
-        {showCover ? (
-          // Book Cover Preview
+        {isCoverPage ? (
+          // Aperçu de la page de couverture
           <div className="mb-8 bg-white shadow-md rounded-lg overflow-hidden">
             <div className="bg-gradient-to-r from-primary to-secondary p-8 flex flex-col items-center justify-center text-white text-center min-h-[280px]">
               <h1 className="text-4xl font-bold mb-4">{book.title}</h1>
               <p className="text-lg">par {book.author}</p>
             </div>
+            {book.coverPage && book.coverPage.content && (
+              <div className="p-6 prose max-w-none" 
+                   dangerouslySetInnerHTML={{ __html: book.coverPage.content }}>
+              </div>
+            )}
           </div>
         ) : (
-          // Chapter and Page Preview
+          // Aperçu du chapitre et de la page
           <div className="bg-white shadow-md rounded-lg overflow-hidden p-8">
             <div className="border-b border-gray-200 pb-4 mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 font-serif">{currentChapter.title}</h2>
+              <h2 className="text-2xl font-bold text-gray-800 font-serif">{currentChapter?.title}</h2>
             </div>
             
             <div className="prose max-w-none font-serif" 
@@ -125,7 +155,7 @@ export default function PreviewContent({
             </div>
             
             <div className="mt-8 text-center text-gray-500 text-sm">
-              Page {getCurrentPageNumber()} sur {getTotalPages() + 1} {/* +1 for the cover */}
+              Page {getCurrentPageNumber()} sur {getTotalPages()}
             </div>
           </div>
         )}

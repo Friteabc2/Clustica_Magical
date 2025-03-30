@@ -5,6 +5,7 @@ import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { v4 as uuidv4 } from 'uuid';
 import { BookContent, Chapter, PageContent } from '@shared/schema';
+import { getEmptyBook, getEmptyChapter, getEmptyPage } from '@/lib/book-types';
 import Sidebar from '@/components/book/sidebar';
 import EditorContent from '@/components/book/editor-content';
 import PreviewContent from '@/components/book/preview-content';
@@ -22,19 +23,10 @@ export default function Editor() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   
-  // Initialize default book content
-  const defaultBookContent: BookContent = {
-    title: 'Nouveau Livre',
-    author: 'Votre Nom',
-    chapters: [{
-      id: uuidv4(),
-      title: 'Chapitre 1: Le Début',
-      pages: [{
-        content: '<p>Commencez à écrire votre histoire ici...</p>',
-        pageNumber: 1
-      }]
-    }]
-  };
+  // Initialiser le contenu du livre par défaut en utilisant notre fonction utilitaire
+  const defaultBookContent: BookContent = getEmptyBook();
+  // Ajouter un premier chapitre par défaut
+  defaultBookContent.chapters.push(getEmptyChapter('Chapitre 1: Le Début'));
   
   // Book content state
   const [bookContent, setBookContent] = useState<BookContent>(defaultBookContent);
@@ -123,7 +115,8 @@ export default function Editor() {
       title: `Chapitre ${newChapters.length + 1}`,
       pages: [{
         content: '<p>Contenu du nouveau chapitre...</p>',
-        pageNumber: 1
+        pageNumber: 1,
+        isCover: false
       }]
     });
     
@@ -151,7 +144,8 @@ export default function Editor() {
     const updatedPages = [...currentChapter.pages];
     updatedPages.push({
       content: '<p>Nouvelle page...</p>',
-      pageNumber: updatedPages.length + 1
+      pageNumber: updatedPages.length + 1,
+      isCover: false
     });
     
     // Update the chapter with the new pages array
@@ -244,6 +238,12 @@ export default function Editor() {
   
   // Update page content
   const updatePageContent = (content: string) => {
+    // Si on modifie la page de couverture
+    if (currentChapterIndex === -1 && bookContent.coverPage) {
+      updateCoverContent(content);
+      return;
+    }
+    
     if (bookContent.chapters.length === 0) return;
     
     const updatedChapters = [...bookContent.chapters];
@@ -270,6 +270,11 @@ export default function Editor() {
   
   // Get current content
   const getCurrentChapter = (): Chapter | null => {
+    // Si l'index est -1, cela signifie qu'on édite la page de couverture
+    if (currentChapterIndex === -1) {
+      return null;
+    }
+    
     if (!bookContent.chapters.length || currentChapterIndex >= bookContent.chapters.length) {
       return null;
     }
@@ -277,11 +282,29 @@ export default function Editor() {
   };
   
   const getCurrentPage = (): PageContent | null => {
+    // Si on édite la page de couverture
+    if (currentChapterIndex === -1 && bookContent.coverPage) {
+      return bookContent.coverPage;
+    }
+    
     const chapter = getCurrentChapter();
     if (!chapter || !chapter.pages.length || currentPageIndex >= chapter.pages.length) {
       return null;
     }
     return chapter.pages[currentPageIndex];
+  };
+  
+  // Mettre à jour le contenu de la couverture
+  const updateCoverContent = (content: string) => {
+    if (!bookContent.coverPage) return;
+    
+    setBookContent({
+      ...bookContent,
+      coverPage: {
+        ...bookContent.coverPage,
+        content
+      }
+    });
   };
   
   if (isLoading) {

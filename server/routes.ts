@@ -164,12 +164,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const outputPath = path.join(tempDir, filename);
       
       // Prepare content for EPUB
-      const epubContent = content.chapters.map(chapter => {
+      let epubContent = [];
+      
+      // Add cover page as first chapter if it exists
+      if (content.coverPage) {
+        epubContent.push({
+          title: 'Couverture',
+          data: content.coverPage.content
+        });
+      }
+      
+      // Add regular chapters
+      content.chapters.forEach(chapter => {
         const chapterContent = chapter.pages.map(page => page.content).join('');
-        return {
+        epubContent.push({
           title: chapter.title,
           data: chapterContent
-        };
+        });
       });
       
       // Create EPUB with basic content

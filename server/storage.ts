@@ -30,12 +30,20 @@ export class MemStorage implements IStorage {
   async createBook(insertBook: InsertBook): Promise<Book> {
     const now = Math.floor(Date.now() / 1000);
     const id = this.currentId++;
-    const book: Book = {
+    
+    // Ensure coverPage is defined even if it's null
+    const bookData = {
       ...insertBook,
+      coverPage: insertBook.coverPage || null,
+    };
+    
+    const book = {
+      ...bookData,
       id,
       createdAt: now,
       updatedAt: now,
-    };
+    } as Book;
+    
     this.books.set(id, book);
     return book;
   }
@@ -64,6 +72,7 @@ export class MemStorage implements IStorage {
     return {
       title: book.title,
       author: book.author,
+      coverPage: book.coverPage ? book.coverPage as any : undefined,
       chapters: book.chapters as any[], // Cast to any[] since we're storing JSON
     };
   }
@@ -75,6 +84,7 @@ export class MemStorage implements IStorage {
     return this.updateBook(id, {
       title: content.title,
       author: content.author,
+      coverPage: content.coverPage as any,
       chapters: content.chapters as any,
     });
   }

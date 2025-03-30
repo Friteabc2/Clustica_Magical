@@ -6,6 +6,7 @@ export const books = pgTable("books", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   author: text("author").notNull(),
+  coverPage: jsonb("cover_page").default(null),
   chapters: jsonb("chapters").notNull().default([]),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
@@ -15,6 +16,7 @@ export const books = pgTable("books", {
 export const pageContentSchema = z.object({
   content: z.string().default(""),
   pageNumber: z.number(),
+  isCover: z.boolean().optional().default(false),
 });
 
 export const chapterSchema = z.object({
@@ -26,6 +28,7 @@ export const chapterSchema = z.object({
 export const bookContentSchema = z.object({
   title: z.string(),
   author: z.string(),
+  coverPage: pageContentSchema.optional(),
   chapters: z.array(chapterSchema).default([]),
 });
 
@@ -36,6 +39,7 @@ export type BookContent = z.infer<typeof bookContentSchema>;
 export const insertBookSchema = createInsertSchema(books).pick({
   title: true,
   author: true,
+  coverPage: true,
   chapters: true,
 });
 

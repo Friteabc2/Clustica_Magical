@@ -118,7 +118,7 @@ export default function Sidebar({
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
           </div>
-          <div>
+          <div className="mb-3">
             <label htmlFor="book-author" className="block text-xs font-medium text-gray-500 mb-1">
               Auteur
             </label>
@@ -129,6 +129,26 @@ export default function Sidebar({
               className="block w-full rounded-md border-gray-300 shadow-sm focus:border-primary focus:ring-primary sm:text-sm"
             />
           </div>
+          
+          {/* Cover Page Section */}
+          {book.coverPage && (
+            <div 
+              className={`flex items-center justify-between p-2 mt-2 rounded bg-gradient-to-r from-primary/10 to-secondary/10 cursor-pointer hover:from-primary/20 hover:to-secondary/20 ${
+                currentChapterIndex === -1 ? 'border-2 border-primary/30' : ''
+              }`}
+              onClick={() => {
+                setCurrentChapterIndex(-1);
+                setCurrentPageIndex(0);
+              }}
+            >
+              <div className="flex items-center">
+                <div className="h-8 w-8 rounded bg-gradient-to-r from-primary to-secondary flex items-center justify-center text-white mr-2">
+                  <FileText className="h-4 w-4" />
+                </div>
+                <span className="text-sm font-medium">Couverture</span>
+              </div>
+            </div>
+          )}
         </div>
         
         {/* Chapters Section */}
