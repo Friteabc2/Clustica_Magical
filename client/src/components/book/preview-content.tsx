@@ -18,6 +18,16 @@ export default function PreviewContent({
   // Get the current chapter and page
   const currentChapter = book.chapters[currentChapterIndex];
   const currentPage = currentChapter?.pages[currentPageIndex];
+
+  // Debug log to verify content is loaded
+  console.log('Preview Content:', {
+    currentChapterIndex,
+    currentPageIndex,
+    chapterExists: !!currentChapter,
+    pagesInChapter: currentChapter?.pages?.length || 0,
+    pageExists: !!currentPage,
+    pageContent: currentPage?.content?.slice(0, 50) || 'No content'
+  });
   
   // Handle navigation
   const canGoPrevious = currentPageIndex > 0 || currentChapterIndex > 0;
@@ -51,23 +61,33 @@ export default function PreviewContent({
     return null;
   };
   
-  // Determine if we're showing the cover
+  // Determine if we're showing the cover - cover is special page 0 of chapter 0
+  // We'll treat it separately from the regular pages
   const showCover = currentChapterIndex === 0 && currentPageIndex === 0;
   
   // Calculate total pages for display
   const getTotalPages = () => {
+    // Count all pages in all chapters
     return book.chapters.reduce((total, chapter) => total + chapter.pages.length, 0);
   };
   
   // Calculate current page number across all chapters
   const getCurrentPageNumber = () => {
+    // If we're showing the cover, it's page 1
+    if (showCover) {
+      return 1;
+    }
+    
+    // Otherwise, count pages in previous chapters
     let pageCount = 1; // Start at 1 for the cover
     
     for (let i = 0; i < currentChapterIndex; i++) {
       pageCount += book.chapters[i].pages.length;
     }
     
-    pageCount += currentPageIndex + 1;
+    // Add the current page index
+    pageCount += currentPageIndex;
+    
     return pageCount;
   };
   
@@ -105,7 +125,7 @@ export default function PreviewContent({
             </div>
             
             <div className="mt-8 text-center text-gray-500 text-sm">
-              Page {getCurrentPageNumber()} / {getTotalPages() + 1} {/* +1 for the cover */}
+              Page {getCurrentPageNumber()} sur {getTotalPages() + 1} {/* +1 for the cover */}
             </div>
           </div>
         )}

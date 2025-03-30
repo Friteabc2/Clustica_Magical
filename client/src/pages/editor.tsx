@@ -147,14 +147,15 @@ export default function Editor() {
     const updatedChapters = [...bookContent.chapters];
     const currentChapter = {...updatedChapters[currentChapterIndex]};
     
-    currentChapter.pages = [
-      ...currentChapter.pages,
-      {
-        content: '<p>Nouvelle page...</p>',
-        pageNumber: currentChapter.pages.length + 1
-      }
-    ];
+    // Make a copy of current pages and add a new one
+    const updatedPages = [...currentChapter.pages];
+    updatedPages.push({
+      content: '<p>Nouvelle page...</p>',
+      pageNumber: updatedPages.length + 1
+    });
     
+    // Update the chapter with the new pages array
+    currentChapter.pages = updatedPages;
     updatedChapters[currentChapterIndex] = currentChapter;
     
     setBookContent({
@@ -163,7 +164,7 @@ export default function Editor() {
     });
     
     // Select the new page
-    setCurrentPageIndex(currentChapter.pages.length - 1);
+    setCurrentPageIndex(updatedPages.length - 1);
   };
   
   // Update chapter content
