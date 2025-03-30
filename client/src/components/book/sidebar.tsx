@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Pencil, Trash2, ChevronDown, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { BookContent } from '@shared/schema';
 
 interface SidebarProps {
@@ -9,10 +10,13 @@ interface SidebarProps {
   setBook: (book: BookContent) => void;
   currentChapterIndex: number;
   setCurrentChapterIndex: (index: number) => void;
+  currentPageIndex: number;
   setCurrentPageIndex: (index: number) => void;
   addChapter: () => void;
+  addPage: () => void;
   updateChapterTitle: (index: number, title: string) => void;
   deleteChapter: (index: number) => void;
+  deletePage: (chapterIndex: number, pageIndex: number) => void;
   collapsed: boolean;
   setCollapsed: (collapsed: boolean) => void;
 }
@@ -22,10 +26,13 @@ export default function Sidebar({
   setBook,
   currentChapterIndex,
   setCurrentChapterIndex,
+  currentPageIndex,
   setCurrentPageIndex,
   addChapter,
+  addPage,
   updateChapterTitle,
   deleteChapter,
+  deletePage,
   collapsed,
   setCollapsed
 }: SidebarProps) {
@@ -139,69 +146,134 @@ export default function Sidebar({
           </div>
           
           {book.chapters.map((chapter, index) => (
-            <div
+            <Collapsible
               key={chapter.id}
-              className={`rounded-md p-2 mb-1 cursor-pointer ${
+              defaultOpen={currentChapterIndex === index}
+              className={`rounded-md mb-1 ${
                 currentChapterIndex === index
                   ? 'bg-gray-100 border border-gray-200'
                   : 'border border-transparent hover:bg-gray-50'
               }`}
-              onClick={() => handleChapterClick(index)}
             >
-              <div className="flex justify-between items-center">
-                {editingChapterIndex === index ? (
-                  <Input
-                    value={editingTitle}
-                    onChange={(e) => setEditingTitle(e.target.value)}
-                    onBlur={saveChapterTitle}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        saveChapterTitle();
-                      }
-                    }}
-                    autoFocus
-                    className="text-sm py-1"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                ) : (
-                  <span className="font-medium text-sm text-gray-800">{chapter.title}</span>
-                )}
-                
-                {editingChapterIndex !== index && (
-                  <div className="flex space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xs"
-                      title="Éditer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        startEditing(index, chapter.title);
-                      }}
-                    >
-                      <Pencil className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xs"
-                      title="Supprimer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${chapter.title}" ?`)) {
-                          deleteChapter(index);
-                        }
-                      }}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+              <div className="p-2">
+                <CollapsibleTrigger asChild>
+                  <div className="flex justify-between items-center cursor-pointer" onClick={() => handleChapterClick(index)}>
+                    {editingChapterIndex === index ? (
+                      <Input
+                        value={editingTitle}
+                        onChange={(e) => setEditingTitle(e.target.value)}
+                        onBlur={saveChapterTitle}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            saveChapterTitle();
+                          }
+                        }}
+                        autoFocus
+                        className="text-sm py-1"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    ) : (
+                      <div className="flex items-center">
+                        <ChevronDown className="h-3 w-3 mr-1 text-gray-500" />
+                        <span className="font-medium text-sm text-gray-800">{chapter.title}</span>
+                      </div>
+                    )}
+                    
+                    {editingChapterIndex !== index && (
+                      <div className="flex space-x-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xs"
+                          title="Éditer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            startEditing(index, chapter.title);
+                          }}
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="p-1 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 text-xs"
+                          title="Supprimer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${chapter.title}" ?`)) {
+                              deleteChapter(index);
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
-                )}
+                </CollapsibleTrigger>
+                
+                <div className="flex justify-between items-center mt-1">
+                  <div className="text-xs text-gray-500">
+                    {chapter.pages.length} {chapter.pages.length > 1 ? 'pages' : 'page'}
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="p-0.5 text-primary hover:bg-gray-100 text-xs"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setCurrentChapterIndex(index);
+                      addPage();
+                    }}
+                  >
+                    <Plus className="h-3 w-3 mr-1" /> Nouvelle page
+                  </Button>
+                </div>
               </div>
-              <div className="mt-1 text-xs text-gray-500">
-                {chapter.pages.length} {chapter.pages.length > 1 ? 'pages' : 'page'}
-              </div>
-            </div>
+              
+              <CollapsibleContent>
+                <div className="pl-4 pr-2 pb-2">
+                  {chapter.pages.map((page, pageIndex) => (
+                    <div
+                      key={`${chapter.id}-page-${pageIndex}`}
+                      className={`flex items-center justify-between px-2 py-1.5 rounded ${
+                        currentChapterIndex === index && currentPageIndex === pageIndex
+                          ? 'bg-primary/10 text-primary'
+                          : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <div 
+                        className="flex items-center cursor-pointer flex-1"
+                        onClick={() => {
+                          setCurrentChapterIndex(index);
+                          setCurrentPageIndex(pageIndex);
+                        }}
+                      >
+                        <FileText className="h-3 w-3 mr-2" />
+                        <span className="text-xs truncate">
+                          Page {pageIndex + 1}
+                        </span>
+                      </div>
+                      
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 p-0.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100"
+                        title="Supprimer la page"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (window.confirm(`Êtes-vous sûr de vouloir supprimer cette page ?`)) {
+                            deletePage(index, pageIndex);
+                          }
+                        }}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
           ))}
         </div>
       </div>

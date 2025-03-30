@@ -206,6 +206,42 @@ export default function Editor() {
     }
   };
   
+  // Delete page
+  const deletePage = (chapterIndex: number, pageIndex: number) => {
+    if (bookContent.chapters[chapterIndex].pages.length <= 1) {
+      toast({
+        title: 'Action impossible',
+        description: 'Vous devez conserver au moins une page par chapitre.',
+        variant: 'destructive'
+      });
+      return;
+    }
+    
+    const updatedChapters = [...bookContent.chapters];
+    const chapter = {...updatedChapters[chapterIndex]};
+    
+    // Remove the page at pageIndex
+    chapter.pages = chapter.pages.filter((_, idx) => idx !== pageIndex);
+    
+    // Update page numbers for remaining pages
+    chapter.pages = chapter.pages.map((page, idx) => ({
+      ...page,
+      pageNumber: idx + 1
+    }));
+    
+    updatedChapters[chapterIndex] = chapter;
+    
+    setBookContent({
+      ...bookContent,
+      chapters: updatedChapters
+    });
+    
+    // Adjust current page index if necessary
+    if (currentChapterIndex === chapterIndex && currentPageIndex >= chapter.pages.length) {
+      setCurrentPageIndex(Math.max(0, chapter.pages.length - 1));
+    }
+  };
+  
   // Update page content
   const updatePageContent = (content: string) => {
     if (bookContent.chapters.length === 0) return;
@@ -327,10 +363,13 @@ export default function Editor() {
           setBook={setBookContent}
           currentChapterIndex={currentChapterIndex}
           setCurrentChapterIndex={setCurrentChapterIndex}
+          currentPageIndex={currentPageIndex}
           setCurrentPageIndex={setCurrentPageIndex}
           addChapter={addChapter}
+          addPage={addPage}
           updateChapterTitle={updateChapterTitle}
           deleteChapter={deleteChapter}
+          deletePage={deletePage}
           collapsed={sidebarCollapsed}
           setCollapsed={setSidebarCollapsed}
         />
