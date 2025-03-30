@@ -131,10 +131,11 @@ export default function Sidebar({
           </div>
           
           {/* Cover Page Section */}
-          {book.coverPage && (
+          <div className="mb-2">
+            <h3 className="text-xs font-medium text-gray-500 mb-2">Page Spéciale</h3>
             <div 
-              className={`flex items-center justify-between p-2 mt-2 rounded bg-gradient-to-r from-primary/10 to-secondary/10 cursor-pointer hover:from-primary/20 hover:to-secondary/20 ${
-                currentChapterIndex === -1 ? 'border-2 border-primary/30' : ''
+              className={`flex items-center justify-between p-2 rounded bg-gradient-to-r from-primary/20 to-secondary/20 cursor-pointer hover:from-primary/30 hover:to-secondary/30 ${
+                currentChapterIndex === -1 ? 'border-2 border-primary/40' : ''
               }`}
               onClick={() => {
                 setCurrentChapterIndex(-1);
@@ -147,8 +148,11 @@ export default function Sidebar({
                 </div>
                 <span className="text-sm font-medium">Couverture</span>
               </div>
+              <div className="text-xs text-primary bg-white/60 px-1.5 py-0.5 rounded">
+                Obligatoire
+              </div>
             </div>
-          )}
+          </div>
         </div>
         
         {/* Chapters Section */}

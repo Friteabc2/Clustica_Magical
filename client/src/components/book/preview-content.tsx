@@ -131,17 +131,34 @@ export default function PreviewContent({
     <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8 bg-gray-100">
       <div className="max-w-3xl mx-auto">
         {isCoverPage ? (
-          // Aperçu de la page de couverture
-          <div className="mb-8 bg-white shadow-md rounded-lg overflow-hidden">
-            <div className="bg-gradient-to-r from-primary to-secondary p-8 flex flex-col items-center justify-center text-white text-center min-h-[280px]">
-              <h1 className="text-4xl font-bold mb-4">{book.title}</h1>
-              <p className="text-lg">par {book.author}</p>
+          // Aperçu de la page de couverture avec un design spécial
+          <div className="mb-8 bg-gradient-to-b from-white to-gray-50 shadow-lg rounded-lg overflow-hidden border border-gray-200">
+            <div className="relative">
+              {/* Badge "Page de couverture" */}
+              <div className="absolute top-4 right-4 bg-primary text-white text-xs font-bold px-2 py-1 rounded-full">
+                COUVERTURE
+              </div>
+              
+              {/* Haut de la couverture avec dégradé */}
+              <div className="bg-gradient-to-br from-primary/90 to-secondary/90 p-12 flex flex-col items-center justify-center text-white text-center min-h-[320px]">
+                <div className="bg-white/10 p-6 rounded-lg backdrop-blur-sm border border-white/20 shadow-lg transform -rotate-1">
+                  <h1 className="text-5xl font-bold mb-6 font-serif">{book.title}</h1>
+                  <p className="text-xl italic">par {book.author}</p>
+                </div>
+              </div>
             </div>
+            
+            {/* Contenu de la page de couverture */}
             {book.coverPage && book.coverPage.content && (
-              <div className="p-6 prose max-w-none" 
+              <div className="p-8 prose max-w-none bg-white border-t border-gray-200" 
                    dangerouslySetInnerHTML={{ __html: book.coverPage.content }}>
               </div>
             )}
+            
+            {/* Information sur la page spéciale */}
+            <div className="bg-gray-50 border-t border-gray-200 p-4 text-center text-gray-500 text-sm">
+              Cette page spéciale apparaîtra toujours en premier dans votre livre
+            </div>
           </div>
         ) : (
           // Aperçu du chapitre et de la page

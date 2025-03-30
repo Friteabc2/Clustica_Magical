@@ -34,7 +34,9 @@ export function getEmptyBook(title: string = 'Nouveau Livre', author: string = '
     title,
     author,
     coverPage: {
-      content: '<p>Couverture de votre livre</p>',
+      content: `<p>Bienvenue dans votre nouveau livre!</p>
+<p>Cette page de couverture est une page spéciale qui sera toujours la première de votre livre. Vous pouvez modifier son contenu ici, mais elle ne peut pas être supprimée.</p>
+<p>Utilisez la barre d'outils ci-dessus pour ajouter du texte mis en forme, des images, et d'autres éléments à votre page de couverture.</p>`,
       pageNumber: 0,
       isCover: true
     },
