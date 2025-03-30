@@ -11,13 +11,15 @@ interface EditorContentProps {
   currentPage: PageContent | null;
   updateContent: (content: string) => void;
   addPage: () => void;
+  onCoverPage?: () => void;
 }
 
 export default function EditorContent({ 
   currentChapter, 
   currentPage,
   updateContent,
-  addPage
+  addPage,
+  onCoverPage
 }: EditorContentProps) {
   const [editorContent, setEditorContent] = useState<string>('');
   const quillRef = useRef<ReactQuill>(null);
@@ -78,7 +80,7 @@ export default function EditorContent({
   if (!currentChapter && currentPage && currentPage.isCover) {
     return (
       <>
-        <EditorToolbar quillRef={quillRef} addPage={addPage} />
+        <EditorToolbar quillRef={quillRef} addPage={addPage} onCoverPage={currentPage?.isCover ? undefined : onCoverPage} />
         
         <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8" id="editor-content-area">
           <div className="max-w-3xl mx-auto">
@@ -129,7 +131,7 @@ export default function EditorContent({
   // Cas standard: édition d'une page de chapitre
   return (
     <>
-      <EditorToolbar quillRef={quillRef} addPage={addPage} />
+      <EditorToolbar quillRef={quillRef} addPage={addPage} onCoverPage={onCoverPage} />
       
       <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8" id="editor-content-area">
         <div className="max-w-3xl mx-auto bg-white shadow-sm rounded-lg p-8 min-h-[calc(100vh-16rem)]">

@@ -307,6 +307,28 @@ export default function Editor() {
     });
   };
   
+  // Mettre à jour automatiquement la couverture lorsque le titre ou l'auteur change
+  useEffect(() => {
+    if (bookContent.coverPage && bookContent.title && bookContent.author) {
+      // Ne pas modifier la couverture si elle a déjà été personnalisée de manière significative
+      if (bookContent.coverPage.content.includes('Créé sur Clustica')) {
+        const newCoverContent = `<div style="text-align: center; margin-bottom: 30px;">
+  <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">${bookContent.title}</h1>
+  <h2 style="font-size: 20px; font-style: italic; margin-bottom: 20px;">par ${bookContent.author}</h2>
+  <p style="color: #666; font-size: 14px;">Créé sur Clustica - Magical</p>
+</div>` + bookContent.coverPage.content.split('</div>').slice(1).join('</div>');
+
+        setBookContent({
+          ...bookContent,
+          coverPage: {
+            ...bookContent.coverPage,
+            content: newCoverContent
+          }
+        });
+      }
+    }
+  }, [bookContent.title, bookContent.author]);
+  
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -431,6 +453,10 @@ export default function Editor() {
               currentPage={currentPage}
               updateContent={updatePageContent}
               addPage={addPage}
+              onCoverPage={() => {
+                setCurrentChapterIndex(-1);
+                setCurrentPageIndex(0);
+              }}
             />
           ) : (
             <PreviewContent 

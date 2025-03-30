@@ -7,7 +7,8 @@ import {
   List,
   ListOrdered,
   Image,
-  FilePlus
+  FilePlus,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -16,9 +17,10 @@ import ReactQuill from 'react-quill';
 interface EditorToolbarProps {
   quillRef: React.RefObject<ReactQuill>;
   addPage: () => void;
+  onCoverPage?: () => void;
 }
 
-export default function EditorToolbar({ quillRef, addPage }: EditorToolbarProps) {
+export default function EditorToolbar({ quillRef, addPage, onCoverPage }: EditorToolbarProps) {
   // Format handler for simple formatting operations
   const handleFormat = (format: string, value: boolean | string = true) => {
     if (!quillRef.current) return;
@@ -82,7 +84,7 @@ export default function EditorToolbar({ quillRef, addPage }: EditorToolbarProps)
             variant="ghost"
             size="sm"
             className="p-2 rounded-md text-gray-500 hover:bg-gray-100"
-            onClick={() => handleFormat('header', 2)}
+            onClick={() => handleFormat('header', '2')}
           >
             <Heading className="h-4 w-4" />
           </Button>
@@ -124,6 +126,19 @@ export default function EditorToolbar({ quillRef, addPage }: EditorToolbarProps)
       <Separator orientation="vertical" className="h-5 mx-2" />
       
       <div className="flex items-center space-x-1">
+        {onCoverPage && (
+          <Tooltip tooltip="Aller à la page de couverture">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 rounded-md bg-gradient-to-r from-primary/10 to-secondary/10 text-primary hover:from-primary/20 hover:to-secondary/20"
+              onClick={onCoverPage}
+            >
+              <BookOpen className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        )}
+        
         <Tooltip tooltip="Ajouter une image">
           <Button
             variant="ghost"

@@ -34,9 +34,12 @@ export function getEmptyBook(title: string = 'Nouveau Livre', author: string = '
     title,
     author,
     coverPage: {
-      content: `<p>Bienvenue dans votre nouveau livre!</p>
-<p>Cette page de couverture est une page spéciale qui sera toujours la première de votre livre. Vous pouvez modifier son contenu ici, mais elle ne peut pas être supprimée.</p>
-<p>Utilisez la barre d'outils ci-dessus pour ajouter du texte mis en forme, des images, et d'autres éléments à votre page de couverture.</p>`,
+      content: `<div style="text-align: center; margin-bottom: 30px;">
+  <h1 style="font-size: 28px; font-weight: bold; margin-bottom: 10px;">${title}</h1>
+  <h2 style="font-size: 20px; font-style: italic; margin-bottom: 20px;">par ${author}</h2>
+  <p style="color: #666; font-size: 14px;">Créé sur Clustica - Magical</p>
+</div>
+<p>Cette page de couverture représente la première impression de votre livre. Vous pouvez modifier son contenu selon vos préférences.</p>`,
       pageNumber: 0,
       isCover: true
     },
