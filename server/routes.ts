@@ -287,6 +287,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/books/generate-ai', async (req: Request, res: Response) => {
     try {
       // Validations du prompt et des options
+      const characterSchema = z.object({
+        name: z.string().optional(),
+        autoGenerateName: z.boolean().optional(),
+        description: z.string().optional(),
+        alignment: z.string().optional(),
+        organization: z.string().optional(),
+        role: z.string().optional()
+      });
+      
       const aiBookRequestSchema = z.object({
         prompt: z.string().min(3, { message: "Le prompt doit contenir au moins 3 caractères" }),
         chaptersCount: z.number().int().min(1).max(10).optional().default(3),
@@ -300,6 +309,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         targetAudience: z.string().optional(),
         tone: z.string().optional(),
         paceStyle: z.string().optional(),
+        additionalStyles: z.array(z.string()).optional(),
+        themes: z.array(z.string()).optional(),
+        characters: z.array(characterSchema).optional(),
         userId: z.number().optional()
       });
       
