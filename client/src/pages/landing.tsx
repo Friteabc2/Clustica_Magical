@@ -102,16 +102,16 @@ export default function Landing() {
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div>
-                <div className="font-bold text-3xl mb-2">10,000+</div>
-                <div className="text-white/80">Ouvrages créés</div>
+                <div className="text-xl font-medium mb-2">Version Pré-Bêta</div>
+                <div className="text-white/80">En développement actif</div>
               </div>
               <div>
-                <div className="font-bold text-3xl mb-2">5,000+</div>
-                <div className="text-white/80">Auteurs actifs</div>
+                <div className="text-xl font-medium mb-2">Facile à utiliser</div>
+                <div className="text-white/80">Interface intuitive</div>
               </div>
               <div>
-                <div className="font-bold text-3xl mb-2">12</div>
-                <div className="text-white/80">Formats d'exportation</div>
+                <div className="text-xl font-medium mb-2">Formats de base</div>
+                <div className="text-white/80">EPUB et HTML</div>
               </div>
             </div>
           </div>
@@ -122,70 +122,70 @@ export default function Landing() {
       <section id="features" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Des fonctionnalités puissantes pour vos créations</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">Fonctionnalités de la pré-bêta</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Tout ce dont vous avez besoin pour écrire, illustrer et publier vos œuvres littéraires.
+              Découvrez les fonctionnalités disponibles dans cette version préliminaire de ClusterBook.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+              <div className="text-primary mb-4">
                 <Feather className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Éditeur Intuitif</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Éditeur Simple</h3>
               <p className="text-gray-600">
-                Notre éditeur WYSIWYG vous permet de créer sans effort des mises en page complexes avec une interface simple et intuitive.
+                Un éditeur basique mais fonctionnel pour créer et organiser le contenu de vos livres par chapitres et pages.
               </p>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+              <div className="text-primary mb-4">
                 <Sparkles className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Génération IA</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Assistance IA (Bêta)</h3>
               <p className="text-gray-600">
-                Génération automatique de contenu avec notre IA avancée. Créez des histoires complètes à partir d'un simple prompt.
+                Testez notre générateur de livres par IA en développement. Fonctionnalité expérimentale avec Mistral AI.
               </p>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+              <div className="text-primary mb-4">
                 <Cloud className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Sauvegarde Cloud</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Synchronisation Dropbox</h3>
               <p className="text-gray-600">
-                Vos œuvres sont automatiquement sauvegardées dans le cloud et synchronisées avec Dropbox pour un accès partout.
+                Sauvegardez vos projets dans Dropbox pour les protéger et y accéder depuis n'importe quel appareil.
               </p>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+              <div className="text-primary mb-4">
                 <Book className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Formats Multiples</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Export EPUB</h3>
               <p className="text-gray-600">
-                Exportez vos livres dans différents formats : EPUB, PDF, HTML et plus encore, prêts pour l'impression ou la publication numérique.
+                Exportez vos livres au format EPUB, compatible avec la plupart des liseuses numériques et applications de lecture.
               </p>
             </div>
 
             <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+              <div className="text-primary mb-4">
                 <BookOpen className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Modèles Professionnels</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Structure Basique</h3>
               <p className="text-gray-600">
-                Des dizaines de modèles professionnels pour tous types de publications : romans, mémoires, livres pour enfants, manuels techniques...
+                Organisez votre livre avec une structure simple comprenant chapitres et pages, avec possibilité de prévisualisation.
               </p>
             </div>
 
-            <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-              <div className="text-indigo-600 mb-4">
+            <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-lg transition-shadow border-2 border-dashed border-primary/30">
+              <div className="text-gray-400 mb-4">
                 <Star className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Support Premium</h3>
-              <p className="text-gray-600">
-                Un support client prioritaire et des fonctionnalités exclusives pour les membres Premium. Évolution constante selon vos besoins.
+              <h3 className="text-xl font-bold mb-3 text-gray-500">Fonctionnalités à venir</h3>
+              <p className="text-gray-500">
+                De nombreuses améliorations sont prévues : modèles avancés, collaboration en temps réel, export PDF et bien plus.
               </p>
             </div>
           </div>
@@ -334,79 +334,74 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* À propos et Roadmap Section */}
       <section id="testimonials" className="py-20 bg-gray-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-gray-900 mb-4">Ce que disent nos utilisateurs</h2>
+            <h2 className="text-3xl font-bold text-gray-900 mb-4">À propos de la pré-bêta</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Des milliers d'auteurs font confiance à ClusterBook pour leurs créations littéraires.
+              ClusterBook est actuellement en phase de développement actif. Voici ce que vous pouvez attendre de cette version préliminaire.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <div className="bg-white p-8 rounded-lg shadow">
-              <div className="flex items-center mb-4">
-                <div className="text-yellow-400 flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-current" />
-                  ))}
-                </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              <div className="text-primary mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
               </div>
-              <p className="text-gray-700 mb-6">
-                "ClusterBook a transformé ma façon d'écrire. L'interface intuitive et les fonctionnalités de sauvegarde cloud m'ont permis de finaliser mon roman en moitié moins de temps."
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Objectif du projet</h3>
+              <p className="text-gray-700 mb-4">
+                ClusterBook vise à offrir aux auteurs indépendants et aux créateurs de contenu un outil simple mais puissant pour créer, organiser et publier leurs œuvres littéraires.
               </p>
-              <div className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  ML
-                </div>
-                <div className="ml-3">
-                  <h4 className="text-sm font-bold">Marie Laurent</h4>
-                  <p className="text-sm text-gray-500">Auteure de "Le Mystère des Étoiles"</p>
-                </div>
-              </div>
+              <p className="text-gray-700">
+                Cette version pré-bêta vous permet de tester les fonctionnalités de base et de nous aider à façonner l'avenir de l'application avec vos retours.
+              </p>
             </div>
 
-            <div className="bg-white p-8 rounded-lg shadow">
-              <div className="flex items-center mb-4">
-                <div className="text-yellow-400 flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-current" />
-                  ))}
-                </div>
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              <div className="text-primary mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
               </div>
-              <p className="text-gray-700 mb-6">
-                "La génération IA est incroyable ! J'ai créé un livre pour enfants complet en quelques heures seulement, avec des illustrations et une histoire cohérente. Un outil révolutionnaire."
+              <h3 className="text-xl font-bold mb-3 text-gray-900">État actuel</h3>
+              <p className="text-gray-700 mb-4">
+                La pré-bêta inclut les fonctionnalités essentielles : création et édition de livres, organisation en chapitres, sauvegarde cloud via Dropbox et export EPUB basique.
               </p>
-              <div className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  PD
-                </div>
-                <div className="ml-3">
-                  <h4 className="text-sm font-bold">Pierre Dupont</h4>
-                  <p className="text-sm text-gray-500">Illustrateur et auteur jeunesse</p>
-                </div>
-              </div>
+              <p className="text-gray-700">
+                Notre IA assistante est en phase expérimentale et s'améliore continuellement. L'interface utilisateur est fonctionnelle mais sera affinée avant la version finale.
+              </p>
             </div>
 
-            <div className="bg-white p-8 rounded-lg shadow">
-              <div className="flex items-center mb-4">
-                <div className="text-yellow-400 flex">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="h-5 w-5 fill-current" />
-                  ))}
-                </div>
+            <div className="bg-white p-8 rounded-lg shadow-md">
+              <div className="text-primary mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
               </div>
-              <p className="text-gray-700 mb-6">
-                "En tant qu'éditeur indépendant, ClusterBook est devenu notre outil principal pour préparer nos manuscrits. L'exportation multi-format nous fait gagner un temps précieux."
-              </p>
-              <div className="flex items-center">
-                <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
-                  SF
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Roadmap</h3>
+              <div className="space-y-3">
+                <div className="flex items-baseline space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-green-400"></div>
+                  <p className="text-gray-700">Editeur de base et sauvegarde</p>
                 </div>
-                <div className="ml-3">
-                  <h4 className="text-sm font-bold">Sophie Favreau</h4>
-                  <p className="text-sm text-gray-500">Éditions Nouvelles Plumes</p>
+                <div className="flex items-baseline space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-green-400"></div>
+                  <p className="text-gray-700">Export EPUB simple</p>
+                </div>
+                <div className="flex items-baseline space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-yellow-400"></div>
+                  <p className="text-gray-700">Génération IA avancée</p>
+                </div>
+                <div className="flex items-baseline space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-gray-300"></div>
+                  <p className="text-gray-500">Modèles et templates</p>
+                </div>
+                <div className="flex items-baseline space-x-2">
+                  <div className="h-3 w-3 rounded-full bg-gray-300"></div>
+                  <p className="text-gray-500">Exportation PDF & plus</p>
                 </div>
               </div>
             </div>
@@ -415,23 +410,23 @@ export default function Landing() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-indigo-700 text-white py-20">
+      <section className="bg-primary text-white py-20">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-6">Prêt à concrétiser votre projet littéraire ?</h2>
-          <p className="text-xl text-indigo-100 mb-8 max-w-3xl mx-auto">
-            Rejoignez des milliers d'auteurs qui créent des œuvres exceptionnelles avec ClusterBook.
+          <h2 className="text-3xl font-bold mb-6">Envie de tester la version pré-bêta ?</h2>
+          <p className="text-xl text-white/80 mb-8 max-w-3xl mx-auto">
+            Participez au développement de ClusterBook en testant cette version préliminaire et en partageant vos retours.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button 
               onClick={() => navigate('/register')} 
-              className="bg-white text-indigo-700 hover:bg-indigo-100 py-3 px-6 text-lg"
+              className="bg-white text-primary hover:bg-white/90 py-3 px-6 text-lg"
             >
-              Commencer gratuitement <ChevronRight className="ml-2 h-5 w-5" />
+              S'inscrire à la pré-bêta <ChevronRight className="ml-2 h-5 w-5" />
             </Button>
             <Button 
               onClick={() => navigate('/login')} 
               variant="outline"
-              className="bg-transparent border-white text-white hover:bg-white hover:text-indigo-700 py-3 px-6 text-lg"
+              className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-3 px-6 text-lg"
             >
               Se connecter
             </Button>
