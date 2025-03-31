@@ -63,7 +63,8 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
     }
 
     setIsGenerating(true);
-
+    // Réinitialiser la barre de progression et créer des nouveaux objets qui tombent
+    
     try {
       // Préparer les informations des personnages
       const characterData = characters.map(char => ({
@@ -142,7 +143,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         variant: "destructive"
       });
     } finally {
-      setIsGenerating(false);
+      setTimeout(() => {
+        setIsGenerating(false);
+      }, 1000); // Laisser un délai pour permettre à l'animation de se terminer proprement
     }
   };
 

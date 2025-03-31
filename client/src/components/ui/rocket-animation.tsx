@@ -52,7 +52,17 @@ export const RocketAnimation: React.FC<RocketAnimationProps> = ({ isActive }) =>
         setProgress(prev => {
           // Progression plus lente au début et à la fin pour simuler une accélération et décélération
           const newProgress = prev + (prev < 20 ? 0.2 : prev > 80 ? 0.2 : 0.5);
-          return newProgress >= 100 ? 100 : newProgress;
+          
+          // Si on atteint 100%, on efface les objets qui tombent
+          if (newProgress >= 100) {
+            // Petit délai avant de supprimer les objets pour une transition plus douce
+            setTimeout(() => {
+              setFallingObjects([]); // Arrête la chute des objets
+            }, 1000);
+            return 100;
+          }
+          
+          return newProgress;
         });
       }, 300);
       
