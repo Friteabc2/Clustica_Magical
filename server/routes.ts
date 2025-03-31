@@ -104,9 +104,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid book ID' });
       }
       
+      // Afficher le contenu reçu pour déboguer
+      console.log("Contenu reçu pour mise à jour:", JSON.stringify(req.body, null, 2).substring(0, 200) + "...");
+      
       // Validate the request body
       const contentResult = bookContentSchema.safeParse(req.body);
       if (!contentResult.success) {
+        console.error("Erreur de validation:", JSON.stringify(contentResult.error.errors, null, 2));
         return res.status(400).json({ 
           message: 'Invalid book content',
           errors: contentResult.error.errors
