@@ -13,8 +13,17 @@ import ExportModal from '@/components/book/export-modal';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 
-export default function Editor() {
-  const { id } = useParams<{ id: string }>();
+interface EditorProps {
+  params?: {
+    id?: string;
+  };
+}
+
+export default function Editor({ params }: EditorProps = {}) {
+  // Utiliser soit les params passés par les props, soit useParams du hook wouter
+  const routeParams = useParams<{ id: string }>();
+  const id = params?.id || routeParams.id;
+  
   const [_, navigate] = useLocation();
   const { toast } = useToast();
   const { currentUser, userInfo } = useAuth();
@@ -24,17 +33,7 @@ export default function Editor() {
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   
-  // Rediriger l'utilisateur vers la page de connexion s'il n'est pas connecté
-  useEffect(() => {
-    if (!currentUser && !userInfo) {
-      toast({
-        title: "Authentification requise",
-        description: "Vous devez être connecté pour utiliser l'éditeur de livre.",
-        variant: "destructive"
-      });
-      navigate('/login');
-    }
-  }, [currentUser, userInfo, navigate, toast]);
+  // Note: La redirection est maintenant gérée par le composant PrivateRoute
   
   // Initialiser le contenu du livre par défaut en utilisant notre fonction utilitaire
   // et inclure l'ID de l'utilisateur si disponible

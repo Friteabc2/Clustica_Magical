@@ -30,7 +30,11 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-export default function LoginForm() {
+interface LoginFormProps {
+  redirectPath?: string;
+}
+
+export default function LoginForm({ redirectPath = '/' }: LoginFormProps) {
   const { login } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();
@@ -54,7 +58,8 @@ export default function LoginForm() {
         title: "Connexion réussie",
         description: "Vous êtes maintenant connecté",
       });
-      navigate("/");
+      // Rediriger vers le chemin d'origine après connexion réussie
+      navigate(redirectPath);
     } catch (error: any) {
       // Gérer les erreurs d'authentification
       let errorMessage = "Une erreur est survenue lors de la connexion";

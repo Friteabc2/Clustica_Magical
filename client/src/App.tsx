@@ -8,15 +8,39 @@ import Editor from "@/pages/editor";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import { AuthProvider } from "@/contexts/AuthContext";
+import PrivateRoute from "@/components/auth/PrivateRoute";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route path="/editor/:id" component={Editor} />
-      <Route path="/editor" component={Editor} />
+      
+      {/* Routes protégées qui nécessitent une authentification */}
+      <Route path="/">
+        {() => (
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        )}
+      </Route>
+      
+      <Route path="/editor/:id">
+        {({id}) => (
+          <PrivateRoute>
+            <Editor params={{id}} />
+          </PrivateRoute>
+        )}
+      </Route>
+      
+      <Route path="/editor">
+        {() => (
+          <PrivateRoute>
+            <Editor />
+          </PrivateRoute>
+        )}
+      </Route>
+      
       <Route component={NotFound} />
     </Switch>
   );

@@ -3,19 +3,29 @@ import { Helmet } from "react-helmet";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import LoginForm from "@/components/auth/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation } from "wouter";
 
 export default function Login() {
   const { currentUser } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
+  const [redirectPath, setRedirectPath] = useState('/');
 
-  // Rediriger vers la page d'accueil si déjà connecté
+  // Extraire le chemin de redirection des paramètres d'URL si présent
+  useEffect(() => {
+    const searchParams = new URLSearchParams(window.location.search);
+    const redirect = searchParams.get('redirect');
+    if (redirect) {
+      setRedirectPath(decodeURIComponent(redirect));
+    }
+  }, []);
+
+  // Rediriger vers la page d'origine ou d'accueil si déjà connecté
   useEffect(() => {
     if (currentUser) {
-      navigate('/');
+      navigate(redirectPath);
     }
-  }, [currentUser, navigate]);
+  }, [currentUser, navigate, redirectPath]);
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -31,7 +41,7 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <LoginForm />
+          <LoginForm redirectPath={redirectPath} />
         </CardContent>
         <CardFooter className="flex flex-col space-y-4">
           <div className="text-sm text-center text-gray-500">
