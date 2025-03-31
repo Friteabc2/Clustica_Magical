@@ -236,9 +236,6 @@ export class DropboxStorage implements IStorage {
       
       this.initialized = true;
       console.log(`${dropboxBooks.length} livres chargés depuis Dropbox.`);
-      
-      // Recalculer les compteurs de livres pour chaque utilisateur
-      await this.recalculateUserBookCounters();
     } catch (error) {
       console.error("Erreur lors du chargement des livres depuis Dropbox:", error);
     }
@@ -367,67 +364,6 @@ export class DropboxStorage implements IStorage {
   
   async updateUser(id: number, user: Partial<User>): Promise<User | undefined> {
     return this.memStorage.updateUser(id, user);
-  }
-  
-  /**
-   * Recalcule les compteurs de livres pour tous les utilisateurs
-   * en fonction des livres existants dans le stockage
-   */
-  private async recalculateUserBookCounters(): Promise<void> {
-    try {
-      console.log("Recalcul des compteurs de livres pour les utilisateurs...");
-      
-      // Récupérer tous les livres
-      const allBooks = await this.memStorage.getBooks();
-      
-      // Créer un map pour suivre les compteurs par utilisateur
-      const userCounters: Map<number, { total: number, ai: number }> = new Map();
-      
-      // Parcourir tous les livres et incrémenter les compteurs appropriés
-      for (const book of allBooks) {
-        if (typeof book.userId === 'number') {
-          // Initialiser les compteurs si nécessaire
-          if (!userCounters.has(book.userId)) {
-            userCounters.set(book.userId, { total: 0, ai: 0 });
-          }
-          
-          const counters = userCounters.get(book.userId)!;
-          
-          // Incrémenter le compteur total
-          counters.total += 1;
-          
-          // Vérifier si c'est un livre AI en examinant son contenu
-          try {
-            const content = await this.getBookContent(book.id);
-            const isAIBook = content?.chapters?.some(chapter => 
-              chapter.pages?.some(page => page.content?.includes('généré par l\'IA'))
-            ) || false;
-            
-            if (isAIBook) {
-              counters.ai += 1;
-            }
-          } catch (error) {
-            console.error(`Erreur lors de la vérification du contenu AI du livre ${book.id}:`, error);
-          }
-        }
-      }
-      
-      // Mettre à jour les compteurs pour chaque utilisateur
-      for (const [userId, counters] of userCounters.entries()) {
-        const user = await this.memStorage.getUser(userId);
-        if (user) {
-          await this.memStorage.updateUser(userId, {
-            booksCreated: counters.total,
-            aiBooksCreated: counters.ai
-          });
-          console.log(`Compteurs mis à jour pour l'utilisateur ${userId}: ${counters.total} livres (${counters.ai} AI)`);
-        }
-      }
-      
-      console.log("Recalcul des compteurs terminé.");
-    } catch (error) {
-      console.error("Erreur lors du recalcul des compteurs:", error);
-    }
   }
 }
 
