@@ -1,9 +1,17 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { DropboxService } from "./services/dropbox-service";
+
+// Vérification des variables d'environnement pour Dropbox
+if (!process.env.DROPBOX_APP_KEY || !process.env.DROPBOX_APP_SECRET || !process.env.DROPBOX_REFRESH_TOKEN) {
+  log("⚠️ Variables d'environnement Dropbox manquantes. Certaines fonctionnalités peuvent ne pas fonctionner correctement.", "dropbox");
+} else {
+  log("✅ Variables d'environnement Dropbox détectées", "dropbox");
+}
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les livres volumineux
 app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {

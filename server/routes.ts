@@ -14,6 +14,9 @@ import Epub from 'epub-gen';
 // Service d'IA pour la génération de livres
 import { AIService, AIBookRequest } from "./services/ai-service";
 
+// Service Dropbox pour la synchronisation des livres
+import { DropboxService } from "./services/dropbox-service";
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
@@ -250,24 +253,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await new Promise<void>((resolve, reject) => {
         new Epub(epubOptions, outputPath).promise
           .then(() => resolve())
-          .catch(err => reject(err));
+          .catch((err: Error) => reject(err));
       });
       
       // Send the file back to the client
-      res.download(outputPath, filename, (err) => {
+      res.download(outputPath, filename, (err: Error | null) => {
         if (err) {
           console.error('Error sending file:', err);
           return res.status(500).json({ message: 'Failed to send EPUB file' });
         }
         
         // Clean up the file after sending
-        fs.unlink(outputPath, (unlinkErr) => {
+        fs.unlink(outputPath, (unlinkErr: NodeJS.ErrnoException | null) => {
           if (unlinkErr) console.error('Error deleting temporary file:', unlinkErr);
         });
       });
     } catch (error) {
       console.error('Error exporting book to EPUB:', error);
       res.status(500).json({ message: 'Failed to export book to EPUB' });
+    }
+  });
+
+  // Endpoint pour synchroniser manuellement les livres avec Dropbox
+  app.post('/api/dropbox/sync', async (req: Request, res: Response) => {
+    try {
+      // Récupère tous les livres
+      const books = await storage.getBooks();
+      const results = [];
+      
+      // Synchronise chaque livre avec Dropbox
+      for (const book of books) {
+        try {
+          const content = await storage.getBookContent(book.id);
+          if (content) {
+            await DropboxService.saveBook(book.id, content);
+            results.push({ id: book.id, title: book.title, status: 'success' });
+          } else {
+            results.push({ id: book.id, title: book.title, status: 'error', message: 'Contenu introuvable' });
+          }
+        } catch (error) {
+          console.error(`Erreur lors de la synchronisation du livre ${book.id}:`, error);
+          const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+          results.push({ id: book.id, title: book.title, status: 'error', message: errorMessage });
+        }
+      }
+      
+      res.json({ 
+        message: `Synchronisation terminée pour ${books.length} livres`,
+        results 
+      });
+    } catch (error) {
+      console.error('Erreur lors de la synchronisation avec Dropbox:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      res.status(500).json({ message: 'Échec de la synchronisation avec Dropbox', error: errorMessage });
+    }
+  });
+  
+  // Endpoint pour lister les livres stockés sur Dropbox
+  app.get('/api/dropbox/books', async (req: Request, res: Response) => {
+    try {
+      const books = await DropboxService.listBooks();
+      res.json(books);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des livres depuis Dropbox:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      res.status(500).json({ message: 'Échec de la récupération des livres depuis Dropbox', error: errorMessage });
     }
   });
 

@@ -6,7 +6,7 @@ import { useLocation } from 'wouter';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { PlusCircle, BookOpen, Trash2, Sparkles } from 'lucide-react';
+import { PlusCircle, BookOpen, Trash2, Sparkles, Cloud, Download } from 'lucide-react';
 import { type Book as BookType } from '@shared/schema';
 import AIBookModal from '@/components/book/ai-book-modal';
 
@@ -17,10 +17,17 @@ export default function Home() {
   const [newBookAuthor, setNewBookAuthor] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
+  const [isDropboxSyncModalOpen, setIsDropboxSyncModalOpen] = useState(false);
 
   // Fetch books
   const { data: books, isLoading } = useQuery<BookType[]>({
     queryKey: ['/api/books']
+  });
+  
+  // Fetch Dropbox books (only when modal is open)
+  const { data: dropboxBooks, isLoading: isLoadingDropboxBooks, refetch: refetchDropboxBooks } = useQuery<{id: number, path: string}[]>({
+    queryKey: ['/api/dropbox/books'],
+    enabled: isDropboxSyncModalOpen,
   });
 
   // Create book mutation
@@ -87,11 +94,40 @@ export default function Home() {
     });
   };
 
+  // Sync books to Dropbox mutation
+  const syncToDropbox = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/dropbox/sync');
+      return await res.json();
+    },
+    onSuccess: (data: { results: Array<{ status: string }> }) => {
+      toast({
+        title: "Synchronisation réussie",
+        description: `${data.results.filter((r: { status: string }) => r.status === 'success').length} livres synchronisés avec Dropbox.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/dropbox/books'] });
+    },
+    onError: (error) => {
+      toast({
+        title: "Erreur de synchronisation",
+        description: error.message || "Impossible de synchroniser avec Dropbox.",
+        variant: "destructive",
+      });
+    }
+  });
+
   // Handle cancel create
   const handleCancelCreate = () => {
     setIsCreating(false);
     setNewBookTitle('Nouveau Livre');
     setNewBookAuthor('');
+  };
+  
+  // Handle synchronization with Dropbox
+  const handleSyncToDropbox = () => {
+    if (window.confirm("Voulez-vous synchroniser tous vos livres avec Dropbox ?")) {
+      syncToDropbox.mutate();
+    }
   };
 
   return (
@@ -118,6 +154,15 @@ export default function Home() {
             <h1 className="text-2xl font-bold text-gray-800">Vos Livres</h1>
             {!isCreating && (
               <div className="flex space-x-2">
+                <Button 
+                  onClick={handleSyncToDropbox} 
+                  disabled={syncToDropbox.isPending}
+                  className="bg-blue-500 hover:bg-blue-600 text-white" 
+                  title="Sauvegarder tous vos livres dans Dropbox"
+                >
+                  <Cloud className="h-4 w-4 mr-2" />
+                  {syncToDropbox.isPending ? 'Synchronisation...' : 'Synchroniser avec Dropbox'}
+                </Button>
                 <Button 
                   onClick={() => setIsAIModalOpen(true)} 
                   className="bg-indigo-500 hover:bg-indigo-600 text-white"
