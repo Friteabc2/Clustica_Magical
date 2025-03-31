@@ -110,6 +110,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid user ID' });
       }
       
+      // Vérification des limites du plan gratuit si un utilisateur est spécifié
+      if (bookData.userId) {
+        const userId = parseInt(bookData.userId);
+        const user = await storage.getUser(userId);
+        
+        if (user && user.plan === 'free') {
+          // Vérifier le nombre de livres créés pour le plan gratuit (max 3)
+          if (user.booksCreated >= 3) {
+            return res.status(403).json({ 
+              message: 'Limite atteinte pour le plan gratuit', 
+              error: 'FREE_PLAN_LIMIT_REACHED',
+              details: 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Passez à un plan premium pour créer plus de livres.'
+            });
+          }
+          
+          // Incrémenter le compteur de livres créés
+          await storage.updateUser(userId, {
+            booksCreated: (user.booksCreated || 0) + 1
+          });
+        }
+      }
+      
       // Create default book structure if not provided
       if (!bookData.chapters) {
         bookData.chapters = [];
@@ -141,6 +163,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: 'Invalid book content',
           errors: contentResult.error.errors
         });
+      }
+      
+      // Vérification des limites du plan gratuit si un utilisateur est associé au livre
+      const book = await storage.getBook(id);
+      if (book && book.userId) {
+        const user = await storage.getUser(book.userId);
+        
+        if (user && user.plan === 'free') {
+          // Limiter le nombre de chapitres pour les utilisateurs gratuits (max 3)
+          if (contentResult.data.chapters && contentResult.data.chapters.length > 3) {
+            return res.status(403).json({
+              message: 'Limite du plan gratuit atteinte',
+              error: 'FREE_PLAN_CHAPTERS_LIMIT_REACHED',
+              details: 'Les utilisateurs gratuits sont limités à 3 chapitres par livre maximum. Passez au plan premium pour créer des livres plus longs.'
+            });
+          }
+          
+          // Limiter le nombre de pages par chapitre pour les utilisateurs gratuits (max 3)
+          if (contentResult.data.chapters) {
+            for (const chapter of contentResult.data.chapters) {
+              if (chapter.pages && chapter.pages.length > 3) {
+                return res.status(403).json({
+                  message: 'Limite du plan gratuit atteinte',
+                  error: 'FREE_PLAN_PAGES_LIMIT_REACHED',
+                  details: 'Les utilisateurs gratuits sont limités à 3 pages par chapitre maximum. Passez au plan premium pour créer des chapitres plus longs.'
+                });
+              }
+            }
+          }
+        }
       }
       
       const updatedBook = await storage.updateBookContent(id, contentResult.data);
@@ -209,7 +261,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const aiBookRequestSchema = z.object({
         prompt: z.string().min(3, { message: "Le prompt doit contenir au moins 3 caractères" }),
         chaptersCount: z.number().int().min(1).max(10).optional().default(3),
-        pagesPerChapter: z.number().int().min(1).max(5).optional().default(1)
+        pagesPerChapter: z.number().int().min(1).max(5).optional().default(1),
+        userId: z.number().optional()
       });
       
       const validationResult = aiBookRequestSchema.safeParse(req.body);
@@ -220,13 +273,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      // Vérification des limites du plan gratuit si un userId est spécifié
+      const userId = validationResult.data.userId;
+      if (userId) {
+        const user = await storage.getUser(userId);
+        
+        if (user && user.plan === 'free') {
+          // Vérifier la limite de livres AI pour le plan gratuit (max 1)
+          if (user.aiBooksCreated >= 1) {
+            return res.status(403).json({ 
+              message: 'Limite atteinte pour le plan gratuit', 
+              error: 'FREE_PLAN_AI_LIMIT_REACHED',
+              details: 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
+            });
+          }
+          
+          // Limiter le nombre de chapitres et de pages pour les utilisateurs gratuits
+          const chaptersCount = Math.min(validationResult.data.chaptersCount, 3);
+          const pagesPerChapter = Math.min(validationResult.data.pagesPerChapter, 3);
+          
+          // Mettre à jour les valeurs limitées
+          validationResult.data.chaptersCount = chaptersCount;
+          validationResult.data.pagesPerChapter = pagesPerChapter;
+          
+          // Incrémenter le compteur de livres AI créés
+          await storage.updateUser(userId, {
+            aiBooksCreated: (user.aiBooksCreated || 0) + 1
+          });
+        }
+      }
+      
       // Génération du livre avec l'IA
       const bookContent = await AIService.generateBook(validationResult.data);
+      
+      // Ajouter l'ID utilisateur au contenu du livre s'il est fourni
+      if (userId) {
+        bookContent.userId = userId;
+      }
       
       // Création du livre dans le stockage
       const book = await storage.createBook({
         title: bookContent.title,
         author: bookContent.author,
+        userId: userId,
       });
       
       // Mise à jour du contenu du livre 
@@ -414,17 +503,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(409).json({ message: 'Un utilisateur avec cet email ou cet UID Firebase existe déjà' });
       }
       
-      // Créer le nouvel utilisateur
+      // Créer le nouvel utilisateur avec le plan gratuit par défaut
       const user = await storage.createUser({
         email: validationResult.data.email,
         firebaseUid: validationResult.data.firebaseUid,
-        displayName: validationResult.data.displayName
+        displayName: validationResult.data.displayName,
+        plan: 'free',
+        booksCreated: 0,
+        aiBooksCreated: 0
       });
       
       res.status(201).json({
         id: user.id,
         email: user.email,
-        displayName: user.displayName
+        displayName: user.displayName,
+        plan: user.plan,
+        booksCreated: user.booksCreated,
+        aiBooksCreated: user.aiBooksCreated
       });
     } catch (error) {
       console.error('Erreur lors de la création de l\'utilisateur:', error);
@@ -445,7 +540,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({
         id: user.id,
         email: user.email,
-        displayName: user.displayName
+        displayName: user.displayName,
+        plan: user.plan,
+        booksCreated: user.booksCreated,
+        aiBooksCreated: user.aiBooksCreated
       });
     } catch (error) {
       console.error('Erreur lors de la récupération des informations utilisateur:', error);

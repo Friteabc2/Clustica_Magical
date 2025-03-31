@@ -7,6 +7,9 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 255 }).notNull(),
   firebaseUid: varchar("firebase_uid", { length: 255 }).notNull(),
   displayName: varchar("display_name", { length: 255 }),
+  plan: varchar("plan", { length: 50 }).default("free").notNull(),
+  booksCreated: integer("books_created").default(0).notNull(),
+  aiBooksCreated: integer("ai_books_created").default(0).notNull(),
   createdAt: integer("created_at").notNull(),
   updatedAt: integer("updated_at").notNull(),
 }, (table) => {
@@ -56,6 +59,9 @@ export const insertUserSchema = createInsertSchema(users).pick({
   email: true,
   firebaseUid: true,
   displayName: true,
+  plan: true,
+  booksCreated: true,
+  aiBooksCreated: true,
 });
 
 export const insertBookSchema = createInsertSchema(books).pick({

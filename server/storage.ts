@@ -12,6 +12,7 @@ export interface IStorage {
   updateBookContent(id: number, content: BookContent): Promise<Book | undefined>;
   
   // Méthodes de gestion des utilisateurs
+  getUser(id: number): Promise<User | undefined>;
   getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
@@ -116,6 +117,9 @@ export class MemStorage implements IStorage {
   }
   
   // Méthodes de gestion des utilisateurs
+  async getUser(id: number): Promise<User | undefined> {
+    return this.users.get(id);
+  }
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     // Recherche l'utilisateur par son UID Firebase
     const allUsers = Array.from(this.users.values());
@@ -342,6 +346,10 @@ export class DropboxStorage implements IStorage {
   }
   
   // Méthodes de gestion des utilisateurs - délégation à MemStorage
+  async getUser(id: number): Promise<User | undefined> {
+    return this.memStorage.getUser(id);
+  }
+  
   async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
     return this.memStorage.getUserByFirebaseUid(firebaseUid);
   }

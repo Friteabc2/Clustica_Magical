@@ -24,6 +24,9 @@ interface UserInfo {
   id: number;
   email: string;
   displayName: string | null;
+  plan: 'free' | 'premium';
+  booksCreated: number;
+  aiBooksCreated: number;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -78,7 +81,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 body: JSON.stringify({
                   firebaseUid: user.uid,
                   email: user.email || 'unknown@email.com',
-                  displayName: user.displayName || 'Utilisateur'
+                  displayName: user.displayName || 'Utilisateur',
+                  plan: 'free',
+                  booksCreated: 0,
+                  aiBooksCreated: 0
                 }),
                 credentials: 'include'
               });

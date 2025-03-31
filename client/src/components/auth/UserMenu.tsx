@@ -11,7 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { LogOut, User, Settings } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { LogOut, User, Settings, Sparkles, BookText, Bot } from "lucide-react";
 
 export default function UserMenu() {
   const { currentUser, userInfo, logout } = useAuth();
@@ -74,8 +75,46 @@ export default function UserMenu() {
           <div className="flex flex-col">
             <span className="font-medium">{displayName}</span>
             <span className="text-xs text-gray-500 truncate">{currentUser.email}</span>
+            <div className="mt-2 flex items-center">
+              <Badge variant={userInfo?.plan === 'premium' ? "default" : "secondary"} className="flex items-center gap-1">
+                {userInfo?.plan === 'premium' ? (
+                  <>
+                    <Sparkles className="h-3 w-3" />
+                    Premium
+                  </>
+                ) : (
+                  <>
+                    Plan Gratuit
+                  </>
+                )}
+              </Badge>
+            </div>
           </div>
         </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        
+        {/* Usage Stats */}
+        <div className="px-2 py-1.5 text-xs">
+          <div className="flex justify-between mb-1">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <BookText className="h-3 w-3" />
+              Livres créés
+            </div>
+            <span>
+              {userInfo?.booksCreated || 0} / {userInfo?.plan === 'premium' ? 'Illimité' : '3'}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <div className="flex items-center gap-1 text-muted-foreground">
+              <Bot className="h-3 w-3" />
+              Livres IA
+            </div>
+            <span>
+              {userInfo?.aiBooksCreated || 0} / {userInfo?.plan === 'premium' ? 'Illimité' : '1'}
+            </span>
+          </div>
+        </div>
+        
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer"

@@ -57,13 +57,26 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         onClose();
       } else {
         const error = await response.json();
-        throw new Error(error.message || "Erreur lors de la génération du livre");
+        
+        // Vérifier si c'est une erreur spécifique aux limites du plan gratuit
+        if (error.error === 'FREE_PLAN_AI_LIMIT_REACHED') {
+          throw new Error("Limite du plan gratuit atteinte: vous avez déjà créé le nombre maximal de livres IA autorisés. Passez au plan premium pour créer plus de livres avec l'IA.");
+        } else if (error.error === 'FREE_PLAN_LIMIT_REACHED') {
+          throw new Error("Limite du plan gratuit atteinte: vous avez déjà créé le nombre maximal de livres autorisés. Passez au plan premium pour créer plus de livres.");
+        } else {
+          throw new Error(error.message || "Erreur lors de la génération du livre");
+        }
       }
     } catch (error) {
       console.error("Erreur lors de la génération du livre:", error);
+      
+      // Déterminer si c'est une erreur liée aux limitations du plan
+      const errorMessage = error instanceof Error ? error.message : "Une erreur s'est produite lors de la génération du livre.";
+      const isPlanLimitError = errorMessage.includes("Limite du plan gratuit atteinte");
+      
       toast({
-        title: "Échec de la génération",
-        description: error instanceof Error ? error.message : "Une erreur s'est produite lors de la génération du livre.",
+        title: isPlanLimitError ? "Limite du plan atteinte" : "Échec de la génération",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
@@ -81,6 +94,11 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
           </DialogTitle>
           <DialogDescription>
             Décrivez le livre que vous souhaitez créer et notre IA s'occupera du reste.
+            {userInfo?.plan === 'free' && (
+              <div className="mt-2 text-amber-600 text-xs font-medium">
+                Plan Gratuit: Limité à 1 livre IA et maximum 3 chapitres par livre
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
         
@@ -105,12 +123,17 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             <Slider 
               id="chapters"
               min={1}
-              max={10}
+              max={userInfo?.plan === 'free' ? 3 : 10}
               step={1}
               value={[chaptersCount]}
               onValueChange={(values) => setChaptersCount(values[0])}
               disabled={isGenerating}
             />
+            {userInfo?.plan === 'free' && chaptersCount >= 3 && (
+              <p className="text-xs text-amber-600 mt-1">
+                Vous avez atteint la limite de chapitres pour le plan gratuit
+              </p>
+            )}
           </div>
           
           <div className="space-y-2">
@@ -121,12 +144,17 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             <Slider 
               id="pages"
               min={1}
-              max={5}
+              max={userInfo?.plan === 'free' ? 3 : 5}
               step={1}
               value={[pagesPerChapter]}
               onValueChange={(values) => setPagesPerChapter(values[0])}
               disabled={isGenerating}
             />
+            {userInfo?.plan === 'free' && pagesPerChapter >= 3 && (
+              <p className="text-xs text-amber-600 mt-1">
+                Vous avez atteint la limite de pages par chapitre pour le plan gratuit
+              </p>
+            )}
           </div>
         </div>
         
