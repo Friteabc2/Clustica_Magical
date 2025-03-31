@@ -11,6 +11,7 @@ import { type Book as BookType } from '@shared/schema';
 import AIBookModal from '@/components/book/ai-book-modal';
 import Header from '@/components/Header';
 import { useAuth } from '@/contexts/AuthContext';
+import { FadeInElement } from '@/components/ui/page-transition';
 
 export default function Home() {
   const { toast } = useToast();
@@ -238,126 +239,160 @@ export default function Home() {
 
       <main className="flex-1 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-2xl font-bold text-gray-800">Vos Livres</h1>
-            {!isCreating && (
-              <div className="flex space-x-2">
-                <Button 
-                  onClick={handleSyncToDropbox} 
-                  disabled={syncToDropbox.isPending}
-                  className="bg-blue-500 hover:bg-blue-600 text-white" 
-                  title="Sauvegarder tous vos livres dans Dropbox"
-                >
-                  <Cloud className="h-4 w-4 mr-2" />
-                  {syncToDropbox.isPending ? 'Synchronisation...' : 'Synchroniser avec Dropbox'}
-                </Button>
-                <Button 
-                  onClick={() => setIsAIModalOpen(true)} 
-                  className="bg-indigo-500 hover:bg-indigo-600 text-white"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Créer avec l'IA
-                </Button>
-                <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Nouveau Livre
-                </Button>
-              </div>
-            )}
-          </div>
+          <FadeInElement>
+            <div className="flex justify-between items-center mb-8">
+              <h1 className="text-2xl font-bold text-gray-800">Vos Livres</h1>
+              {!isCreating && (
+                <div className="flex space-x-2">
+                  <FadeInElement delay={0.1}>
+                    <Button 
+                      onClick={handleSyncToDropbox} 
+                      disabled={syncToDropbox.isPending}
+                      className="bg-blue-500 hover:bg-blue-600 text-white" 
+                      title="Sauvegarder tous vos livres dans Dropbox"
+                    >
+                      <Cloud className="h-4 w-4 mr-2" />
+                      {syncToDropbox.isPending ? 'Synchronisation...' : 'Synchroniser avec Dropbox'}
+                    </Button>
+                  </FadeInElement>
+                  
+                  <FadeInElement delay={0.2}>
+                    <Button 
+                      onClick={() => setIsAIModalOpen(true)} 
+                      className="bg-indigo-500 hover:bg-indigo-600 text-white"
+                    >
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Créer avec l'IA
+                    </Button>
+                  </FadeInElement>
+                  
+                  <FadeInElement delay={0.3}>
+                    <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Nouveau Livre
+                    </Button>
+                  </FadeInElement>
+                </div>
+              )}
+            </div>
+          </FadeInElement>
 
           {isCreating && (
-            <Card className="mb-8">
-              <CardHeader>
-                <CardTitle>Créer un nouveau livre</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div>
-                  <label htmlFor="book-title" className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
-                  <Input
-                    id="book-title"
-                    value={newBookTitle}
-                    onChange={(e) => setNewBookTitle(e.target.value)}
-                    placeholder="Titre du livre"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="book-author" className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
-                  <Input
-                    id="book-author"
-                    value={newBookAuthor}
-                    onChange={(e) => setNewBookAuthor(e.target.value)}
-                    placeholder="Nom de l'auteur"
-                  />
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={handleCancelCreate}>
-                  Annuler
-                </Button>
-                <Button onClick={handleCreateBook} className="bg-primary hover:bg-primary/90" disabled={createBook.isPending}>
-                  {createBook.isPending ? 'Création...' : 'Créer le livre'}
-                </Button>
-              </CardFooter>
-            </Card>
+            <FadeInElement>
+              <Card className="mb-8">
+                <CardHeader>
+                  <CardTitle>Créer un nouveau livre</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <FadeInElement delay={0.1}>
+                    <div>
+                      <label htmlFor="book-title" className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                      <Input
+                        id="book-title"
+                        value={newBookTitle}
+                        onChange={(e) => setNewBookTitle(e.target.value)}
+                        placeholder="Titre du livre"
+                      />
+                    </div>
+                  </FadeInElement>
+                  
+                  <FadeInElement delay={0.2}>
+                    <div>
+                      <label htmlFor="book-author" className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
+                      <Input
+                        id="book-author"
+                        value={newBookAuthor}
+                        onChange={(e) => setNewBookAuthor(e.target.value)}
+                        placeholder="Nom de l'auteur"
+                      />
+                    </div>
+                  </FadeInElement>
+                </CardContent>
+                <CardFooter className="flex justify-end space-x-2">
+                  <FadeInElement delay={0.3}>
+                    <Button variant="outline" onClick={handleCancelCreate}>
+                      Annuler
+                    </Button>
+                  </FadeInElement>
+                  
+                  <FadeInElement delay={0.4}>
+                    <Button onClick={handleCreateBook} className="bg-primary hover:bg-primary/90" disabled={createBook.isPending}>
+                      {createBook.isPending ? 'Création...' : 'Créer le livre'}
+                    </Button>
+                  </FadeInElement>
+                </CardFooter>
+              </Card>
+            </FadeInElement>
           )}
 
           {isLoading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {[...Array(3)].map((_, i) => (
-                <Card key={i} className="border shadow-sm opacity-50 animate-pulse">
-                  <CardContent className="p-6 h-32"></CardContent>
-                </Card>
-              ))}
-            </div>
+            <FadeInElement>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
+                {[...Array(3)].map((_, i) => (
+                  <Card key={i} className="border shadow-sm opacity-50 animate-pulse">
+                    <CardContent className="p-6 h-32"></CardContent>
+                  </Card>
+                ))}
+              </div>
+            </FadeInElement>
           ) : books && books.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mt-6">
-              {books.map((book) => (
-                <Card key={book.id} className="border shadow-sm hover:shadow transition-shadow duration-200">
-                  <CardContent className="p-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-800 mb-1">{book.title}</h3>
-                        <p className="text-sm text-gray-500">par {book.author}</p>
+              {books.map((book, index) => (
+                <FadeInElement key={book.id} delay={0.1 + index * 0.05}>
+                  <Card className="border shadow-sm hover:shadow transition-shadow duration-200">
+                    <CardContent className="p-6">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-1">{book.title}</h3>
+                          <p className="text-sm text-gray-500">par {book.author}</p>
+                        </div>
+                        <Button 
+                          variant="ghost" 
+                          size="icon" 
+                          className="text-gray-400 hover:text-red-500"
+                          onClick={() => {
+                            if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${book.title}" ?`)) {
+                              deleteBook.mutate(book.id)
+                            }
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
+                    </CardContent>
+                    <CardFooter className="bg-gray-50 px-6 py-3">
                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        className="text-gray-400 hover:text-red-500"
-                        onClick={() => {
-                          if (window.confirm(`Êtes-vous sûr de vouloir supprimer "${book.title}" ?`)) {
-                            deleteBook.mutate(book.id)
-                          }
-                        }}
+                        variant="link" 
+                        className="text-primary w-full"
+                        onClick={() => navigate(`/editor/${book.id}`)}
                       >
-                        <Trash2 className="h-4 w-4" />
+                        Ouvrir l'éditeur
                       </Button>
-                    </div>
-                  </CardContent>
-                  <CardFooter className="bg-gray-50 px-6 py-3">
-                    <Button 
-                      variant="link" 
-                      className="text-primary w-full"
-                      onClick={() => navigate(`/editor/${book.id}`)}
-                    >
-                      Ouvrir l'éditeur
-                    </Button>
-                  </CardFooter>
-                </Card>
+                    </CardFooter>
+                  </Card>
+                </FadeInElement>
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 border rounded-lg bg-white">
-              <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-800 mb-1">Aucun livre</h3>
-              <p className="text-gray-500 mb-4">Vous n'avez pas encore créé de livres.</p>
-              {!isCreating && (
-                <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
-                  <PlusCircle className="h-4 w-4 mr-2" />
-                  Créer mon premier livre
-                </Button>
-              )}
-            </div>
+            <FadeInElement>
+              <div className="text-center py-12 border rounded-lg bg-white">
+                <FadeInElement delay={0.1}>
+                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                </FadeInElement>
+                <FadeInElement delay={0.2}>
+                  <h3 className="text-lg font-medium text-gray-800 mb-1">Aucun livre</h3>
+                  <p className="text-gray-500 mb-4">Vous n'avez pas encore créé de livres.</p>
+                </FadeInElement>
+                {!isCreating && (
+                  <FadeInElement delay={0.3}>
+                    <Button onClick={() => setIsCreating(true)} className="bg-primary hover:bg-primary/90">
+                      <PlusCircle className="h-4 w-4 mr-2" />
+                      Créer mon premier livre
+                    </Button>
+                  </FadeInElement>
+                )}
+              </div>
+            </FadeInElement>
           )}
         </div>
       </main>

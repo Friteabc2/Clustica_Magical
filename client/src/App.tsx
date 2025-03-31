@@ -20,8 +20,8 @@ function Router() {
   const [location] = useLocation();
   
   return (
-    <AnimatePresence mode="wait">
-      <Switch key={location}>
+    <AnimatePresence mode="wait" initial={false}>
+      <Switch location={location} key={location}>
         {/* Page d'accueil publique */}
         <Route path="/">
           {() => (
