@@ -20,14 +20,14 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Helmet>
-        <title>Créer un compte | ClusterBook</title>
+        <title>Créer un compte | Clustica - Magical</title>
       </Helmet>
       
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Créer un compte</CardTitle>
           <CardDescription className="text-center">
-            Créez votre compte ClusterBook pour commencer à écrire
+            Créez votre compte Clustica - Magical pour commencer à écrire
           </CardDescription>
         </CardHeader>
         <CardContent>

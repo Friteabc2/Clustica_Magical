@@ -9,7 +9,7 @@ export default function Header() {
         <div className="flex items-center gap-6">
           <Link href="/">
             <span className="flex items-center gap-2 font-semibold text-xl cursor-pointer">
-              <span className="text-primary font-bold">ClusterBook</span>
+              <span className="text-primary font-bold">Clustica - Magical</span>
             </span>
           </Link>
           <nav className="hidden md:flex gap-6">

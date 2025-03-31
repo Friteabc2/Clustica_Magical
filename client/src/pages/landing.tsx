@@ -11,7 +11,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Helmet>
-        <title>Clustica Magical - ClusterBook | Créateur de Livres Virtuels</title>
+        <title>Clustica - Magical | Créateur de Livres Virtuels</title>
       </Helmet>
       
       {/* Header Navigation */}
@@ -20,7 +20,7 @@ export default function Landing() {
           <div className="flex items-center">
             <Link href="/">
               <span className="flex items-center gap-2 font-semibold text-xl cursor-pointer">
-                <span className="text-primary font-bold">ClusterBook</span>
+                <span className="text-primary font-bold">Clustica - Magical</span>
               </span>
             </Link>
             <nav className="hidden md:flex gap-6 ml-6">
@@ -60,7 +60,7 @@ export default function Landing() {
               Créez des livres professionnels en toute simplicité
             </h1>
             <p className="text-xl mb-8 text-white/80">
-              Avec ClusterBook, transformez vos idées en œuvres littéraires de qualité, 
+              Avec Clustica - Magical, transformez vos idées en œuvres littéraires de qualité, 
               qu'il s'agisse de romans, manuels, portfolios ou livres pour enfants.
             </p>
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
@@ -86,11 +86,11 @@ export default function Landing() {
                 <div className="p-8 flex flex-col h-full justify-between">
                   <div>
                     <h3 className="text-xl font-bold mb-4">Le Mystère des Étoiles</h3>
-                    <p className="text-sm text-white/80">Un voyage à travers les étoiles, où chaque page révèle un nouveau mystère de l'univers. Une aventure captivante écrite avec ClusterBook.</p>
+                    <p className="text-sm text-white/80">Un voyage à travers les étoiles, où chaque page révèle un nouveau mystère de l'univers. Une aventure captivante écrite avec Clustica - Magical.</p>
                   </div>
                   <div className="text-right text-sm">
                     <p>Par Marie Laurent</p>
-                    <p>Édité avec ClusterBook</p>
+                    <p>Édité avec Clustica - Magical</p>
                   </div>
                 </div>
               </div>
@@ -124,7 +124,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Fonctionnalités de la pré-bêta</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Découvrez les fonctionnalités disponibles dans cette version préliminaire de ClusterBook.
+              Découvrez les fonctionnalités disponibles dans cette version préliminaire de Clustica - Magical.
             </p>
           </div>
 
@@ -340,7 +340,7 @@ export default function Landing() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">À propos de la pré-bêta</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              ClusterBook est actuellement en phase de développement actif. Voici ce que vous pouvez attendre de cette version préliminaire.
+              Clustica - Magical est actuellement en phase de développement actif. Voici ce que vous pouvez attendre de cette version préliminaire.
             </p>
           </div>
 
@@ -353,7 +353,7 @@ export default function Landing() {
               </div>
               <h3 className="text-xl font-bold mb-3 text-gray-900">Objectif du projet</h3>
               <p className="text-gray-700 mb-4">
-                ClusterBook vise à offrir aux auteurs indépendants et aux créateurs de contenu un outil simple mais puissant pour créer, organiser et publier leurs œuvres littéraires.
+                Clustica - Magical vise à offrir aux auteurs indépendants et aux créateurs de contenu un outil simple mais puissant pour créer, organiser et publier leurs œuvres littéraires.
               </p>
               <p className="text-gray-700">
                 Cette version pré-bêta vous permet de tester les fonctionnalités de base et de nous aider à façonner l'avenir de l'application avec vos retours.
@@ -414,7 +414,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-6">Envie de tester la version pré-bêta ?</h2>
           <p className="text-xl text-white/80 mb-8 max-w-3xl mx-auto">
-            Participez au développement de ClusterBook en testant cette version préliminaire et en partageant vos retours.
+            Participez au développement de Clustica - Magical en testant cette version préliminaire et en partageant vos retours.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
             <Button 
@@ -439,7 +439,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
-              <h3 className="text-white text-lg font-bold mb-4">ClusterBook</h3>
+              <h3 className="text-white text-lg font-bold mb-4">Clustica - Magical</h3>
               <p className="text-gray-400 mb-4">
                 La plateforme de création de livres numériques et imprimés pour tous les créateurs.
               </p>
@@ -493,7 +493,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-gray-700 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} ClusterBook. Tous droits réservés.</p>
+            <p>&copy; {new Date().getFullYear()} Clustica - Magical. Tous droits réservés.</p>
           </div>
         </div>
       </footer>

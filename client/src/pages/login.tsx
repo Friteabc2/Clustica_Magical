@@ -30,14 +30,14 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
       <Helmet>
-        <title>Connexion | ClusterBook</title>
+        <title>Connexion | Clustica - Magical</title>
       </Helmet>
       
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl text-center">Connexion</CardTitle>
           <CardDescription className="text-center">
-            Connectez-vous à votre compte ClusterBook
+            Connectez-vous à votre compte Clustica - Magical
           </CardDescription>
         </CardHeader>
         <CardContent>
