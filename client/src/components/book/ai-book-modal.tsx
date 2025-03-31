@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2, Sparkles } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface AIBookModalProps {
   isOpen: boolean;
@@ -23,6 +24,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
   const [chaptersCount, setChaptersCount] = useState(3);
   const [pagesPerChapter, setPagesPerChapter] = useState(1);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [authorName, setAuthorName] = useState('');
+  const [genre, setGenre] = useState('');
+  const [style, setStyle] = useState('');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -41,6 +45,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         prompt,
         chaptersCount,
         pagesPerChapter,
+        authorName: authorName.trim() || undefined,
+        genre: genre || undefined,
+        style: style || undefined,
         ...(userInfo && { userId: userInfo.id })
       };
       
@@ -116,6 +123,58 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
               onChange={(e) => setPrompt(e.target.value)}
               disabled={isGenerating}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="authorName">Nom de l'auteur (optionnel)</Label>
+            <Input 
+              id="authorName" 
+              placeholder="Ex: Jean Dupont" 
+              value={authorName}
+              onChange={(e) => setAuthorName(e.target.value)}
+              disabled={isGenerating}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="genre">Genre</Label>
+              <Select value={genre} onValueChange={setGenre} disabled={isGenerating}>
+                <SelectTrigger id="genre">
+                  <SelectValue placeholder="Sélectionner un genre" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">-- Aucun --</SelectItem>
+                  <SelectItem value="fantasy">Fantasy</SelectItem>
+                  <SelectItem value="scifi">Science-Fiction</SelectItem>
+                  <SelectItem value="romance">Romance</SelectItem>
+                  <SelectItem value="thriller">Thriller</SelectItem>
+                  <SelectItem value="mystery">Mystère</SelectItem>
+                  <SelectItem value="horror">Horreur</SelectItem>
+                  <SelectItem value="adventure">Aventure</SelectItem>
+                  <SelectItem value="historical">Historique</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="style">Style d'écriture</Label>
+              <Select value={style} onValueChange={setStyle} disabled={isGenerating}>
+                <SelectTrigger id="style">
+                  <SelectValue placeholder="Sélectionner un style" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">-- Aucun --</SelectItem>
+                  <SelectItem value="literary">Littéraire</SelectItem>
+                  <SelectItem value="minimalist">Minimaliste</SelectItem>
+                  <SelectItem value="descriptive">Descriptif</SelectItem>
+                  <SelectItem value="poetic">Poétique</SelectItem>
+                  <SelectItem value="humorous">Humoristique</SelectItem>
+                  <SelectItem value="technical">Technique</SelectItem>
+                  <SelectItem value="conversational">Conversationnel</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
           
           <div className="space-y-2">

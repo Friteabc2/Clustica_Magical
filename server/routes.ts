@@ -291,6 +291,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         prompt: z.string().min(3, { message: "Le prompt doit contenir au moins 3 caractères" }),
         chaptersCount: z.number().int().min(1).max(10).optional().default(3),
         pagesPerChapter: z.number().int().min(1).max(5).optional().default(1),
+        authorName: z.string().optional(),
+        genre: z.string().optional(),
+        style: z.string().optional(),
         userId: z.number().optional()
       });
       

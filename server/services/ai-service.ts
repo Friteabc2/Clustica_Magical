@@ -12,6 +12,9 @@ export interface AIBookRequest {
   prompt: string;
   chaptersCount?: number;
   pagesPerChapter?: number;
+  authorName?: string;
+  genre?: string;
+  style?: string;
 }
 
 /**
@@ -22,11 +25,18 @@ export class AIService {
    * Génère un livre complet basé sur un prompt utilisateur
    */
   static async generateBook(request: AIBookRequest): Promise<BookContent> {
-    const { prompt, chaptersCount = 3, pagesPerChapter = 1 } = request;
+    const { 
+      prompt, 
+      chaptersCount = 3, 
+      pagesPerChapter = 1,
+      authorName,
+      genre,
+      style
+    } = request;
 
     try {
       // Génération du titre et structure générale du livre
-      const bookStructure = await this.generateBookStructure(prompt, chaptersCount);
+      const bookStructure = await this.generateBookStructure(prompt, chaptersCount, authorName);
       
       // Création du livre avec les informations générées
       const bookContent = getEmptyBook(bookStructure.title, bookStructure.author);
@@ -46,7 +56,9 @@ export class AIService {
             bookStructure.title, 
             chapterInfo.title, 
             chapterInfo.description,
-            j
+            j,
+            genre,
+            style
           );
           
           const page = getEmptyPage(j + 1);
@@ -73,10 +85,14 @@ export class AIService {
   /**
    * Génère la structure de base du livre (titre, auteur, chapitres)
    */
-  private static async generateBookStructure(prompt: string, chaptersCount: number) {
+  private static async generateBookStructure(prompt: string, chaptersCount: number, authorName?: string) {
+    const authorInstruction = authorName 
+      ? `Utilise "${authorName}" comme nom de l'auteur.` 
+      : `Génère un nom d'auteur fictif.`;
+    
     const structurePrompt = `Tu es un auteur de livre expérimenté. Ton travail est de créer le plan d'un nouveau livre basé sur cette demande: "${prompt}".
     
-    Génère un titre accrocheur et créatif, un nom d'auteur fictif, et ${chaptersCount} chapitres avec leurs titres et une brève description.
+    Génère un titre accrocheur et créatif, ${authorInstruction} Crée ${chaptersCount} chapitres avec leurs titres et une brève description.
     
     Réponds UNIQUEMENT au format JSON comme ceci:
     {
@@ -136,12 +152,74 @@ export class AIService {
     bookTitle: string, 
     chapterTitle: string, 
     chapterDescription: string,
-    pageIndex: number
+    pageIndex: number,
+    genre?: string,
+    style?: string
   ): Promise<string> {
+    let genreDirective = '';
+    if (genre) {
+      switch (genre) {
+        case 'fantasy':
+          genreDirective = 'Utilise des éléments de fantasy: magie, créatures fantastiques, mondes imaginaires.';
+          break;
+        case 'scifi':
+          genreDirective = 'Utilise des éléments de science-fiction: technologies futuristes, voyages spatiaux, concepts scientifiques.';
+          break;
+        case 'romance':
+          genreDirective = 'Utilise des éléments romantiques: émotions fortes, relations interpersonnelles, développement des sentiments.';
+          break;
+        case 'thriller':
+          genreDirective = 'Utilise des éléments de thriller: suspense, tension, rythme soutenu.';
+          break;
+        case 'mystery':
+          genreDirective = 'Utilise des éléments de mystère: indices, énigmes, révélations progressives.';
+          break;
+        case 'horror':
+          genreDirective = 'Utilise des éléments d\'horreur: peur, angoisse, atmosphère inquiétante.';
+          break;
+        case 'adventure':
+          genreDirective = 'Utilise des éléments d\'aventure: découvertes, voyages, défis physiques.';
+          break;
+        case 'historical':
+          genreDirective = 'Utilise des éléments historiques: précision historique, contexte d\'époque, personnages ou événements réels.';
+          break;
+      }
+    }
+    
+    let styleDirective = '';
+    if (style) {
+      switch (style) {
+        case 'literary':
+          styleDirective = 'Adopte un style littéraire recherché avec un vocabulaire riche et des figures de style élaborées.';
+          break;
+        case 'minimalist':
+          styleDirective = 'Adopte un style minimaliste avec des phrases courtes et un vocabulaire précis et concis.';
+          break;
+        case 'descriptive':
+          styleDirective = 'Adopte un style très descriptif avec des détails sensoriels riches pour immerger le lecteur.';
+          break;
+        case 'poetic':
+          styleDirective = 'Adopte un style poétique avec des métaphores, des images fortes et un rythme musical.';
+          break;
+        case 'humorous':
+          styleDirective = 'Adopte un style humoristique avec de l\'ironie, des situations comiques ou des jeux de mots.';
+          break;
+        case 'technical':
+          styleDirective = 'Adopte un style technique avec un vocabulaire spécialisé et une approche précise et factuelle.';
+          break;
+        case 'conversational':
+          styleDirective = 'Adopte un style conversationnel avec un ton familier et des dialogues naturels.';
+          break;
+      }
+    }
+    
     const contentPrompt = `Tu es un écrivain talentueux qui travaille sur le livre "${bookTitle}" inspiré de cette demande: "${prompt}".
     
     Tu dois écrire le contenu pour la page ${pageIndex + 1} du chapitre intitulé "${chapterTitle}".
     Ce chapitre concerne: "${chapterDescription}".
+    
+    ${genreDirective}
+    ${styleDirective}
     
     Écris un contenu engageant et détaillé, avec de beaux paragraphes, qui correspond à cette partie du livre.
     Utilise un style littéraire adapté au sujet.
