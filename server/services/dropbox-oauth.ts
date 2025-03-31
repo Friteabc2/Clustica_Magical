@@ -5,8 +5,8 @@ import { DropboxService } from './dropbox-service';
 const APP_KEY = process.env.DROPBOX_APP_KEY || '';
 const APP_SECRET = process.env.DROPBOX_APP_SECRET || '';
 // L'URL de redirection doit correspondre exactement à celle configurée dans la console développeur Dropbox
-// Si vous voyez une erreur "Invalid redirect_uri", mettez à jour cette valeur avec l'URL exacte configurée dans votre app Dropbox
-const REDIRECT_URI = 'https://clustica-magical.replit.app/api/dropbox/oauth-callback';
+// URL spécifique pour l'environnement Replit actuel
+const REDIRECT_URI = 'https://f22605e9-0a60-4594-980f-a1ddcf1cf697-00-11mdo9zko9do0.kirk.replit.dev/api/dropbox/oauth-callback';
 
 /**
  * Service de gestion OAuth pour Dropbox

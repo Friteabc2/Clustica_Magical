@@ -581,6 +581,174 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Endpoint pour mettre à jour ou rafraîchir manuellement le token Dropbox
+  // Ajout d'un point d'entrée pour définir manuellement les tokens (sans passer par OAuth)
+  app.get('/api/dropbox/token-setup', async (_req: Request, res: Response) => {
+    res.send(`
+      <html>
+        <head>
+          <title>Configuration Manuelle des Tokens Dropbox</title>
+          <style>
+            body {
+              font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+              line-height: 1.6;
+              max-width: 800px;
+              margin: 0 auto;
+              padding: 20px;
+            }
+            h1 { color: #333; }
+            .card {
+              background-color: #fff;
+              border-radius: 8px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+              padding: 20px;
+              margin-bottom: 20px;
+            }
+            label {
+              display: block;
+              margin-bottom: 8px;
+              font-weight: bold;
+            }
+            input[type="text"] {
+              width: 100%;
+              padding: 8px;
+              margin-bottom: 16px;
+              border: 1px solid #ddd;
+              border-radius: 4px;
+              font-family: monospace;
+            }
+            button {
+              background-color: #4361ee;
+              color: white;
+              border: none;
+              padding: 10px 16px;
+              border-radius: 4px;
+              cursor: pointer;
+              font-size: 16px;
+            }
+            button:hover { background-color: #3a56d4; }
+            pre {
+              background-color: #f5f5f5;
+              padding: 16px;
+              border-radius: 4px;
+              overflow-x: auto;
+            }
+            .success {
+              background-color: #d4edda;
+              color: #155724;
+              padding: 15px;
+              border-radius: 4px;
+              margin-bottom: 16px;
+              display: none;
+            }
+            .error {
+              background-color: #f8d7da;
+              color: #721c24;
+              padding: 15px;
+              border-radius: 4px;
+              margin-bottom: 16px;
+              display: none;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>Configuration Manuelle des Tokens Dropbox</h1>
+          
+          <div class="card">
+            <p>Si vous avez déjà un token d'accès et un refresh token pour Dropbox, vous pouvez les configurer ici sans passer par le processus OAuth.</p>
+            
+            <div id="success" class="success"></div>
+            <div id="error" class="error"></div>
+            
+            <form id="tokenForm">
+              <div>
+                <label for="accessToken">Access Token:</label>
+                <input type="text" id="accessToken" placeholder="sl.Aaaaaaa..." />
+              </div>
+              
+              <div>
+                <label for="refreshToken">Refresh Token (optionnel):</label>
+                <input type="text" id="refreshToken" placeholder="a1bCd..." />
+              </div>
+              
+              <button type="submit">Mettre à jour les tokens</button>
+            </form>
+          </div>
+          
+          <div class="card">
+            <h3>Obtenir un token d'accès et un refresh token</h3>
+            <p>Pour obtenir un token d'accès et un refresh token pour Dropbox :</p>
+            <ol>
+              <li>Allez dans la <a href="https://www.dropbox.com/developers/apps" target="_blank">console développeur Dropbox</a></li>
+              <li>Sélectionnez votre application</li>
+              <li>Dans l'onglet "OAuth 2", sous "Generated access token", générez un nouveau token</li>
+              <li>Pour le refresh token, utilisez les <a href="https://dropbox.tech/developers/migrating-app-permissions-and-access-tokens" target="_blank">instructions officielles de Dropbox</a></li>
+            </ol>
+          </div>
+          
+          <script>
+            document.getElementById('tokenForm').addEventListener('submit', async function(e) {
+              e.preventDefault();
+              
+              const accessToken = document.getElementById('accessToken').value.trim();
+              const refreshToken = document.getElementById('refreshToken').value.trim();
+              
+              if (!accessToken) {
+                showError("L'access token est requis");
+                return;
+              }
+              
+              try {
+                const response = await fetch('/api/dropbox/refresh-token', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({
+                    token: accessToken,
+                    refreshToken: refreshToken || undefined
+                  })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                  showSuccess(result.message);
+                  // Effacer les champs une fois la mise à jour réussie
+                  document.getElementById('accessToken').value = '';
+                  document.getElementById('refreshToken').value = '';
+                } else {
+                  showError(result.message || "Erreur lors de la mise à jour des tokens");
+                }
+              } catch (error) {
+                showError("Erreur de communication avec le serveur");
+                console.error(error);
+              }
+            });
+            
+            function showSuccess(message) {
+              const successEl = document.getElementById('success');
+              successEl.textContent = message;
+              successEl.style.display = 'block';
+              document.getElementById('error').style.display = 'none';
+              
+              // Cacher le message après 5 secondes
+              setTimeout(() => {
+                successEl.style.display = 'none';
+              }, 5000);
+            }
+            
+            function showError(message) {
+              const errorEl = document.getElementById('error');
+              errorEl.textContent = message;
+              errorEl.style.display = 'block';
+              document.getElementById('success').style.display = 'none';
+            }
+          </script>
+        </body>
+      </html>
+    `);
+  });
+
   app.post('/api/dropbox/refresh-token', async (req: Request, res: Response) => {
     try {
       // Tenter de rafraîchir automatiquement le token avec le refresh token
@@ -597,7 +765,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         // Échec du rafraîchissement automatique, essayer avec le token fourni manuellement
-        const { token } = req.body;
+        const { token, refreshToken } = req.body;
+        
+        // Si un refresh token est fourni, le sauvegarder
+        if (refreshToken) {
+          process.env.DROPBOX_REFRESH_TOKEN = refreshToken;
+          console.log('[dropbox] ✅ Refresh token mis à jour manuellement');
+        }
         
         if (token) {
           // Mise à jour manuelle avec le token fourni
