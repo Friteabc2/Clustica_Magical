@@ -73,9 +73,37 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (newTheme === 'dark') {
       document.documentElement.classList.add('dark-theme');
       document.body.classList.add('dark-theme');
+      
+      // Appliquer également sur des éléments spécifiques potentiellement problématiques
+      const root = document.getElementById('root');
+      if (root) root.classList.add('dark-theme');
+      
+      // Appliquer sur tous les éléments de premier niveau
+      document.querySelectorAll('body > *').forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.classList.add('dark-theme');
+        }
+      });
+      
+      // Mettre à jour l'attribut data-theme pour les composants Radix
+      document.documentElement.setAttribute('data-theme', 'dark');
     } else {
       document.documentElement.classList.remove('dark-theme');
       document.body.classList.remove('dark-theme');
+      
+      // Retirer des éléments spécifiques
+      const root = document.getElementById('root');
+      if (root) root.classList.remove('dark-theme');
+      
+      // Retirer de tous les éléments de premier niveau
+      document.querySelectorAll('body > *').forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.classList.remove('dark-theme');
+        }
+      });
+      
+      // Mettre à jour l'attribut data-theme pour les composants Radix
+      document.documentElement.setAttribute('data-theme', 'light');
     }
   };
 

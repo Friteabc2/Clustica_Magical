@@ -75,89 +75,168 @@
 }
 
 @layer components {
+  /* Correction globale - Force l'application des couleurs de fond et de texte sur tous les éléments */
+  .dark-theme {
+    color-scheme: dark;
+  }
+  
+  /* Force la couleur de fond sur le document entier */
+  .dark-theme body,
+  .dark-theme html,
+  .dark-theme #root,
+  .dark-theme main,
+  .dark-theme .app-container {
+    background-color: hsl(var(--background)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
   /* Composants spécifiques au thème sombre */
   .dark-theme .bg-background {
-    background-color: hsl(var(--background));
+    background-color: hsl(var(--background)) !important;
   }
   
-  .dark-theme .text-foreground {
-    color: hsl(var(--foreground));
+  .dark-theme .bg-white {
+    background-color: hsl(var(--card)) !important;
   }
   
-  .dark-theme .bg-card {
-    background-color: hsl(var(--card));
+  .dark-theme .bg-slate-50,
+  .dark-theme .bg-slate-100,
+  .dark-theme .bg-slate-200,
+  .dark-theme .bg-gray-50,
+  .dark-theme .bg-gray-100,
+  .dark-theme .bg-gray-200 {
+    background-color: hsl(var(--muted)) !important;
   }
   
-  .dark-theme .border {
-    border-color: hsl(var(--border));
+  /* Textes en mode sombre */
+  .dark-theme .text-foreground,
+  .dark-theme .text-black,
+  .dark-theme .text-slate-900,
+  .dark-theme .text-gray-900 {
+    color: hsl(var(--foreground)) !important;
   }
   
-  .dark-theme .text-muted-foreground {
-    color: hsl(var(--muted-foreground));
+  .dark-theme .text-muted-foreground,
+  .dark-theme .text-slate-500,
+  .dark-theme .text-gray-500 {
+    color: hsl(var(--muted-foreground)) !important;
   }
   
-  /* Correction des composants spécifiques */
+  /* Cartes et conteneurs */
+  .dark-theme .bg-card,
+  .dark-theme .card,
+  .dark-theme div[class*="Card"],
+  .dark-theme [class*="card"] {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Bordures */
+  .dark-theme .border,
+  .dark-theme [class*="border"] {
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  /* Composants UI spécifiques - Menus dropdown et popovers */
   .dark-theme .dropdown-menu,
-  .dark-theme [data-radix-popper-content-wrapper] {
+  .dark-theme [data-radix-popper-content-wrapper],
+  .dark-theme [role="menu"],
+  .dark-theme [role="dialog"],
+  .dark-theme [role="tooltip"],
+  .dark-theme .popover {
     --tw-bg-opacity: 1;
-    background-color: hsl(var(--popover));
-    color: hsl(var(--popover-foreground));
-    border-color: hsl(var(--border));
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
   
-  /* Meilleure visibilité pour les inputs dans le mode sombre */
+  /* Correctifs spécifiques pour les composants UI */
+  .dark-theme [data-radix-select-viewport],
+  .dark-theme [cmdk-list],
+  .dark-theme [cmdk-input] {
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+  
+  /* Formulaires - Input, Textarea, Select, etc. */
   .dark-theme input,
   .dark-theme textarea,
-  .dark-theme select {
-    background-color: hsl(var(--input));
-    color: hsl(var(--foreground));
-    border-color: hsl(var(--border));
+  .dark-theme select,
+  .dark-theme .input,
+  .dark-theme .textarea,
+  .dark-theme .select,
+  .dark-theme button[role="combobox"] {
+    background-color: hsl(var(--input)) !important;
+    color: hsl(var(--foreground)) !important;
+    border-color: hsl(var(--border)) !important;
   }
   
-  /* Pour les badges et éléments accent */
+  /* Badges et éléments accent */
   .dark-theme .bg-accent {
-    background-color: hsl(var(--accent));
+    background-color: hsl(var(--accent)) !important;
   }
   
   .dark-theme .text-accent-foreground {
-    color: hsl(var(--accent-foreground));
+    color: hsl(var(--accent-foreground)) !important;
   }
   
-  /* Pour les boutons primaires dans le thème sombre */
-  .dark-theme .bg-primary {
-    background-color: hsl(var(--primary));
+  /* Boutons */
+  .dark-theme .bg-primary,
+  .dark-theme button[class*="primary"] {
+    background-color: hsl(var(--primary)) !important;
   }
   
-  .dark-theme .text-primary-foreground {
-    color: hsl(var(--primary-foreground));
+  .dark-theme .text-primary-foreground,
+  .dark-theme button[class*="primary"] {
+    color: hsl(var(--primary-foreground)) !important;
   }
   
-  /* Styles spécifiques pour les headers et éléments de navigation */
-  .dark-theme header {
-    background-color: hsl(var(--background));
-    border-bottom-color: hsl(var(--border));
+  /* Headers et navigation */
+  .dark-theme header,
+  .dark-theme nav,
+  .dark-theme footer {
+    background-color: hsl(var(--background)) !important;
+    border-color: hsl(var(--border)) !important;
   }
   
-  /* Styles pour les cartes et conteneurs */
-  .dark-theme .card {
-    background-color: hsl(var(--card));
-    color: hsl(var(--card-foreground));
-    border-color: hsl(var(--border));
-  }
-  
-  /* Styles pour les éléments de focus */
+  /* État de focus */
   .dark-theme *:focus-visible {
-    outline-color: hsl(var(--ring));
+    outline-color: hsl(var(--ring)) !important;
   }
   
-  /* Transitions fluides pour tous les éléments pertinents */
+  /* Editor UI - spécifique à l'éditeur de texte */
+  .dark-theme .ql-toolbar,
+  .dark-theme .ql-container,
+  .dark-theme .ql-editor {
+    background-color: hsl(var(--card)) !important;
+    color: hsl(var(--card-foreground)) !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  .dark-theme .ql-picker-label,
+  .dark-theme .ql-picker-options {
+    background-color: hsl(var(--popover)) !important;
+    color: hsl(var(--popover-foreground)) !important;
+  }
+  
+  /* Transitions fluides */
   .header,
   .card,
   .button,
   .input,
   .dropdown-menu,
   .menu-item,
-  .popover {
+  .popover,
+  body,
+  html,
+  div,
+  main,
+  section,
+  article,
+  aside,
+  nav,
+  footer {
     transition: background-color 0.3s ease, 
                 color 0.3s ease, 
                 border-color 0.3s ease,
