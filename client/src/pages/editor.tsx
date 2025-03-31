@@ -81,11 +81,31 @@ export default function Editor() {
       const res = await apiRequest('PUT', `/api/books/${params.id}/content`, params.content);
       return await res.json();
     },
-    onSuccess: () => {
-      toast({
-        title: 'Enregistré',
-        description: 'Votre livre a été enregistré avec succès.',
-      });
+    onSuccess: (data) => {
+      // Vérifie si la réponse contient des informations sur la synchronisation Dropbox
+      const dropboxSync = data.dropboxSync as { success: boolean; message: string } | undefined;
+      
+      if (dropboxSync) {
+        if (dropboxSync.success) {
+          toast({
+            title: 'Enregistré',
+            description: 'Votre livre a été enregistré et synchronisé avec Dropbox.',
+            variant: 'default'
+          });
+        } else {
+          toast({
+            title: 'Enregistré localement',
+            description: `Livre enregistré localement, mais non synchronisé avec Dropbox: ${dropboxSync.message}`,
+            variant: 'default'
+          });
+        }
+      } else {
+        toast({
+          title: 'Enregistré',
+          description: 'Votre livre a été enregistré avec succès.',
+        });
+      }
+      
       queryClient.invalidateQueries({ queryKey: ['/api/books', id, 'content'] });
     },
     onError: (error) => {

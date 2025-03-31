@@ -118,7 +118,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Book not found' });
       }
       
-      res.json(updatedBook);
+      // Essayer de synchroniser explicitement avec Dropbox après la sauvegarde
+      let dropboxSyncStatus = { success: false, message: "Non synchronisé avec Dropbox" };
+      try {
+        await DropboxService.saveBook(id, contentResult.data);
+        dropboxSyncStatus = { success: true, message: "Synchronisé avec Dropbox" };
+      } catch (error) {
+        console.error("Erreur lors de la synchronisation avec Dropbox:", error);
+        const errorMessage = error instanceof Error ? error.message : "Erreur inconnue";
+        dropboxSyncStatus = { success: false, message: errorMessage };
+      }
+      
+      // Retourner le livre mis à jour avec le statut de synchronisation Dropbox
+      res.json({
+        ...updatedBook,
+        dropboxSync: dropboxSyncStatus
+      });
     } catch (error) {
       console.error('Error updating book content:', error);
       res.status(500).json({ message: 'Failed to update book content' });
