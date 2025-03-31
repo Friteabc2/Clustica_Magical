@@ -75,7 +75,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error("Erreur de récupération des informations utilisateur");
           }
         } catch (error) {
-          console.error("Erreur de récupération des informations utilisateur:", error);
+          console.error("Erreur de récupération des informations utilisateur:", error instanceof Error ? error.message : error);
           setUserInfo(null);
         }
       } else {

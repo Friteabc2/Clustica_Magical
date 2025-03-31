@@ -52,12 +52,29 @@ export default function Home() {
   // Create book mutation
   const createBook = useMutation({
     mutationFn: async (bookData: { title: string; author: string }) => {
-      // Inclut l'ID utilisateur si disponible
-      const payload = userInfo 
-        ? { ...bookData, userId: userInfo.id } 
-        : bookData;
-      const res = await apiRequest('POST', '/api/books', payload);
-      return await res.json();
+      try {
+        // Vérifier que les données sont complètes
+        if (!bookData.title || !bookData.author) {
+          throw new Error("Le titre et l'auteur sont requis");
+        }
+        
+        // Inclut l'ID utilisateur si disponible
+        const payload = userInfo 
+          ? { ...bookData, userId: userInfo.id } 
+          : bookData;
+        
+        console.log("Envoi de la requête avec payload:", payload);
+        
+        const res = await apiRequest('POST', '/api/books', payload);
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Erreur lors de la création du livre");
+        }
+        return await res.json();
+      } catch (error) {
+        console.error("Erreur de création de livre:", error);
+        throw error;
+      }
     },
     onSuccess: (newBook) => {
       toast({
