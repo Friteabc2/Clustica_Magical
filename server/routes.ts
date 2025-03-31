@@ -233,10 +233,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Récupérer l'ID de l'utilisateur depuis la requête pour la suppression
       const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
       
+      // Récupérer d'abord les détails du livre pour savoir s'il s'agit d'un livre AI
+      const book = await storage.getBook(id);
+      if (!book) {
+        return res.status(404).json({ message: 'Book not found' });
+      }
+      
+      // Récupérer le contenu du livre pour déterminer s'il a été généré par l'IA
+      const bookContent = await storage.getBookContent(id);
+      const isAIBook = bookContent?.chapters?.some(chapter => 
+        chapter.pages?.some(page => page.content?.includes('généré par l\'IA'))
+      ) || false;
+      
       // Supprimer le livre du stockage mémoire
       const success = await storage.deleteBook(id);
       if (!success) {
         return res.status(404).json({ message: 'Book not found' });
+      }
+      
+      // Mettre à jour les compteurs de l'utilisateur si un utilisateur est associé au livre
+      if (userId) {
+        const user = await storage.getUser(userId);
+        if (user) {
+          // Décrémenter le compteur approprié en fonction du type de livre
+          const updatedUser: Partial<User> = {
+            booksCreated: Math.max(0, (user.booksCreated || 0) - 1)
+          };
+          
+          if (isAIBook) {
+            updatedUser.aiBooksCreated = Math.max(0, (user.aiBooksCreated || 0) - 1);
+          }
+          
+          await storage.updateUser(userId, updatedUser);
+        }
       }
       
       // Supprimer également le livre de Dropbox (dans le dossier de l'utilisateur si spécifié)

@@ -18,7 +18,7 @@ interface AIBookModalProps {
 
 export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookModalProps) {
   const { toast } = useToast();
-  const { userInfo } = useAuth();
+  const { userInfo, refreshUserInfo } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [chaptersCount, setChaptersCount] = useState(3);
   const [pagesPerChapter, setPagesPerChapter] = useState(1);
@@ -48,6 +48,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
 
       if (response.ok) {
         const book = await response.json();
+        // Rafraîchir les informations utilisateur pour mettre à jour les compteurs
+        await refreshUserInfo();
+        
         toast({
           title: "Livre créé avec succès!",
           description: `"${book.title}" a été généré et ajouté à votre bibliothèque.`,

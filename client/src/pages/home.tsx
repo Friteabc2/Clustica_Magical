@@ -21,7 +21,7 @@ export default function Home() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isDropboxSyncModalOpen, setIsDropboxSyncModalOpen] = useState(false);
 
-  const { userInfo } = useAuth();
+  const { userInfo, refreshUserInfo } = useAuth();
   
   // Fetch books (filter by user if logged in)
   const { data: books, isLoading } = useQuery<BookType[]>({
@@ -95,7 +95,12 @@ export default function Home() {
         throw error;
       }
     },
-    onSuccess: (newBook) => {
+    onSuccess: async (newBook) => {
+      // Rafraîchir les informations utilisateur pour mettre à jour les compteurs
+      if (userInfo) {
+        await refreshUserInfo();
+      }
+      
       toast({
         title: "Livre créé avec succès",
         description: `"${newBook.title}" a été créé.`,
@@ -131,7 +136,12 @@ export default function Home() {
       await apiRequest('DELETE', endpoint);
       return id;
     },
-    onSuccess: (id) => {
+    onSuccess: async (id) => {
+      // Rafraîchir les informations utilisateur pour mettre à jour les compteurs
+      if (userInfo) {
+        await refreshUserInfo();
+      }
+      
       toast({
         title: "Livre supprimé",
         description: "Le livre a été supprimé avec succès.",

@@ -18,6 +18,7 @@ interface AuthContextType {
   register: (email: string, password: string, displayName: string) => Promise<UserCredential>;
   login: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
+  refreshUserInfo: () => Promise<void>;
 }
 
 interface UserInfo {
@@ -171,6 +172,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw error;
     }
   }
+  
+  async function refreshUserInfo() {
+    if (!currentUser?.uid) return;
+    
+    try {
+      console.log("Rafraîchissement des informations utilisateur pour:", currentUser.uid);
+      const response = await fetch(`/api/auth/user/${currentUser.uid}`, {
+        method: 'GET',
+        credentials: 'include'
+      });
+      
+      if (response.status === 200) {
+        const userData = await response.json();
+        console.log("Données utilisateur rafraîchies:", userData);
+        setUserInfo(userData);
+      } else {
+        console.error("Erreur lors du rafraîchissement des informations utilisateur:", response.status);
+      }
+    } catch (error) {
+      console.error("Exception lors du rafraîchissement des informations utilisateur:", error);
+    }
+  }
 
   const value = {
     currentUser,
@@ -178,7 +201,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loading,
     register,
     login,
-    logout
+    logout,
+    refreshUserInfo
   };
 
   return (
