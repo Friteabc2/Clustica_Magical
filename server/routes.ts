@@ -820,6 +820,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // API pour gérer le thème
+  app.get('/api/theme', async (_req: Request, res: Response) => {
+    try {
+      // Lire le fichier theme.json actuel
+      const themePath = path.join(process.cwd(), 'theme.json');
+      const currentTheme = JSON.parse(fs.readFileSync(themePath, 'utf8'));
+      
+      res.json({ success: true, theme: currentTheme });
+    } catch (error) {
+      console.error('Erreur lors de la récupération du thème:', error);
+      res.status(500).json({ message: 'Échec de la récupération du thème' });
+    }
+  });
+  
   app.post('/api/theme', async (req: Request, res: Response) => {
     try {
       const { appearance = 'light', primary = 'hsl(222.2 47.4% 11.2%)' } = req.body;
