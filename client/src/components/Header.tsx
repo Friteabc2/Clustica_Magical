@@ -8,20 +8,20 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between py-4">
         <div className="flex items-center gap-6">
           <Link href="/">
-            <a className="flex items-center gap-2 font-semibold text-xl">
+            <span className="flex items-center gap-2 font-semibold text-xl cursor-pointer">
               <span className="text-primary font-bold">ClusterBook</span>
-            </a>
+            </span>
           </Link>
           <nav className="hidden md:flex gap-6">
             <Link href="/">
-              <a className="text-muted-foreground hover:text-foreground transition-colors">
+              <span className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 Accueil
-              </a>
+              </span>
             </Link>
             <Link href="/editor">
-              <a className="text-muted-foreground hover:text-foreground transition-colors">
+              <span className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
                 Nouvel ouvrage
-              </a>
+              </span>
             </Link>
           </nav>
         </div>

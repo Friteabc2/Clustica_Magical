@@ -49,8 +49,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           // Récupérer les informations utilisateur depuis le backend
           const response = await apiRequest('GET', `/api/auth/user/${user.uid}`);
-          const userData = await response.json();
-          setUserInfo(userData);
+          
+          if (response.ok) {
+            const userData = await response.json();
+            setUserInfo(userData);
+          } else if (response.status === 404) {
+            // L'utilisateur existe dans Firebase mais pas dans notre backend
+            // Créons-le automatiquement
+            console.log("Création automatique de l'utilisateur dans le backend");
+            
+            const registerResponse = await apiRequest('POST', '/api/auth/register', {
+              firebaseUid: user.uid,
+              email: user.email || 'unknown@email.com',
+              displayName: user.displayName || 'Utilisateur'
+            });
+            
+            if (registerResponse.ok) {
+              const newUserData = await registerResponse.json();
+              setUserInfo(newUserData);
+            } else {
+              console.error("Échec de la création automatique de l'utilisateur");
+              setUserInfo(null);
+            }
+          } else {
+            throw new Error("Erreur de récupération des informations utilisateur");
+          }
         } catch (error) {
           console.error("Erreur de récupération des informations utilisateur:", error);
           setUserInfo(null);
