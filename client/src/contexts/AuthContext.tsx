@@ -69,28 +69,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               displayName: user.displayName
             });
             
-            const registerResponse = await fetch('/api/auth/register', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                firebaseUid: user.uid,
-                email: user.email || 'unknown@email.com',
-                displayName: user.displayName || 'Utilisateur'
-              }),
-              credentials: 'include'
-            });
-            
-            console.log("Réponse d'inscription:", registerResponse.status);
-            
-            if (registerResponse.status === 201) {
-              const newUserData = await registerResponse.json();
-              console.log("Nouvel utilisateur créé:", newUserData);
-              setUserInfo(newUserData);
-            } else {
-              const errorData = await registerResponse.text();
-              console.error("Échec de la création automatique de l'utilisateur:", errorData);
+            try {
+              const registerResponse = await fetch('/api/auth/register', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                  firebaseUid: user.uid,
+                  email: user.email || 'unknown@email.com',
+                  displayName: user.displayName || 'Utilisateur'
+                }),
+                credentials: 'include'
+              });
+              
+              console.log("Réponse d'inscription:", registerResponse.status);
+              
+              if (registerResponse.status === 201) {
+                const newUserData = await registerResponse.json();
+                console.log("Nouvel utilisateur créé:", newUserData);
+                setUserInfo(newUserData);
+              } else if (registerResponse.status === 409) {
+                // L'utilisateur existe déjà, essayons de le récupérer à nouveau
+                console.log("L'utilisateur existe déjà, tentative de récupération...");
+                const retryResponse = await fetch(`/api/auth/user/${user.uid}`, {
+                  method: 'GET',
+                  credentials: 'include'
+                });
+                
+                if (retryResponse.ok) {
+                  const userData = await retryResponse.json();
+                  console.log("Données utilisateur récupérées après conflit:", userData);
+                  setUserInfo(userData);
+                } else {
+                  console.error("Échec de la récupération de l'utilisateur après conflit:", retryResponse.status);
+                  setUserInfo(null);
+                }
+              } else {
+                const errorData = await registerResponse.text();
+                console.error("Échec de la création automatique de l'utilisateur:", registerResponse.status, errorData);
+                setUserInfo(null);
+              }
+            } catch (registerError) {
+              console.error("Exception lors de l'enregistrement:", registerError);
               setUserInfo(null);
             }
           } else {
@@ -122,14 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await updateProfile(userCredential.user, { displayName });
       }
       
-      // Créer l'utilisateur dans notre backend
-      if (userCredential.user) {
-        await apiRequest('POST', '/api/auth/register', {
-          firebaseUid: userCredential.user.uid,
-          email: email,
-          displayName: displayName
-        });
-      }
+      // Note: La création dans le backend est gérée automatiquement dans l'écouteur onAuthStateChanged
+      // On n'a donc pas besoin de faire un second appel à register ici
       
       return userCredential;
     } catch (error) {
