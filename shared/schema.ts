@@ -28,7 +28,7 @@ export const chapterSchema = z.object({
 export const bookContentSchema = z.object({
   title: z.string(),
   author: z.string(),
-  coverPage: pageContentSchema.optional(),
+  coverPage: z.union([pageContentSchema, z.null()]).optional(),
   chapters: z.array(chapterSchema).default([]),
 });
 
