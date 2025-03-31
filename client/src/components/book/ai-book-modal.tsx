@@ -121,7 +121,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[550px] lg:max-w-[650px]">
+      <DialogContent className="sm:max-w-[550px] lg:max-w-[650px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Sparkles className="h-5 w-5 mr-2 text-indigo-500" />
