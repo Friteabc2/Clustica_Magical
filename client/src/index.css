@@ -3,14 +3,36 @@
 @tailwind utilities;
 
 @layer base {
-  * {
-    @apply border-border;
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 240 3.8% 46.1%;
+    
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 222.2 47.4% 11.2%;
   }
 
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
-  }
-  
   /* Styles pour le thème sombre */
   .dark-theme {
     --background: 240 10% 3.9%;
@@ -25,40 +47,120 @@
     --primary: 260 60% 60%;
     --primary-foreground: 0 0% 98%;
     
-    --secondary: 240 4.5% 14%;
+    --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     
-    --muted: 240 4.5% 14%;
+    --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
     
-    --accent: 240 4.5% 14%;
+    --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
     
-    --destructive: 0 62% 30%;
+    --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     
-    --border: 240 4.5% 14%;
-    --input: 240 4.5% 14%;
-    --ring: 260 60% 60%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 260 60% 52%;
   }
-  
-  .dark-theme body {
-    background-color: hsl(240 10% 3.9%);
-    color: hsl(0 0% 98%);
+
+  * {
+    @apply border-border;
   }
-  
-  /* Transitions douces pour le changement de thème */
+
   body {
+    @apply font-sans antialiased bg-background text-foreground;
     transition: background-color 0.3s ease, color 0.3s ease;
   }
+}
+
+@layer components {
+  /* Composants spécifiques au thème sombre */
+  .dark-theme .bg-background {
+    background-color: hsl(var(--background));
+  }
   
-  .dark-theme .card,
-  .dark-theme .popover,
+  .dark-theme .text-foreground {
+    color: hsl(var(--foreground));
+  }
+  
+  .dark-theme .bg-card {
+    background-color: hsl(var(--card));
+  }
+  
+  .dark-theme .border {
+    border-color: hsl(var(--border));
+  }
+  
+  .dark-theme .text-muted-foreground {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  /* Correction des composants spécifiques */
   .dark-theme .dropdown-menu,
-  .dark-theme .modal,
-  .dark-theme .dialog {
-    background-color: hsl(240 10% 3.9%);
-    color: hsl(0 0% 98%);
-    border-color: hsl(240 4.5% 14%);
+  .dark-theme [data-radix-popper-content-wrapper] {
+    --tw-bg-opacity: 1;
+    background-color: hsl(var(--popover));
+    color: hsl(var(--popover-foreground));
+    border-color: hsl(var(--border));
+  }
+  
+  /* Meilleure visibilité pour les inputs dans le mode sombre */
+  .dark-theme input,
+  .dark-theme textarea,
+  .dark-theme select {
+    background-color: hsl(var(--input));
+    color: hsl(var(--foreground));
+    border-color: hsl(var(--border));
+  }
+  
+  /* Pour les badges et éléments accent */
+  .dark-theme .bg-accent {
+    background-color: hsl(var(--accent));
+  }
+  
+  .dark-theme .text-accent-foreground {
+    color: hsl(var(--accent-foreground));
+  }
+  
+  /* Pour les boutons primaires dans le thème sombre */
+  .dark-theme .bg-primary {
+    background-color: hsl(var(--primary));
+  }
+  
+  .dark-theme .text-primary-foreground {
+    color: hsl(var(--primary-foreground));
+  }
+  
+  /* Styles spécifiques pour les headers et éléments de navigation */
+  .dark-theme header {
+    background-color: hsl(var(--background));
+    border-bottom-color: hsl(var(--border));
+  }
+  
+  /* Styles pour les cartes et conteneurs */
+  .dark-theme .card {
+    background-color: hsl(var(--card));
+    color: hsl(var(--card-foreground));
+    border-color: hsl(var(--border));
+  }
+  
+  /* Styles pour les éléments de focus */
+  .dark-theme *:focus-visible {
+    outline-color: hsl(var(--ring));
+  }
+  
+  /* Transitions fluides pour tous les éléments pertinents */
+  .header,
+  .card,
+  .button,
+  .input,
+  .dropdown-menu,
+  .menu-item,
+  .popover {
+    transition: background-color 0.3s ease, 
+                color 0.3s ease, 
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
   }
 }

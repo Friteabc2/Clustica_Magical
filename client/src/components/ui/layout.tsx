@@ -12,11 +12,13 @@ export default function Layout({ children, hideNav = false }: LayoutProps) {
   const { theme } = useTheme();
   const [location] = useLocation();
   
-  // Ajouter une classe au body pour le thème
+  // Ajouter une classe au body et à l'élément html pour le thème
   React.useEffect(() => {
     if (theme === 'dark') {
+      document.documentElement.classList.add('dark-theme');
       document.body.classList.add('dark-theme');
     } else {
+      document.documentElement.classList.remove('dark-theme');
       document.body.classList.remove('dark-theme');
     }
   }, [theme]);
@@ -24,10 +26,10 @@ export default function Layout({ children, hideNav = false }: LayoutProps) {
   return (
     <div className={`min-h-screen flex flex-col ${theme === 'dark' ? 'dark-theme' : ''}`}>
       {!hideNav && <Header />}
-      <main className="flex-1">
+      <main className="flex-1 bg-background">
         {children}
       </main>
-      <footer className="py-4 text-center text-sm text-muted-foreground border-t">
+      <footer className="py-4 text-center text-sm text-muted-foreground border-t bg-background">
         <div className="container mx-auto">
           <p>© {new Date().getFullYear()} - Tous droits réservés</p>
         </div>
