@@ -46,8 +46,8 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         chaptersCount,
         pagesPerChapter,
         authorName: authorName.trim() || undefined,
-        genre: genre || undefined,
-        style: style || undefined,
+        genre: genre && genre !== "none" ? genre : undefined,
+        style: style && style !== "none" ? style : undefined,
         ...(userInfo && { userId: userInfo.id })
       };
       
@@ -144,7 +144,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <SelectValue placeholder="Sélectionner un genre" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">-- Aucun --</SelectItem>
+                  <SelectItem value="none">-- Aucun --</SelectItem>
                   <SelectItem value="fantasy">Fantasy</SelectItem>
                   <SelectItem value="scifi">Science-Fiction</SelectItem>
                   <SelectItem value="romance">Romance</SelectItem>
@@ -164,7 +164,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <SelectValue placeholder="Sélectionner un style" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">-- Aucun --</SelectItem>
+                  <SelectItem value="none">-- Aucun --</SelectItem>
                   <SelectItem value="literary">Littéraire</SelectItem>
                   <SelectItem value="minimalist">Minimaliste</SelectItem>
                   <SelectItem value="descriptive">Descriptif</SelectItem>
