@@ -4,9 +4,9 @@ import { DropboxService } from './dropbox-service';
 
 const APP_KEY = process.env.DROPBOX_APP_KEY || '';
 const APP_SECRET = process.env.DROPBOX_APP_SECRET || '';
-const REDIRECT_URI = (process.env.NODE_ENV === 'production')
-  ? 'https://clustica-magical.replit.app/api/dropbox/oauth-callback'
-  : 'http://localhost:5000/api/dropbox/oauth-callback';
+// L'URL de redirection doit correspondre exactement à celle configurée dans la console développeur Dropbox
+// Si vous voyez une erreur "Invalid redirect_uri", mettez à jour cette valeur avec l'URL exacte configurée dans votre app Dropbox
+const REDIRECT_URI = 'https://clustica-magical.replit.app/api/dropbox/oauth-callback';
 
 /**
  * Service de gestion OAuth pour Dropbox
