@@ -23,6 +23,9 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { RocketAnimation } from '../ui/rocket-animation';
+import { CharacterOptions, Character } from './character-options';
+import { AdditionalStyles, StyleOption } from './additional-styles';
 
 interface AIBookModalProps {
   isOpen: boolean;
@@ -46,6 +49,8 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
   const [targetAudience, setTargetAudience] = useState('');
   const [tone, setTone] = useState('');
   const [paceStyle, setPaceStyle] = useState('');
+  const [characters, setCharacters] = useState<Character[]>([]);
+  const [additionalStyles, setAdditionalStyles] = useState<StyleOption[]>([]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -60,6 +65,25 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
     setIsGenerating(true);
 
     try {
+      // Préparer les informations des personnages
+      const characterData = characters.map(char => ({
+        name: char.autoGenerateName ? undefined : char.name.trim() || undefined,
+        autoGenerateName: char.autoGenerateName,
+        description: char.description.trim() || undefined, 
+        alignment: char.alignment,
+        organization: char.organization.trim() || undefined,
+        role: char.role
+      }));
+      
+      // Préparer les styles et thèmes additionnels
+      const additionalStylesList = additionalStyles
+        .filter(s => s.type === 'style')
+        .map(s => s.value);
+        
+      const themesList = additionalStyles
+        .filter(s => s.type === 'theme')
+        .map(s => s.value);
+      
       const payload = {
         prompt,
         chaptersCount,
@@ -73,6 +97,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         targetAudience: targetAudience && targetAudience !== "none" ? targetAudience : undefined,
         tone: tone && tone !== "none" ? tone : undefined,
         paceStyle: paceStyle && paceStyle !== "none" ? paceStyle : undefined,
+        ...(additionalStylesList.length > 0 && { additionalStyles: additionalStylesList }),
+        ...(themesList.length > 0 && { themes: themesList }),
+        ...(characters.length > 0 && { characters: characterData }),
         ...(userInfo && { userId: userInfo.id })
       };
       
@@ -365,11 +392,28 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                       </SelectContent>
                     </Select>
                   </div>
+                  
+                  {/* Styles et thèmes supplémentaires */}
+                  <AdditionalStyles
+                    styles={additionalStyles}
+                    onChange={setAdditionalStyles}
+                    disabled={isGenerating}
+                  />
+                  
+                  {/* Personnages */}
+                  <CharacterOptions
+                    characters={characters}
+                    onChange={setCharacters}
+                    disabled={isGenerating}
+                  />
                 </div>
               </AccordionContent>
             </AccordionItem>
           </Accordion>
         </div>
+        
+        {/* Animation de fusée pendant la génération */}
+        <RocketAnimation isActive={isGenerating} />
         
         <DialogFooter>
           <Button 

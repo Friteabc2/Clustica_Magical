@@ -7,6 +7,16 @@ import { v4 as uuidv4 } from 'uuid';
 const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY || '' });
 const MODEL = 'mistral-large-latest';
 
+// Interface pour les personnages personnalisés
+export interface AICharacter {
+  name?: string;
+  autoGenerateName?: boolean;
+  description?: string;
+  alignment?: string;
+  organization?: string;
+  role?: string;
+}
+
 // Interface pour la demande de création de livre IA
 export interface AIBookRequest {
   prompt: string;
@@ -21,6 +31,11 @@ export interface AIBookRequest {
   targetAudience?: string; // Public cible (adultes, jeunesse, etc.)
   tone?: string;           // Ton de l'histoire (humoristique, sérieux, etc.)
   paceStyle?: string;      // Rythme (lent, rapide, etc.)
+  
+  // Nouvelles options
+  additionalStyles?: string[]; // Styles d'écriture supplémentaires
+  themes?: string[];           // Thèmes supplémentaires
+  characters?: AICharacter[];  // Personnages supplémentaires
 }
 
 /**
@@ -43,7 +58,10 @@ export class AIService {
       setting,
       targetAudience,
       tone,
-      paceStyle
+      paceStyle,
+      additionalStyles = [],
+      themes = [],
+      characters = []
     } = request;
 
     try {
@@ -76,7 +94,10 @@ export class AIService {
             setting,
             targetAudience,
             tone,
-            paceStyle
+            paceStyle,
+            additionalStyles,
+            themes,
+            characters
           );
           
           const page = getEmptyPage(j + 1);
@@ -178,7 +199,10 @@ export class AIService {
     setting?: string,
     targetAudience?: string,
     tone?: string,
-    paceStyle?: string
+    paceStyle?: string,
+    additionalStyles?: string[],
+    themes?: string[],
+    characters?: AICharacter[]
   ): Promise<string> {
     let genreDirective = '';
     if (genre) {
@@ -259,7 +283,7 @@ export class AIService {
       }
     }
     
-    // Description du personnage principal
+    // Description du personnage principal 
     let characterDirective = mainCharacter ? `Le personnage principal est: ${mainCharacter}. Intègre naturellement ses caractéristiques dans le récit.` : '';
     
     // Cadre/époque
@@ -341,6 +365,20 @@ export class AIService {
     ${audienceDirective}
     ${toneDirective}
     ${paceDirective}
+    
+    ${additionalStyles && additionalStyles.length > 0 ? `Styles supplémentaires: Intègre les styles d'écriture suivants: ${additionalStyles.join(', ')}.` : ''}
+    ${themes && themes.length > 0 ? `Thèmes à explorer: Aborde les thèmes suivants: ${themes.join(', ')}.` : ''}
+    ${characters && characters.length > 0 ? `Personnages supplémentaires: ${characters.map(c => {
+      const nameInfo = c.autoGenerateName 
+        ? '(nom à suggérer)' 
+        : c.name ? c.name : '';
+      const role = c.role ? `rôle: ${c.role}` : '';
+      const alignment = c.alignment ? `alignement: ${c.alignment}` : '';
+      const organization = c.organization ? `appartient à: ${c.organization}` : '';
+      const description = c.description ? c.description : '';
+      
+      return `${nameInfo} ${role} ${alignment} ${organization} - ${description}`.trim();
+    }).join('; ')}` : ''}
     
     Écris un contenu engageant et détaillé, avec de beaux paragraphes, qui correspond à cette partie du livre.
     Ne mentionne pas le numéro de page ni le titre du chapitre dans le contenu.
