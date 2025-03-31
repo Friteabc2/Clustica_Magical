@@ -1,0 +1,34 @@
+import { Link } from "wouter";
+import UserMenu from "@/components/auth/UserMenu";
+import { Button } from "@/components/ui/button";
+
+export default function Header() {
+  return (
+    <header className="border-b bg-background sticky top-0 z-10">
+      <div className="container flex h-16 items-center justify-between py-4">
+        <div className="flex items-center gap-6">
+          <Link href="/">
+            <a className="flex items-center gap-2 font-semibold text-xl">
+              <span className="text-primary font-bold">ClusterBook</span>
+            </a>
+          </Link>
+          <nav className="hidden md:flex gap-6">
+            <Link href="/">
+              <a className="text-muted-foreground hover:text-foreground transition-colors">
+                Accueil
+              </a>
+            </Link>
+            <Link href="/editor">
+              <a className="text-muted-foreground hover:text-foreground transition-colors">
+                Nouvel ouvrage
+              </a>
+            </Link>
+          </nav>
+        </div>
+        <div className="flex items-center gap-4">
+          <UserMenu />
+        </div>
+      </div>
+    </header>
+  );
+}

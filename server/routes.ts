@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { bookContentSchema } from "@shared/schema";
+import { bookContentSchema, insertUserSchema } from "@shared/schema";
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -82,6 +82,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Initial validation
       if (!bookData.title || !bookData.author) {
         return res.status(400).json({ message: 'Title and author are required' });
+      }
+      
+      // Validation de l'ID utilisateur s'il est fourni
+      if (bookData.userId && (isNaN(parseInt(bookData.userId)) || parseInt(bookData.userId) <= 0)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
       }
       
       // Create default book structure if not provided
@@ -337,6 +342,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Erreur lors de la récupération des livres depuis Dropbox:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       res.status(500).json({ message: 'Échec de la récupération des livres depuis Dropbox', error: errorMessage });
+    }
+  });
+  
+  // Routes d'authentification Firebase
+  
+  // Endpoint pour créer un nouvel utilisateur après inscription via Firebase
+  app.post('/api/auth/register', async (req: Request, res: Response) => {
+    try {
+      // Valider les données utilisateur avec le schéma Zod
+      const userDataSchema = insertUserSchema.extend({
+        firebaseUid: z.string().min(1, { message: "L'UID Firebase est requis" }),
+        email: z.string().email({ message: "Format d'email invalide" }),
+      });
+      
+      const validationResult = userDataSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: 'Données utilisateur invalides',
+          errors: validationResult.error.errors
+        });
+      }
+      
+      // Vérifier si l'utilisateur existe déjà (par email ou firebaseUid)
+      const existingUserByUid = await storage.getUserByFirebaseUid(validationResult.data.firebaseUid);
+      const existingUserByEmail = await storage.getUserByEmail(validationResult.data.email);
+      
+      if (existingUserByUid || existingUserByEmail) {
+        return res.status(409).json({ message: 'Un utilisateur avec cet email ou cet UID Firebase existe déjà' });
+      }
+      
+      // Créer le nouvel utilisateur
+      const user = await storage.createUser({
+        email: validationResult.data.email,
+        firebaseUid: validationResult.data.firebaseUid,
+        displayName: validationResult.data.displayName
+      });
+      
+      res.status(201).json({
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création de l\'utilisateur:', error);
+      res.status(500).json({ message: 'Échec de la création de l\'utilisateur' });
+    }
+  });
+  
+  // Endpoint pour obtenir les informations de l'utilisateur
+  app.get('/api/auth/user/:firebaseUid', async (req: Request, res: Response) => {
+    try {
+      const { firebaseUid } = req.params;
+      
+      const user = await storage.getUserByFirebaseUid(firebaseUid);
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+      
+      res.json({
+        id: user.id,
+        email: user.email,
+        displayName: user.displayName
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des informations utilisateur:', error);
+      res.status(500).json({ message: 'Échec de la récupération des informations utilisateur' });
+    }
+  });
+  
+  // Endpoint pour récupérer les livres d'un utilisateur spécifique
+  app.get('/api/auth/user/:userId/books', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      const books = await storage.getBooks(userId);
+      res.json(books);
+    } catch (error) {
+      console.error('Erreur lors de la récupération des livres de l\'utilisateur:', error);
+      res.status(500).json({ message: 'Échec de la récupération des livres de l\'utilisateur' });
     }
   });
 

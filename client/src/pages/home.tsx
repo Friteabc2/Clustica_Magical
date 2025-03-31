@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { PlusCircle, BookOpen, Trash2, Sparkles, Cloud, Download } from 'lucide-react';
 import { type Book as BookType } from '@shared/schema';
 import AIBookModal from '@/components/book/ai-book-modal';
+import Header from '@/components/Header';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Home() {
   const { toast } = useToast();
@@ -19,9 +21,19 @@ export default function Home() {
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
   const [isDropboxSyncModalOpen, setIsDropboxSyncModalOpen] = useState(false);
 
-  // Fetch books
+  const { userInfo } = useAuth();
+  
+  // Fetch books (filter by user if logged in)
   const { data: books, isLoading } = useQuery<BookType[]>({
-    queryKey: ['/api/books']
+    queryKey: userInfo ? ['/api/auth/user', userInfo.id, 'books'] : ['/api/books'],
+    queryFn: async () => {
+      const endpoint = userInfo 
+        ? `/api/auth/user/${userInfo.id}/books` 
+        : '/api/books';
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
+    enabled: !isCreating // Ne pas charger pendant la création d'un livre
   });
   
   // Fetch Dropbox books (only when modal is open)
@@ -33,7 +45,11 @@ export default function Home() {
   // Create book mutation
   const createBook = useMutation({
     mutationFn: async (bookData: { title: string; author: string }) => {
-      const res = await apiRequest('POST', '/api/books', bookData);
+      // Inclut l'ID utilisateur si disponible
+      const payload = userInfo 
+        ? { ...bookData, userId: userInfo.id } 
+        : bookData;
+      const res = await apiRequest('POST', '/api/books', payload);
       return await res.json();
     },
     onSuccess: (newBook) => {
@@ -132,21 +148,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 flex items-center">
-                <div className="bg-gradient-to-r from-primary to-secondary rounded-lg w-8 h-8 flex items-center justify-center text-white">
-                  <BookOpen className="h-4 w-4" />
-                </div>
-                <span className="ml-2 text-xl font-bold text-gray-800">Clustica</span>
-                <span className="ml-1 text-sm text-secondary font-medium">Magical</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header />
 
       <main className="flex-1 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

@@ -7,15 +7,46 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
+// GET request overload
+export function apiRequest(url: string): Promise<Response>;
+
+// Method + URL overload 
+export function apiRequest(method: string, url: string): Promise<Response>;
+
+// Method + URL + Data overload
+export function apiRequest(method: string, url: string, data: unknown): Promise<Response>;
+
+// Implementation
 export async function apiRequest(
-  method: string,
-  url: string,
-  data?: unknown | undefined,
+  methodOrUrl: string,
+  urlOrData?: string | unknown,
+  data?: unknown
 ): Promise<Response> {
+  let method: string;
+  let url: string;
+  let bodyData: unknown | undefined;
+
+  if (urlOrData === undefined) {
+    // apiRequest('/api/books')
+    method = 'GET';
+    url = methodOrUrl;
+    bodyData = undefined;
+  } else if (typeof urlOrData === 'string') {
+    // apiRequest('GET', '/api/books')
+    method = methodOrUrl;
+    url = urlOrData;
+    bodyData = undefined;
+  } else {
+    // apiRequest('POST', '/api/books', { title: 'Book' })
+    method = methodOrUrl;
+    url = urlOrData as string;
+    bodyData = data;
+  }
+
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
-    body: data ? JSON.stringify(data) : undefined,
+    headers: bodyData ? { "Content-Type": "application/json" } : {},
+    body: bodyData ? JSON.stringify(bodyData) : undefined,
     credentials: "include",
   });
 

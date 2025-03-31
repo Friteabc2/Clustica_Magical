@@ -1,27 +1,45 @@
-import { books, type Book, type InsertBook, type BookContent } from "@shared/schema";
+import { books, users, type Book, type InsertBook, type BookContent, type User, type InsertUser } from "@shared/schema";
 import { DropboxService } from "./services/dropbox-service";
 
 export interface IStorage {
-  getBooks(): Promise<Book[]>;
+  // Méthodes de gestion des livres
+  getBooks(userId?: number): Promise<Book[]>;
   getBook(id: number): Promise<Book | undefined>;
   createBook(book: InsertBook): Promise<Book>;
   updateBook(id: number, book: Partial<Book>): Promise<Book | undefined>;
   deleteBook(id: number): Promise<boolean>;
   getBookContent(id: number): Promise<BookContent | undefined>;
   updateBookContent(id: number, content: BookContent): Promise<Book | undefined>;
+  
+  // Méthodes de gestion des utilisateurs
+  getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
+  createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: Partial<User>): Promise<User | undefined>;
 }
 
 export class MemStorage implements IStorage {
   private books: Map<number, Book>;
-  private currentId: number;
+  private users: Map<number, User>;
+  private bookCurrentId: number;
+  private userCurrentId: number;
 
   constructor() {
     this.books = new Map();
-    this.currentId = 1;
+    this.users = new Map();
+    this.bookCurrentId = 1;
+    this.userCurrentId = 1;
   }
 
-  async getBooks(): Promise<Book[]> {
-    return Array.from(this.books.values());
+  async getBooks(userId?: number): Promise<Book[]> {
+    const allBooks = Array.from(this.books.values());
+    
+    // Si un ID utilisateur est fourni, filtrer les livres de cet utilisateur
+    if (userId) {
+      return allBooks.filter(book => book.userId === userId);
+    }
+    
+    return allBooks;
   }
 
   async getBook(id: number): Promise<Book | undefined> {
@@ -32,11 +50,11 @@ export class MemStorage implements IStorage {
     const now = Math.floor(Date.now() / 1000);
     // Si l'ID est fourni (cas des livres importés de Dropbox), utiliser cet ID
     // Sinon générer un nouvel ID
-    const id = (insertBook as any).id || this.currentId++;
+    const id = (insertBook as any).id || this.bookCurrentId++;
     
-    // Mettre à jour currentId si nécessaire pour éviter les conflits
-    if (id >= this.currentId) {
-      this.currentId = id + 1;
+    // Mettre à jour bookCurrentId si nécessaire pour éviter les conflits
+    if (typeof id === 'number' && id >= this.bookCurrentId) {
+      this.bookCurrentId = id + 1;
     }
     
     // Ensure coverPage is defined even if it's null
@@ -95,6 +113,59 @@ export class MemStorage implements IStorage {
       coverPage: content.coverPage as any,
       chapters: content.chapters as any,
     });
+  }
+  
+  // Méthodes de gestion des utilisateurs
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    // Recherche l'utilisateur par son UID Firebase
+    const allUsers = Array.from(this.users.values());
+    for (let i = 0; i < allUsers.length; i++) {
+      if (allUsers[i].firebaseUid === firebaseUid) {
+        return allUsers[i];
+      }
+    }
+    return undefined;
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    // Recherche l'utilisateur par son email
+    const allUsers = Array.from(this.users.values());
+    for (let i = 0; i < allUsers.length; i++) {
+      if (allUsers[i].email === email) {
+        return allUsers[i];
+      }
+    }
+    return undefined;
+  }
+  
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const now = Math.floor(Date.now() / 1000);
+    const id = this.userCurrentId++;
+    
+    const user = {
+      ...insertUser,
+      id,
+      displayName: insertUser.displayName || null,
+      createdAt: now,
+      updatedAt: now,
+    } as User;
+    
+    this.users.set(id, user);
+    return user;
+  }
+  
+  async updateUser(id: number, userUpdate: Partial<User>): Promise<User | undefined> {
+    const user = this.users.get(id);
+    if (!user) return undefined;
+    
+    const updatedUser: User = {
+      ...user,
+      ...userUpdate,
+      updatedAt: Math.floor(Date.now() / 1000),
+    };
+    
+    this.users.set(id, updatedUser);
+    return updatedUser;
   }
 }
 
@@ -162,8 +233,8 @@ export class DropboxStorage implements IStorage {
   }
 
   // Méthodes de gestion des métadonnées du livre - utilise le stockage mémoire
-  async getBooks(): Promise<Book[]> {
-    return this.memStorage.getBooks();
+  async getBooks(userId?: number): Promise<Book[]> {
+    return this.memStorage.getBooks(userId);
   }
 
   async getBook(id: number): Promise<Book | undefined> {
@@ -243,6 +314,23 @@ export class DropboxStorage implements IStorage {
     }
     
     return updatedBook;
+  }
+  
+  // Méthodes de gestion des utilisateurs - délégation à MemStorage
+  async getUserByFirebaseUid(firebaseUid: string): Promise<User | undefined> {
+    return this.memStorage.getUserByFirebaseUid(firebaseUid);
+  }
+  
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    return this.memStorage.getUserByEmail(email);
+  }
+  
+  async createUser(user: InsertUser): Promise<User> {
+    return this.memStorage.createUser(user);
+  }
+  
+  async updateUser(id: number, user: Partial<User>): Promise<User | undefined> {
+    return this.memStorage.updateUser(id, user);
   }
 }
 
