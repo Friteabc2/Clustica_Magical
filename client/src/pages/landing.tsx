@@ -4,9 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, BookOpen, Sparkles, Cloud, Book, Feather, Star } from 'lucide-react';
 import { Helmet } from 'react-helmet';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Landing() {
   const [_, navigate] = useLocation();
+  const { currentUser } = useAuth();
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -36,18 +38,32 @@ export default function Landing() {
             </nav>
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={() => navigate('/login')} 
-              variant="outline"
-            >
-              Connexion
-            </Button>
-            <Button 
-              onClick={() => navigate('/register')}
-              className="bg-primary hover:bg-primary/90"
-            >
-              S'inscrire
-            </Button>
+            {currentUser ? (
+              <div className="flex items-center gap-3">
+                <div className="text-green-600 font-medium">Vous êtes connecté !</div>
+                <Button 
+                  onClick={() => navigate('/dashboard')}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  Accéder à votre espace
+                </Button>
+              </div>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => navigate('/login')} 
+                  variant="outline"
+                >
+                  Connexion
+                </Button>
+                <Button 
+                  onClick={() => navigate('/register')}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  S'inscrire
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
@@ -64,19 +80,30 @@ export default function Landing() {
               qu'il s'agisse de romans, manuels, portfolios ou livres pour enfants.
             </p>
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-              <Button 
-                onClick={() => navigate('/register')} 
-                className="bg-white text-primary hover:bg-white/90 py-2 px-4"
-              >
-                Commencer gratuitement <ChevronRight className="ml-2 h-5 w-5" />
-              </Button>
-              <Button 
-                onClick={() => navigate('/login')} 
-                variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-2 px-4"
-              >
-                Se connecter
-              </Button>
+              {currentUser ? (
+                <Button 
+                  onClick={() => navigate('/dashboard')} 
+                  className="bg-white text-primary hover:bg-white/90 py-2 px-4"
+                >
+                  Accéder à mon espace <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+              ) : (
+                <>
+                  <Button 
+                    onClick={() => navigate('/register')} 
+                    className="bg-white text-primary hover:bg-white/90 py-2 px-4"
+                  >
+                    Commencer gratuitement <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/login')} 
+                    variant="outline"
+                    className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-2 px-4"
+                  >
+                    Se connecter
+                  </Button>
+                </>
+              )}
             </div>
           </div>
           <div className="lg:w-1/2 flex justify-center">
@@ -235,13 +262,23 @@ export default function Landing() {
                 </div>
               </div>
               <div className="p-6">
-                <Button 
-                  onClick={() => navigate('/register')} 
-                  className="w-full"
-                  variant="outline"
-                >
-                  Commencer gratuitement
-                </Button>
+                {currentUser ? (
+                  <Button 
+                    onClick={() => navigate('/dashboard')} 
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Accéder à mon espace
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => navigate('/register')} 
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Commencer gratuitement
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -280,12 +317,21 @@ export default function Landing() {
                 </div>
               </div>
               <div className="p-6">
-                <Button 
-                  onClick={() => navigate('/register')} 
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
-                >
-                  S'abonner maintenant
-                </Button>
+                {currentUser ? (
+                  <Button 
+                    onClick={() => navigate('/dashboard')} 
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Accéder à mon espace
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => navigate('/register')} 
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    S'abonner maintenant
+                  </Button>
+                )}
               </div>
             </div>
 
@@ -321,13 +367,23 @@ export default function Landing() {
                 </div>
               </div>
               <div className="p-6">
-                <Button 
-                  onClick={() => navigate('/register')} 
-                  className="w-full"
-                  variant="outline"
-                >
-                  Contacter les ventes
-                </Button>
+                {currentUser ? (
+                  <Button 
+                    onClick={() => navigate('/dashboard')} 
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Accéder à mon espace
+                  </Button>
+                ) : (
+                  <Button 
+                    onClick={() => navigate('/register')} 
+                    className="w-full"
+                    variant="outline"
+                  >
+                    Contacter les ventes
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -417,19 +473,30 @@ export default function Landing() {
             Participez au développement de Clustica - Magical en testant cette version préliminaire et en partageant vos retours.
           </p>
           <div className="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-4">
-            <Button 
-              onClick={() => navigate('/register')} 
-              className="bg-white text-primary hover:bg-white/90 py-3 px-6 text-lg"
-            >
-              S'inscrire à la pré-bêta <ChevronRight className="ml-2 h-5 w-5" />
-            </Button>
-            <Button 
-              onClick={() => navigate('/login')} 
-              variant="outline"
-              className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-3 px-6 text-lg"
-            >
-              Se connecter
-            </Button>
+            {currentUser ? (
+              <Button 
+                onClick={() => navigate('/dashboard')} 
+                className="bg-white text-primary hover:bg-white/90 py-3 px-6 text-lg"
+              >
+                Accéder à mon espace <ChevronRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <>
+                <Button 
+                  onClick={() => navigate('/register')} 
+                  className="bg-white text-primary hover:bg-white/90 py-3 px-6 text-lg"
+                >
+                  S'inscrire à la pré-bêta <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+                <Button 
+                  onClick={() => navigate('/login')} 
+                  variant="outline"
+                  className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-3 px-6 text-lg"
+                >
+                  Se connecter
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </section>
