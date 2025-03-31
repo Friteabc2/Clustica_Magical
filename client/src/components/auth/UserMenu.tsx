@@ -118,6 +118,13 @@ export default function UserMenu() {
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer"
+          onClick={() => navigate("/dashboard")}
+        >
+          <BookText className="mr-2 h-4 w-4" />
+          <span>Mes Livres</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          className="cursor-pointer"
           onClick={() => navigate("/profile")}
         >
           <User className="mr-2 h-4 w-4" />

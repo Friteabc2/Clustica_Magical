@@ -13,9 +13,9 @@ export default function Header() {
             </span>
           </Link>
           <nav className="hidden md:flex gap-6">
-            <Link href="/">
+            <Link href="/dashboard">
               <span className="text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                Accueil
+                Mes Livres
               </span>
             </Link>
             <Link href="/editor">
