@@ -30,7 +30,14 @@ export class MemStorage implements IStorage {
 
   async createBook(insertBook: InsertBook): Promise<Book> {
     const now = Math.floor(Date.now() / 1000);
-    const id = this.currentId++;
+    // Si l'ID est fourni (cas des livres importés de Dropbox), utiliser cet ID
+    // Sinon générer un nouvel ID
+    const id = (insertBook as any).id || this.currentId++;
+    
+    // Mettre à jour currentId si nécessaire pour éviter les conflits
+    if (id >= this.currentId) {
+      this.currentId = id + 1;
+    }
     
     // Ensure coverPage is defined even if it's null
     const bookData = {
@@ -41,7 +48,7 @@ export class MemStorage implements IStorage {
     const book = {
       ...bookData,
       id,
-      createdAt: now,
+      createdAt: (insertBook as any).createdAt || now,
       updatedAt: now,
     } as Book;
     
@@ -98,14 +105,59 @@ export class MemStorage implements IStorage {
  */
 export class DropboxStorage implements IStorage {
   private memStorage: MemStorage;
+  private initialized: boolean = false;
   
   constructor() {
     this.memStorage = new MemStorage();
     // Initialisation du service Dropbox
     try {
       DropboxService.initialize();
+      // Chargement asynchrone des livres depuis Dropbox au démarrage
+      this.loadBooksFromDropbox();
     } catch (error) {
       console.error("Erreur d'initialisation du service Dropbox:", error);
+    }
+  }
+  
+  /**
+   * Charge les livres depuis Dropbox et les importe dans le stockage mémoire
+   */
+  private async loadBooksFromDropbox() {
+    try {
+      console.log("Chargement des livres depuis Dropbox...");
+      // Récupère la liste des livres disponibles sur Dropbox
+      const dropboxBooks = await DropboxService.listBooks();
+      
+      // Pour chaque livre trouvé sur Dropbox
+      for (const bookInfo of dropboxBooks) {
+        try {
+          // Récupère le contenu complet du livre
+          const bookContent = await DropboxService.getBook(bookInfo.id);
+          if (bookContent) {
+            console.log(`Chargement du livre ${bookInfo.id} depuis Dropbox: ${bookContent.title}`);
+            
+            // Crée ou met à jour le livre dans le stockage mémoire
+            const existingBook = await this.memStorage.getBook(bookInfo.id);
+            if (!existingBook) {
+              // Si le livre n'existe pas localement, le créer
+              await this.memStorage.createBook({
+                id: bookInfo.id,
+                title: bookContent.title,
+                author: bookContent.author,
+                coverPage: bookContent.coverPage,
+                chapters: bookContent.chapters
+              } as any);
+            }
+          }
+        } catch (error) {
+          console.error(`Erreur lors du chargement du livre ${bookInfo.id} depuis Dropbox:`, error);
+        }
+      }
+      
+      this.initialized = true;
+      console.log(`${dropboxBooks.length} livres chargés depuis Dropbox.`);
+    } catch (error) {
+      console.error("Erreur lors du chargement des livres depuis Dropbox:", error);
     }
   }
 
