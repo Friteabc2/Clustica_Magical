@@ -184,14 +184,15 @@ export class DropboxStorage implements IStorage {
   
   constructor() {
     this.memStorage = new MemStorage();
-    // Initialisation du service Dropbox
-    try {
-      DropboxService.initialize();
-      // Chargement asynchrone des livres depuis Dropbox au démarrage
+    
+    // Le service Dropbox est maintenant initialisé dans server/index.ts
+    // pour garantir qu'il est prêt avant de l'utiliser ici
+    
+    // Chargement asynchrone des livres depuis Dropbox au démarrage
+    // avec un délai pour s'assurer que Dropbox est initialisé
+    setTimeout(() => {
       this.loadBooksFromDropbox();
-    } catch (error) {
-      console.error("Erreur d'initialisation du service Dropbox:", error);
-    }
+    }, 2000); // Attendre 2 secondes pour l'initialisation
   }
   
   /**

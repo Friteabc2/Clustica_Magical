@@ -4,10 +4,18 @@ import { setupVite, serveStatic, log } from "./vite";
 import { DropboxService } from "./services/dropbox-service";
 
 // Vérification des variables d'environnement pour Dropbox
-if (!process.env.DROPBOX_APP_KEY || !process.env.DROPBOX_APP_SECRET || !process.env.DROPBOX_REFRESH_TOKEN) {
-  log("⚠️ Variables d'environnement Dropbox manquantes. Certaines fonctionnalités peuvent ne pas fonctionner correctement.", "dropbox");
+// Nous utilisons maintenant un token d'accès longue durée
+if (!process.env.DROPBOX_ACCESS_TOKEN) {
+  log("⚠️ Variable d'environnement DROPBOX_ACCESS_TOKEN manquante. La synchronisation Dropbox ne fonctionnera pas correctement.", "dropbox");
 } else {
-  log("✅ Variables d'environnement Dropbox détectées", "dropbox");
+  log("✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée", "dropbox");
+  // Initialisation du service Dropbox dès le démarrage du serveur
+  try {
+    DropboxService.initialize();
+    log("✅ Service Dropbox initialisé avec succès", "dropbox");
+  } catch (error) {
+    log(`❌ Erreur lors de l'initialisation du service Dropbox: ${error}`, "dropbox");
+  }
 }
 
 const app = express();

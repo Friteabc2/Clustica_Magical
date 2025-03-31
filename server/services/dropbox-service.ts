@@ -88,6 +88,24 @@ export class DropboxService {
       // Si userId n'est pas fourni, on utilise l'ID de l'utilisateur du livre si disponible
       const userIdToUse = userId || content.userId;
       
+      // Vérification que toutes les données nécessaires sont présentes
+      if (!content.title) {
+        content.title = "Livre sans titre";
+      }
+      
+      if (!content.author) {
+        content.author = "Auteur inconnu";
+      }
+      
+      if (!content.chapters || !Array.isArray(content.chapters)) {
+        content.chapters = [];
+      }
+      
+      // Ajouter l'ID utilisateur au contenu pour les futures récupérations
+      if (userIdToUse && !content.userId) {
+        content.userId = userIdToUse;
+      }
+      
       if (!userIdToUse) {
         // Compatibilité avec les anciens livres sans userId
         await this.ensureRootFolderExists();
@@ -100,6 +118,8 @@ export class DropboxService {
           contents: contentStr,
           mode: { '.tag': 'overwrite' }
         });
+        
+        console.log(`Livre ${bookId} sauvegardé dans le dossier racine Dropbox: ${filePath}`);
       } else {
         // Crée le dossier utilisateur si nécessaire
         await this.ensureUserFolderExists(userIdToUse);
@@ -114,9 +134,9 @@ export class DropboxService {
           contents: contentStr,
           mode: { '.tag': 'overwrite' }
         });
+        
+        console.log(`Livre ${bookId} sauvegardé dans le dossier utilisateur Dropbox: ${filePath}`);
       }
-      
-      console.log(`Livre ${bookId} sauvegardé sur Dropbox`);
     } catch (error) {
       console.error('Erreur lors de la sauvegarde du livre sur Dropbox:', error);
       throw new Error('Impossible de sauvegarder le livre sur Dropbox');
@@ -131,16 +151,54 @@ export class DropboxService {
     try {
       // Définir le chemin du fichier en fonction de userId
       let filePath: string;
+      let content: BookContent | null = null;
       
+      // Essayer d'abord dans le dossier de l'utilisateur si un userId est fourni
       if (userId) {
-        // Chemin dans le dossier de l'utilisateur
-        const userFolder = getUserBooksFolder(userId);
-        filePath = `${userFolder}/book_${bookId}.json`;
-      } else {
-        // Chemin dans le dossier racine (compatibilité avec les anciens livres)
-        filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
+        try {
+          const userFolder = getUserBooksFolder(userId);
+          filePath = `${userFolder}/book_${bookId}.json`;
+          
+          // S'assurer que le dossier utilisateur existe
+          await this.ensureUserFolderExists(userId);
+          
+          content = await this.downloadAndParseBook(filePath);
+          if (content) {
+            console.log(`Livre ${bookId} trouvé dans le dossier de l'utilisateur ${userId}`);
+            return content;
+          }
+        } catch (userFolderError) {
+          console.log(`Livre ${bookId} non trouvé dans le dossier de l'utilisateur ${userId}, recherche dans le dossier racine...`);
+        }
       }
       
+      // Si le livre n'a pas été trouvé dans le dossier utilisateur ou si pas d'userId,
+      // essayer dans le dossier racine
+      try {
+        filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
+        content = await this.downloadAndParseBook(filePath);
+        if (content) {
+          console.log(`Livre ${bookId} trouvé dans le dossier racine`);
+          return content;
+        }
+      } catch (rootFolderError) {
+        console.log(`Livre ${bookId} non trouvé dans le dossier racine`);
+      }
+      
+      // Si on arrive ici, c'est que le livre n'a pas été trouvé
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de la récupération du livre ${bookId} depuis Dropbox:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Télécharge et parse un fichier JSON depuis Dropbox
+   * @private
+   */
+  private static async downloadAndParseBook(filePath: string): Promise<BookContent | null> {
+    try {
       const response = await this.dbx.filesDownload({
         path: filePath
       });
@@ -168,7 +226,7 @@ export class DropboxService {
         const content = JSON.stringify(data);
         // Supprime les métadonnées pour extraire le contenu réel
         const contentMatchResult = content.match(/"content":"(.+?)(?<!\\)"(?:,|})/) || 
-                                   content.match(/"content":(.+?)(?:,|})/);
+                                  content.match(/"content":(.+?)(?:,|})/);
         
         if (contentMatchResult && contentMatchResult[1]) {
           contentText = contentMatchResult[1].replace(/\\"/g, '"');
@@ -192,8 +250,7 @@ export class DropboxService {
         ? JSON.parse(contentText) as BookContent 
         : contentText as BookContent;
     } catch (error) {
-      console.error(`Erreur lors de la récupération du livre ${bookId} depuis Dropbox:`, error);
-      // Si le fichier n'existe pas, on retourne null plutôt que de lancer une erreur
+      console.error(`Erreur lors du téléchargement/parsing du fichier ${filePath}:`, error);
       return null;
     }
   }
