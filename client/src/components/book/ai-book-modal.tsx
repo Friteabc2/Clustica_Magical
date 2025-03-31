@@ -121,7 +121,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[550px] lg:max-w-[650px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[550px] lg:max-w-[650px] max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Sparkles className="h-5 w-5 mr-2 text-indigo-500" />
@@ -151,7 +151,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="authorName">Nom de l'auteur (optionnel)</Label>
+            <Label htmlFor="authorName">Nom de l'auteur <span className="text-xs text-gray-500 ml-1">(optionnel)</span></Label>
             <Input 
               id="authorName" 
               placeholder="Ex: Jean Dupont" 
@@ -163,7 +163,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="genre">Genre</Label>
+              <Label htmlFor="genre">Genre <span className="text-xs text-gray-500 ml-1">(optionnel)</span></Label>
               <Select value={genre} onValueChange={setGenre} disabled={isGenerating}>
                 <SelectTrigger id="genre">
                   <SelectValue placeholder="Sélectionner un genre" />
@@ -183,7 +183,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="style">Style d'écriture</Label>
+              <Label htmlFor="style">Style d'écriture <span className="text-xs text-gray-500 ml-1">(optionnel)</span></Label>
               <Select value={style} onValueChange={setStyle} disabled={isGenerating}>
                 <SelectTrigger id="style">
                   <SelectValue placeholder="Sélectionner un style" />
@@ -255,7 +255,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="narrativeMode" className="flex items-center">
                       <BookOpen className="h-4 w-4 mr-2 text-indigo-500" />
-                      Point de vue narratif
+                      Point de vue narratif <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Select value={narrativeMode} onValueChange={setNarrativeMode} disabled={isGenerating}>
                       <SelectTrigger id="narrativeMode">
@@ -276,7 +276,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="mainCharacter" className="flex items-center">
                       <User className="h-4 w-4 mr-2 text-indigo-500" />
-                      Personnage principal
+                      Personnage principal <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Textarea
                       id="mainCharacter"
@@ -292,7 +292,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="setting" className="flex items-center">
                       <MapPin className="h-4 w-4 mr-2 text-indigo-500" />
-                      Cadre/Lieu/Époque
+                      Cadre/Lieu/Époque <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Textarea
                       id="setting"
@@ -308,7 +308,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="targetAudience" className="flex items-center">
                       <Users className="h-4 w-4 mr-2 text-indigo-500" />
-                      Public cible
+                      Public cible <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Select value={targetAudience} onValueChange={setTargetAudience} disabled={isGenerating}>
                       <SelectTrigger id="targetAudience">
@@ -328,7 +328,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="tone" className="flex items-center">
                       <BadgeInfo className="h-4 w-4 mr-2 text-indigo-500" />
-                      Ton de l'histoire
+                      Ton de l'histoire <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Select value={tone} onValueChange={setTone} disabled={isGenerating}>
                       <SelectTrigger id="tone">
@@ -350,7 +350,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                   <div className="space-y-2">
                     <Label htmlFor="paceStyle" className="flex items-center">
                       <PenTool className="h-4 w-4 mr-2 text-indigo-500" />
-                      Rythme narratif
+                      Rythme narratif <span className="text-xs text-gray-500 ml-1">(optionnel)</span>
                     </Label>
                     <Select value={paceStyle} onValueChange={setPaceStyle} disabled={isGenerating}>
                       <SelectTrigger id="paceStyle">
