@@ -4,11 +4,21 @@ import { setupVite, serveStatic, log } from "./vite";
 import { DropboxService } from "./services/dropbox-service";
 
 // Vérification des variables d'environnement pour Dropbox
-// Nous utilisons maintenant un token d'accès longue durée
-if (!process.env.DROPBOX_ACCESS_TOKEN) {
-  log("⚠️ Variable d'environnement DROPBOX_ACCESS_TOKEN manquante. La synchronisation Dropbox ne fonctionnera pas correctement.", "dropbox");
+// Nous pouvons utiliser un access token ou un refresh token
+const hasAccessToken = !!process.env.DROPBOX_ACCESS_TOKEN;
+const hasRefreshToken = !!process.env.DROPBOX_REFRESH_TOKEN;
+
+if (!hasAccessToken && !hasRefreshToken) {
+  log("⚠️ Variables d'environnement DROPBOX_ACCESS_TOKEN et DROPBOX_REFRESH_TOKEN manquantes. La synchronisation Dropbox ne fonctionnera pas.", "dropbox");
 } else {
-  log("✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée", "dropbox");
+  if (hasAccessToken) {
+    log("✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée", "dropbox");
+  }
+  
+  if (hasRefreshToken) {
+    log("✅ Variable d'environnement DROPBOX_REFRESH_TOKEN détectée", "dropbox");
+  }
+  
   // Initialisation du service Dropbox dès le démarrage du serveur
   try {
     DropboxService.initialize();

@@ -1,125 +1,259 @@
-import { useState, useEffect } from 'react';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Input } from '@/components/ui/input';
+import { RefreshCw, AlertTriangle, CheckCircle2, LinkIcon, UnlinkIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 
-type DropboxStatus = {
-  status: 'connected' | 'error' | 'checking';
+interface DropboxStatus {
+  status: 'connected' | 'expired' | 'error' | null;
   message: string;
-  error?: string;
-};
+  hasRefreshToken?: boolean;
+  canAutoRefresh?: boolean;
+  oauthUrl?: string;
+}
 
-export default function DropboxManager() {
-  const [status, setStatus] = useState<DropboxStatus>({ 
-    status: 'checking', 
-    message: 'Vérification de la connexion Dropbox...' 
-  });
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const DropboxManager: React.FC = () => {
+  const [status, setStatus] = useState<DropboxStatus | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [manualToken, setManualToken] = useState('');
+  const [refreshing, setRefreshing] = useState(false);
   const { toast } = useToast();
 
-  // Vérifier le statut de la connexion Dropbox
+  const checkStatus = async () => {
+    setIsLoading(true);
+    try {
+      const res = await fetch('/api/dropbox/status');
+      const data = await res.json();
+      setStatus({
+        status: data.status,
+        message: data.message,
+        hasRefreshToken: data.hasRefreshToken || false,
+        canAutoRefresh: data.canAutoRefresh || false,
+        oauthUrl: data.oauthUrl
+      });
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut Dropbox:', error);
+      setStatus({
+        status: 'error',
+        message: 'Impossible de vérifier l\'état de la connexion Dropbox'
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    checkDropboxStatus();
+    checkStatus();
   }, []);
 
-  const checkDropboxStatus = async () => {
+  const refreshToken = async () => {
+    setRefreshing(true);
     try {
-      setStatus({ status: 'checking', message: 'Vérification de la connexion Dropbox...' });
+      const res = await fetch('/api/dropbox/refresh-token', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ token: manualToken.trim() || undefined })
+      });
       
-      const response = await apiRequest('GET', '/api/dropbox/status');
-      if (response.ok) {
-        const data = await response.json();
-        setStatus({ 
-          status: 'connected', 
-          message: data.message || 'La connexion Dropbox est active.' 
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast({
+          title: "Token mis à jour",
+          description: data.message,
+          variant: "default"
+        });
+        
+        // Effacer le champ de saisie si la mise à jour a réussi
+        if (data.method === 'manual_update') {
+          setManualToken('');
+        }
+        
+        // Mettre à jour le statut
+        await checkStatus();
+      } else {
+        toast({
+          title: "Erreur",
+          description: data.message || "Erreur lors de la mise à jour du token",
+          variant: "destructive"
+        });
+        
+        // Si la réponse indique qu'il faut réautoriser, afficher l'information dans le statut
+        if (data.needsOAuth) {
+          setStatus(prev => ({
+            ...prev!,
+            status: 'expired',
+            message: data.message,
+            oauthUrl: '/api/dropbox/oauth'
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement du token:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de communiquer avec le serveur",
+        variant: "destructive"
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const startOAuth = () => {
+    if (status?.oauthUrl) {
+      window.location.href = status.oauthUrl;
+    }
+  };
+
+  const syncBooks = async () => {
+    try {
+      const res = await fetch('/api/dropbox/sync', {
+        method: 'POST'
+      });
+      
+      const data = await res.json();
+      
+      if (res.ok) {
+        toast({
+          title: "Synchronisation terminée",
+          description: data.message,
+          variant: "default"
         });
       } else {
-        const data = await response.json();
-        setStatus({ 
-          status: 'error', 
-          message: data.message || 'Erreur de connexion Dropbox.', 
-          error: data.error 
+        toast({
+          title: "Erreur de synchronisation",
+          description: data.message || "Erreur lors de la synchronisation avec Dropbox",
+          variant: "destructive"
         });
       }
     } catch (error) {
-      setStatus({ 
-        status: 'error', 
-        message: 'Impossible de vérifier la connexion Dropbox.', 
-        error: error instanceof Error ? error.message : 'Erreur inconnue' 
+      console.error('Erreur lors de la synchronisation avec Dropbox:', error);
+      toast({
+        title: "Erreur",
+        description: "Impossible de communiquer avec le serveur",
+        variant: "destructive"
       });
     }
   };
 
-  const handleOpenInstructions = () => {
-    toast({
-      title: "Instructions pour Dropbox",
-      description: 
-        "Consultez le fichier 'obtenir_token_dropbox_longuedure.md' à la racine du projet pour obtenir des instructions détaillées sur la façon de générer un token d'accès Dropbox à longue durée.",
-      duration: 8000,
-    });
-  };
-
   return (
-    <Card className="w-full max-w-3xl mx-auto">
+    <Card className="w-full max-w-xl mx-auto">
       <CardHeader>
-        <CardTitle>Gestion de la connexion Dropbox</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <span>Dropbox</span>
+          {status?.status === 'connected' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
+          {status?.status === 'expired' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
+          {status?.status === 'error' && <AlertTriangle className="w-5 h-5 text-red-500" />}
+        </CardTitle>
         <CardDescription>
-          Vérifiez le statut de la connexion Dropbox et mettez à jour le token d'accès si nécessaire.
+          Gérez la connexion à Dropbox pour la sauvegarde et la synchronisation de vos livres
         </CardDescription>
       </CardHeader>
-      <CardContent>
-        {status.status === 'checking' && (
-          <Alert>
-            <AlertTitle>Vérification en cours</AlertTitle>
-            <AlertDescription>{status.message}</AlertDescription>
-          </Alert>
+      
+      <CardContent className="space-y-4">
+        {!status && (
+          <div className="flex justify-center p-4">
+            <RefreshCw className="w-6 h-6 animate-spin text-primary" />
+          </div>
         )}
         
-        {status.status === 'connected' && (
-          <Alert className="bg-green-50 border-green-200">
-            <AlertTitle className="text-green-800">Connecté</AlertTitle>
-            <AlertDescription className="text-green-700">{status.message}</AlertDescription>
-          </Alert>
-        )}
-        
-        {status.status === 'error' && (
-          <Alert className="bg-red-50 border-red-200">
-            <AlertTitle className="text-red-800">Erreur de connexion</AlertTitle>
-            <AlertDescription className="text-red-700">
+        {status && (
+          <Alert variant={status.status === 'connected' ? "default" : status.status === 'expired' ? "warning" : "destructive"}>
+            <AlertTitle>Statut: {
+              status.status === 'connected' ? 'Connecté' : 
+              status.status === 'expired' ? 'Token expiré' : 
+              'Erreur'
+            }</AlertTitle>
+            <AlertDescription>
               {status.message}
-              {status.error && (
-                <p className="mt-2 text-xs font-mono bg-red-100 p-2 rounded">
-                  {status.error}
-                </p>
-              )}
             </AlertDescription>
           </Alert>
         )}
         
-        <div className="mt-6">
-          <h3 className="text-sm font-medium mb-2">Obtenir un nouveau token d'accès</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Pour configurer un token d'accès Dropbox longue durée, suivez les instructions dans le guide fourni.
-          </p>
-          <Button 
-            variant="outline" 
-            onClick={handleOpenInstructions}
-            className="mb-4"
-          >
-            Voir les instructions
-          </Button>
-        </div>
+        {status?.status === 'expired' && (
+          <div className="space-y-4 pt-2">
+            {status.hasRefreshToken ? (
+              <Button 
+                onClick={refreshToken} 
+                disabled={refreshing}
+                className="w-full"
+                variant="default"
+              >
+                {refreshing ? <RefreshCw className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Rafraîchir automatiquement
+              </Button>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  Deux options pour mettre à jour le token:
+                </div>
+                <Button 
+                  onClick={startOAuth} 
+                  className="w-full"
+                  variant="outline"
+                >
+                  <LinkIcon className="w-4 h-4 mr-2" />
+                  Autoriser via Dropbox OAuth
+                </Button>
+                <div className="text-sm text-center my-2">ou</div>
+                <div className="flex space-x-2">
+                  <Input
+                    value={manualToken}
+                    onChange={e => setManualToken(e.target.value)}
+                    placeholder="Access Token Dropbox"
+                    className="flex-1"
+                  />
+                  <Button 
+                    onClick={refreshToken} 
+                    disabled={!manualToken.trim() || refreshing}
+                    variant="secondary"
+                  >
+                    {refreshing ? <RefreshCw className="w-4 h-4 animate-spin" /> : "Mettre à jour"}
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {status?.status === 'connected' && (
+          <div className="space-y-4 pt-2">
+            <Button 
+              onClick={syncBooks} 
+              className="w-full"
+              variant="outline"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Synchroniser les livres avec Dropbox
+            </Button>
+            
+            <div className="text-sm text-center mt-2 opacity-70">
+              {status.hasRefreshToken 
+                ? "Le token sera automatiquement rafraîchi lorsque nécessaire."
+                : "Pour permettre le rafraîchissement automatique, utilisez l'authentification OAuth."}
+            </div>
+          </div>
+        )}
       </CardContent>
-      <CardFooter className="flex flex-col items-start gap-4">
+      
+      <CardFooter className="flex justify-end">
         <Button 
-          onClick={checkDropboxStatus} 
-          variant="outline"
+          onClick={checkStatus} 
+          disabled={isLoading}
+          variant="ghost"
+          size="sm"
         >
-          Vérifier à nouveau
+          {isLoading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+          <span className="ml-2">Vérifier le statut</span>
         </Button>
       </CardFooter>
     </Card>
   );
-}
+};
+
+export default DropboxManager;

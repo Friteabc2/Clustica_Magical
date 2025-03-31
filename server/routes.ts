@@ -14,8 +14,9 @@ import Epub from 'epub-gen';
 // Service d'IA pour la génération de livres
 import { AIService, AIBookRequest } from "./services/ai-service";
 
-// Service Dropbox pour la synchronisation des livres
+// Services Dropbox pour la synchronisation des livres et l'authentification OAuth
 import { DropboxService } from "./services/dropbox-service";
+import { DropboxOAuth } from "./services/dropbox-oauth";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -465,15 +466,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Initialiser les routes OAuth pour Dropbox
+  DropboxOAuth.initializeRoutes(app);
+  
+  // Ajouter un middleware pour gérer les tokens expirés
+  app.use('/api/dropbox', DropboxOAuth.checkAndRefreshToken);
+  
   // Endpoint pour vérifier l'état de la connexion Dropbox
   app.get('/api/dropbox/status', async (_req: Request, res: Response) => {
     try {
+      // Vérifier les tokens disponibles
+      const hasAccessToken = !!process.env.DROPBOX_ACCESS_TOKEN;
+      const hasRefreshToken = !!process.env.DROPBOX_REFRESH_TOKEN;
+      
+      // Vérifier si le token est déjà marqué comme expiré
+      if (DropboxService.isExpired()) {
+        return res.status(401).json({ 
+          status: 'expired',
+          message: 'Le token d\'accès Dropbox a expiré. Veuillez le mettre à jour.',
+          hasRefreshToken: hasRefreshToken,
+          canAutoRefresh: hasRefreshToken,
+          oauthUrl: '/api/dropbox/oauth'
+        });
+      }
+      
       // Test simple pour vérifier si le token est valide
       await DropboxService.ensureRootFolderExists();
       
       res.json({ 
         status: 'connected',
-        message: 'La connexion Dropbox est active et fonctionne correctement'
+        message: 'La connexion Dropbox est active et fonctionne correctement',
+        hasRefreshToken: hasRefreshToken
       });
     } catch (error) {
       console.error('Erreur lors de la vérification du statut Dropbox:', error);
@@ -483,6 +506,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isAuthError = errorMessage.includes('401') || 
                           errorMessage.includes('expired_access_token') ||
                           errorMessage.includes('invalid_access_token');
+      
+      // Marquer le token comme expiré si c'est une erreur d'authentification
+      if (isAuthError) {
+        // Définir le token comme expiré
+        DropboxService.setTokenExpired();
+      }
       
       res.status(isAuthError ? 401 : 500).json({ 
         status: 'error',
@@ -548,6 +577,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Erreur lors de la récupération des livres depuis Dropbox:', error);
       const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
       res.status(500).json({ message: 'Échec de la récupération des livres depuis Dropbox', error: errorMessage });
+    }
+  });
+  
+  // Endpoint pour mettre à jour ou rafraîchir manuellement le token Dropbox
+  app.post('/api/dropbox/refresh-token', async (req: Request, res: Response) => {
+    try {
+      // Tenter de rafraîchir automatiquement le token avec le refresh token
+      const newToken = await DropboxOAuth.refreshAccessToken();
+      
+      if (newToken) {
+        // Succès : le token a été rafraîchi automatiquement
+        DropboxService.resetTokenState();
+        
+        res.json({
+          status: 'success',
+          message: 'Token Dropbox rafraîchi automatiquement avec succès',
+          method: 'refresh_token'
+        });
+      } else {
+        // Échec du rafraîchissement automatique, essayer avec le token fourni manuellement
+        const { token } = req.body;
+        
+        if (token) {
+          // Mise à jour manuelle avec le token fourni
+          process.env.DROPBOX_ACCESS_TOKEN = token;
+          
+          // Réinitialisation du service Dropbox pour utiliser le nouveau token
+          DropboxService.resetTokenState();
+          DropboxService.initialize();
+          
+          // Vérifier la connexion avec le nouveau token
+          try {
+            await DropboxService.ensureRootFolderExists();
+            res.json({
+              status: 'success',
+              message: 'Token Dropbox mis à jour manuellement avec succès',
+              method: 'manual_update'
+            });
+          } catch (error) {
+            console.error('Erreur de connexion avec le token manuel:', error);
+            const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+            res.status(401).json({
+              status: 'error',
+              message: 'Erreur de connexion avec le token fourni manuellement',
+              error: errorMessage
+            });
+          }
+        } else {
+          // Aucun moyen de rafraîchir le token (ni automatique, ni manuel)
+          res.status(400).json({
+            status: 'error',
+            message: 'Impossible de rafraîchir le token automatiquement. Veuillez fournir un token ou passer par le processus d\'authentification OAuth.',
+            needsOAuth: true
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement du token Dropbox:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      
+      res.status(500).json({ 
+        status: 'error',
+        message: 'Échec du rafraîchissement du token Dropbox',
+        error: errorMessage
+      });
     }
   });
   

@@ -9,30 +9,172 @@ function getUserBooksFolder(userId: number | string): string {
   return `${BOOKS_ROOT_FOLDER}/user_${userId}`;
 }
 
+// Événements liés au token
+export interface TokenExpirationEvent {
+  type: 'token_expired';
+}
+
+export type DropboxServiceEvent = TokenExpirationEvent;
+
+type EventListener = (event: DropboxServiceEvent) => void;
+
 export class DropboxService {
   private static dbx: Dropbox;
+  private static isTokenExpired: boolean = false;
+  private static eventListeners: EventListener[] = [];
+  
+  // Codes d'erreur Dropbox connus pour les problèmes d'authentification
+  private static AUTH_ERROR_CODES = [
+    'expired_access_token',
+    'invalid_access_token',
+    'invalid_token',
+    'user_no_auth',
+    'auth_error'
+  ];
+
+  /**
+   * Vérifie si le token Dropbox est expiré
+   */
+  static isExpired(): boolean {
+    return this.isTokenExpired;
+  }
+  
+  /**
+   * Marque le token comme expiré
+   */
+  static setTokenExpired(): void {
+    this.isTokenExpired = true;
+    console.log('[dropbox] ⚠️ Token marqué comme expiré');
+    
+    // Notifier les écouteurs d'événements
+    this.notifyListeners({ type: 'token_expired' });
+  }
+
+  /**
+   * Réinitialise l'état du token (utilisé après avoir mis à jour le token)
+   */
+  static resetTokenState(): void {
+    this.isTokenExpired = false;
+    console.log('[dropbox] ✅ État du token réinitialisé');
+  }
+  
+  /**
+   * Ajoute un écouteur pour les événements du service Dropbox
+   */
+  static addEventListener(listener: EventListener): void {
+    this.eventListeners.push(listener);
+  }
+  
+  /**
+   * Supprime un écouteur d'événements
+   */
+  static removeEventListener(listener: EventListener): void {
+    const index = this.eventListeners.indexOf(listener);
+    if (index !== -1) {
+      this.eventListeners.splice(index, 1);
+    }
+  }
+  
+  /**
+   * Notifie tous les écouteurs enregistrés d'un événement
+   */
+  private static notifyListeners(event: DropboxServiceEvent): void {
+    this.eventListeners.forEach(listener => {
+      try {
+        listener(event);
+      } catch (error) {
+        console.error('[dropbox] Erreur lors de la notification d\'un écouteur:', error);
+      }
+    });
+  }
+  
+  /**
+   * Vérifie si une erreur est liée à l'authentification Dropbox
+   * @private
+   */
+  static checkForAuthError(error: any): boolean {
+    // Vérification explicite de tous les types d'erreurs d'authentification Dropbox connus
+    const isAuthError = 
+      // Erreur HTTP 401 Unauthorized
+      (error && typeof error === 'object' && 'status' in error && error.status === 401) ||
+      // Message d'erreur d'authentification
+      (error && typeof error === 'object' && 'error' in error && 
+        typeof error.error === 'object' && 
+        'error_summary' in error.error && 
+        this.AUTH_ERROR_CODES.some(code => String(error.error.error_summary).includes(code))
+      ) ||
+      // Erreur dans le résultat
+      (error && typeof error === 'object' && 'result' in error && 
+        typeof error.result === 'object' && 
+        'error' in error.result && 
+        typeof error.result.error === 'string' && 
+        this.AUTH_ERROR_CODES.some(code => String(error.result.error).includes(code))
+      ) ||
+      // Chaîne d'erreur contenant des mots-clés
+      (error && typeof error === 'string' && 
+        (
+          this.AUTH_ERROR_CODES.some(code => error.includes(code)) ||
+          error.includes('401')
+        )
+      ) ||
+      // Vérifier le message dans l'objet Error
+      (error && error instanceof Error && 
+        (
+          this.AUTH_ERROR_CODES.some(code => error.message.includes(code)) ||
+          error.message.includes('401')
+        )
+      );
+    
+    if (isAuthError) {
+      // Marquer le token comme expiré
+      this.setTokenExpired();
+      return true;
+    }
+    
+    return false;
+  }
 
   /**
    * Initialise la connexion Dropbox avec les identifiants d'application
    */
   static initialize(): void {
     try {
-      // Utiliser le token d'accès longue durée fourni dans les variables d'environnement
+      // Récupérer les tokens dans les variables d'environnement
       const accessToken = process.env.DROPBOX_ACCESS_TOKEN;
+      const refreshToken = process.env.DROPBOX_REFRESH_TOKEN;
+      const clientId = process.env.DROPBOX_APP_KEY;
+      const clientSecret = process.env.DROPBOX_APP_SECRET;
       
-      if (!accessToken) {
-        throw new Error('Token d\'accès Dropbox manquant. Vérifiez la variable d\'environnement DROPBOX_ACCESS_TOKEN.');
+      // Vérifier qu'au moins un mode d'authentification est disponible
+      if (!accessToken && !refreshToken) {
+        throw new Error('Token d\'accès Dropbox manquant. Vous devez fournir DROPBOX_ACCESS_TOKEN ou DROPBOX_REFRESH_TOKEN.');
       }
       
-      // Configuration de Dropbox avec le token d'accès longue durée
-      this.dbx = new Dropbox({
-        accessToken: accessToken
-      });
+      // Configurer Dropbox
+      const config: any = {};
       
-      console.log('✅ Variables d\'environnement Dropbox détectées');
+      // Si un token d'accès est disponible, l'utiliser en priorité
+      if (accessToken) {
+        config.accessToken = accessToken;
+        console.log('[dropbox] ✅ Variable d\'environnement DROPBOX_ACCESS_TOKEN détectée');
+      }
+      
+      // Si on a un refresh token, configurer les paramètres pour le refresh automatique
+      if (refreshToken && clientId && clientSecret) {
+        config.clientId = clientId;
+        config.clientSecret = clientSecret;
+        config.refreshToken = refreshToken;
+        console.log('[dropbox] ✅ Variables d\'environnement pour refresh token détectées');
+      }
+      
+      // Création de l'instance Dropbox
+      this.dbx = new Dropbox(config);
+      
+      this.isTokenExpired = false;
+      console.log('[dropbox] ✅ Service Dropbox initialisé avec succès');
     } catch (error) {
-      console.error('❌ Erreur lors de l\'initialisation du service Dropbox:', error);
-      throw new Error('Impossible d\'initialiser le service Dropbox. Vérifiez votre token d\'accès.');
+      console.error('[dropbox] ❌ Erreur lors de l\'initialisation du service Dropbox:', error);
+      throw new Error('Impossible d\'initialiser le service Dropbox. Vérifiez vos variables d\'environnement.');
     }
   }
 
@@ -41,17 +183,33 @@ export class DropboxService {
    */
   static async ensureRootFolderExists(): Promise<void> {
     try {
+      // Vérifier si le token est déjà marqué comme expiré
+      if (this.isExpired()) {
+        throw new Error('Token Dropbox expiré. Impossible de vérifier ou créer le dossier racine.');
+      }
+      
       // Vérifie si le dossier racine existe
       await this.dbx.filesGetMetadata({
         path: BOOKS_ROOT_FOLDER
       });
     } catch (error) {
+      // Vérifier si c'est une erreur d'authentification
+      if (this.checkForAuthError(error)) {
+        throw new Error('Token Dropbox expiré ou invalide. Impossible de vérifier ou créer le dossier racine.');
+      }
+      
       // Si le dossier n'existe pas, on le crée
-      await this.dbx.filesCreateFolderV2({
-        path: BOOKS_ROOT_FOLDER,
-        autorename: false
-      });
-      console.log(`Dossier racine ${BOOKS_ROOT_FOLDER} créé dans Dropbox`);
+      try {
+        await this.dbx.filesCreateFolderV2({
+          path: BOOKS_ROOT_FOLDER,
+          autorename: false
+        });
+        console.log(`Dossier racine ${BOOKS_ROOT_FOLDER} créé dans Dropbox`);
+      } catch (createError) {
+        // Vérifier si c'est une erreur d'authentification lors de la création
+        this.checkForAuthError(createError);
+        throw createError;
+      }
     }
   }
 
@@ -251,6 +409,10 @@ export class DropboxService {
         : contentText as BookContent;
     } catch (error) {
       console.error(`Erreur lors du téléchargement/parsing du fichier ${filePath}:`, error);
+      
+      // Vérifier si c'est une erreur d'authentification
+      this.checkForAuthError(error);
+      
       return null;
     }
   }
@@ -261,6 +423,11 @@ export class DropboxService {
    */
   static async deleteBook(bookId: number, userId?: number | string): Promise<boolean> {
     try {
+      // Vérifier si le token est déjà marqué comme expiré
+      if (this.isExpired()) {
+        throw new Error('Token Dropbox expiré. Impossible de supprimer le livre.');
+      }
+      
       // Définir le chemin du fichier en fonction de userId
       let filePath: string;
       
@@ -281,6 +448,10 @@ export class DropboxService {
       return true;
     } catch (error) {
       console.error(`Erreur lors de la suppression du livre ${bookId} de Dropbox:`, error);
+      
+      // Vérifier si c'est une erreur d'authentification
+      this.checkForAuthError(error);
+      
       return false;
     }
   }
@@ -373,6 +544,10 @@ export class DropboxService {
       }
     } catch (error) {
       console.error('Erreur lors du listage des livres sur Dropbox:', error);
+      
+      // Vérifier si c'est une erreur d'authentification
+      this.checkForAuthError(error);
+      
       return [];
     }
   }
