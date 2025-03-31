@@ -37,8 +37,15 @@ export default function Home() {
   });
   
   // Fetch Dropbox books (only when modal is open)
-  const { data: dropboxBooks, isLoading: isLoadingDropboxBooks, refetch: refetchDropboxBooks } = useQuery<{id: number, path: string}[]>({
-    queryKey: ['/api/dropbox/books'],
+  const { data: dropboxBooks, isLoading: isLoadingDropboxBooks, refetch: refetchDropboxBooks } = useQuery<{id: number, path: string, userId?: number}[]>({
+    queryKey: userInfo ? ['/api/dropbox/books', userInfo.id] : ['/api/dropbox/books'],
+    queryFn: async () => {
+      const endpoint = userInfo 
+        ? `/api/dropbox/books?userId=${userInfo.id}` 
+        : '/api/dropbox/books';
+      const response = await apiRequest('GET', endpoint);
+      return response.json();
+    },
     enabled: isDropboxSyncModalOpen,
   });
 
@@ -74,7 +81,11 @@ export default function Home() {
   // Delete book mutation
   const deleteBook = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest('DELETE', `/api/books/${id}`);
+      // Inclure l'ID de l'utilisateur pour supprimer également du dossier utilisateur dans Dropbox
+      const endpoint = userInfo 
+        ? `/api/books/${id}?userId=${userInfo.id}` 
+        : `/api/books/${id}`;
+      await apiRequest('DELETE', endpoint);
       return id;
     },
     onSuccess: (id) => {
@@ -82,7 +93,12 @@ export default function Home() {
         title: "Livre supprimé",
         description: "Le livre a été supprimé avec succès.",
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      // Invalider les requêtes appropriées en fonction de l'utilisateur connecté
+      if (userInfo) {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user', userInfo.id, 'books'] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      }
     },
     onError: (error) => {
       toast({
@@ -113,7 +129,11 @@ export default function Home() {
   // Sync books to Dropbox mutation
   const syncToDropbox = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest('POST', '/api/dropbox/sync');
+      // Inclure l'ID utilisateur pour synchroniser uniquement les livres de l'utilisateur connecté
+      const endpoint = userInfo 
+        ? `/api/dropbox/sync?userId=${userInfo.id}` 
+        : '/api/dropbox/sync';
+      const res = await apiRequest('POST', endpoint);
       return await res.json();
     },
     onSuccess: (data: { results: Array<{ status: string }> }) => {
@@ -289,7 +309,12 @@ export default function Home() {
         isOpen={isAIModalOpen} 
         onClose={() => setIsAIModalOpen(false)}
         onBookCreated={(bookId) => {
-          queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+          // Invalider la requête appropriée en fonction de l'utilisateur connecté
+          if (userInfo) {
+            queryClient.invalidateQueries({ queryKey: ['/api/auth/user', userInfo.id, 'books'] });
+          } else {
+            queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+          }
           navigate(`/editor/${bookId}`);
         }}
       />

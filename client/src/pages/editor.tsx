@@ -11,19 +11,38 @@ import EditorContent from '@/components/book/editor-content';
 import PreviewContent from '@/components/book/preview-content';
 import ExportModal from '@/components/book/export-modal';
 import { Button } from '@/components/ui/button';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function Editor() {
   const { id } = useParams<{ id: string }>();
   const [_, navigate] = useLocation();
   const { toast } = useToast();
+  const { currentUser, userInfo } = useAuth();
   const [isExportOpen, setIsExportOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [activeView, setActiveView] = useState<'editor' | 'preview'>('editor');
   const [currentChapterIndex, setCurrentChapterIndex] = useState(0);
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   
+  // Rediriger l'utilisateur vers la page de connexion s'il n'est pas connecté
+  useEffect(() => {
+    if (!currentUser && !userInfo) {
+      toast({
+        title: "Authentification requise",
+        description: "Vous devez être connecté pour utiliser l'éditeur de livre.",
+        variant: "destructive"
+      });
+      navigate('/login');
+    }
+  }, [currentUser, userInfo, navigate, toast]);
+  
   // Initialiser le contenu du livre par défaut en utilisant notre fonction utilitaire
-  const defaultBookContent: BookContent = getEmptyBook();
+  // et inclure l'ID de l'utilisateur si disponible
+  const defaultBookContent: BookContent = getEmptyBook(
+    'Nouveau Livre', 
+    'Votre Nom', 
+    userInfo?.id // Associer le livre à l'utilisateur connecté
+  );
   // Ajouter un premier chapitre par défaut
   defaultBookContent.chapters.push(getEmptyChapter('Chapitre 1: Le Début'));
   
@@ -55,7 +74,8 @@ export default function Editor() {
       const res = await apiRequest('POST', '/api/books', {
         title: book.title,
         author: book.author,
-        chapters: book.chapters
+        chapters: book.chapters,
+        userId: userInfo?.id // Associer le livre à l'utilisateur connecté
       });
       return await res.json();
     },

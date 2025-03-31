@@ -29,7 +29,7 @@ export enum ExportFormat {
 }
 
 // Utility functions
-export function getEmptyBook(title: string = 'Nouveau Livre', author: string = 'Votre Nom'): BookContent {
+export function getEmptyBook(title: string = 'Nouveau Livre', author: string = 'Votre Nom', userId?: number): BookContent {
   return {
     title,
     author,
@@ -43,7 +43,8 @@ export function getEmptyBook(title: string = 'Nouveau Livre', author: string = '
       pageNumber: 0,
       isCover: true
     },
-    chapters: []
+    chapters: [],
+    userId
   };
 }
 

@@ -1,8 +1,13 @@
 import { Dropbox, files } from 'dropbox';
 import { BookContent } from '@shared/schema';
 
-// Emplacement du dossier dans Dropbox où les livres seront stockés
-const BOOKS_FOLDER = '/clustica_books';
+// Emplacement du dossier racine dans Dropbox où les livres seront stockés
+const BOOKS_ROOT_FOLDER = '/clustica_books';
+
+// Fonction pour obtenir le chemin du dossier spécifique à un utilisateur
+function getUserBooksFolder(userId: number | string): string {
+  return `${BOOKS_ROOT_FOLDER}/user_${userId}`;
+}
 
 export class DropboxService {
   private static dbx: Dropbox;
@@ -32,39 +37,84 @@ export class DropboxService {
   }
 
   /**
-   * Vérifie si le dossier des livres existe, sinon le crée
+   * Vérifie si le dossier racine des livres existe, sinon le crée
    */
-  static async ensureBooksFolderExists(): Promise<void> {
+  static async ensureRootFolderExists(): Promise<void> {
     try {
-      // Vérifie si le dossier existe
+      // Vérifie si le dossier racine existe
       await this.dbx.filesGetMetadata({
-        path: BOOKS_FOLDER
+        path: BOOKS_ROOT_FOLDER
       });
     } catch (error) {
       // Si le dossier n'existe pas, on le crée
       await this.dbx.filesCreateFolderV2({
-        path: BOOKS_FOLDER,
+        path: BOOKS_ROOT_FOLDER,
         autorename: false
       });
-      console.log(`Dossier ${BOOKS_FOLDER} créé dans Dropbox`);
+      console.log(`Dossier racine ${BOOKS_ROOT_FOLDER} créé dans Dropbox`);
     }
   }
 
   /**
-   * Sauvegarde le contenu d'un livre dans Dropbox
+   * Vérifie si le dossier d'un utilisateur existe, sinon le crée
    */
-  static async saveBook(bookId: number, content: BookContent): Promise<void> {
+  static async ensureUserFolderExists(userId: number | string): Promise<void> {
     try {
-      await this.ensureBooksFolderExists();
+      // Assure d'abord que le dossier racine existe
+      await this.ensureRootFolderExists();
       
-      const filePath = `${BOOKS_FOLDER}/book_${bookId}.json`;
-      const contentStr = JSON.stringify(content, null, 2);
+      const userFolder = getUserBooksFolder(userId);
       
-      await this.dbx.filesUpload({
-        path: filePath,
-        contents: contentStr,
-        mode: { '.tag': 'overwrite' }
+      // Vérifie si le dossier de l'utilisateur existe
+      await this.dbx.filesGetMetadata({
+        path: userFolder
       });
+    } catch (error) {
+      // Si le dossier n'existe pas, on le crée
+      const userFolder = getUserBooksFolder(userId);
+      await this.dbx.filesCreateFolderV2({
+        path: userFolder,
+        autorename: false
+      });
+      console.log(`Dossier utilisateur ${userFolder} créé dans Dropbox`);
+    }
+  }
+
+  /**
+   * Sauvegarde le contenu d'un livre dans Dropbox dans le dossier de l'utilisateur
+   */
+  static async saveBook(bookId: number, content: BookContent, userId?: number | string): Promise<void> {
+    try {
+      // Si userId n'est pas fourni, on utilise l'ID de l'utilisateur du livre si disponible
+      const userIdToUse = userId || content.userId;
+      
+      if (!userIdToUse) {
+        // Compatibilité avec les anciens livres sans userId
+        await this.ensureRootFolderExists();
+        
+        const filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
+        const contentStr = JSON.stringify(content, null, 2);
+        
+        await this.dbx.filesUpload({
+          path: filePath,
+          contents: contentStr,
+          mode: { '.tag': 'overwrite' }
+        });
+      } else {
+        // Crée le dossier utilisateur si nécessaire
+        await this.ensureUserFolderExists(userIdToUse);
+        
+        // Chemin du fichier dans le dossier de l'utilisateur
+        const userFolder = getUserBooksFolder(userIdToUse);
+        const filePath = `${userFolder}/book_${bookId}.json`;
+        const contentStr = JSON.stringify(content, null, 2);
+        
+        await this.dbx.filesUpload({
+          path: filePath,
+          contents: contentStr,
+          mode: { '.tag': 'overwrite' }
+        });
+      }
       
       console.log(`Livre ${bookId} sauvegardé sur Dropbox`);
     } catch (error) {
@@ -75,10 +125,21 @@ export class DropboxService {
 
   /**
    * Récupère le contenu d'un livre depuis Dropbox
+   * Si userId est fourni, recherche d'abord dans le dossier de l'utilisateur
    */
-  static async getBook(bookId: number): Promise<BookContent | null> {
+  static async getBook(bookId: number, userId?: number | string): Promise<BookContent | null> {
     try {
-      const filePath = `${BOOKS_FOLDER}/book_${bookId}.json`;
+      // Définir le chemin du fichier en fonction de userId
+      let filePath: string;
+      
+      if (userId) {
+        // Chemin dans le dossier de l'utilisateur
+        const userFolder = getUserBooksFolder(userId);
+        filePath = `${userFolder}/book_${bookId}.json`;
+      } else {
+        // Chemin dans le dossier racine (compatibilité avec les anciens livres)
+        filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
+      }
       
       const response = await this.dbx.filesDownload({
         path: filePath
@@ -139,10 +200,21 @@ export class DropboxService {
 
   /**
    * Supprime un livre de Dropbox
+   * Si userId est fourni, supprime dans le dossier de l'utilisateur
    */
-  static async deleteBook(bookId: number): Promise<boolean> {
+  static async deleteBook(bookId: number, userId?: number | string): Promise<boolean> {
     try {
-      const filePath = `${BOOKS_FOLDER}/book_${bookId}.json`;
+      // Définir le chemin du fichier en fonction de userId
+      let filePath: string;
+      
+      if (userId) {
+        // Chemin dans le dossier de l'utilisateur
+        const userFolder = getUserBooksFolder(userId);
+        filePath = `${userFolder}/book_${bookId}.json`;
+      } else {
+        // Chemin dans le dossier racine (compatibilité avec les anciens livres)
+        filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
+      }
       
       await this.dbx.filesDeleteV2({
         path: filePath
@@ -158,13 +230,104 @@ export class DropboxService {
 
   /**
    * Liste tous les livres stockés dans Dropbox
+   * Si userId est fourni, liste uniquement les livres de cet utilisateur
    */
-  static async listBooks(): Promise<{ id: number, path: string }[]> {
+  static async listBooks(userId?: number | string): Promise<{ id: number, path: string, userId?: number | string }[]> {
     try {
-      await this.ensureBooksFolderExists();
-      
+      if (userId) {
+        // Liste uniquement les livres de l'utilisateur spécifié
+        const userFolder = getUserBooksFolder(userId);
+        
+        try {
+          // Vérifie d'abord si le dossier utilisateur existe
+          await this.ensureUserFolderExists(userId);
+          
+          const response = await this.dbx.filesListFolder({
+            path: userFolder
+          });
+          
+          return response.result.entries
+            .filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
+            .map(entry => {
+              // Extrait l'ID du livre à partir du nom de fichier (book_123.json -> 123)
+              const match = entry.name.match(/book_(\d+)\.json/);
+              const id = match ? parseInt(match[1]) : 0;
+              return { 
+                id, 
+                path: entry.path_display || '',
+                userId: userId
+              };
+            })
+            .filter(book => book.id > 0); // Filtre les livres avec ID valide
+        } catch (error) {
+          console.error(`Erreur lors du listage des livres de l'utilisateur ${userId}:`, error);
+          return [];
+        }
+      } else {
+        // Liste tous les livres (y compris ceux dans les dossiers utilisateurs)
+        await this.ensureRootFolderExists();
+        
+        // D'abord, récupérer les livres à la racine
+        const rootBooks = await this.listRootBooks();
+        
+        // Ensuite, récupérer les dossiers utilisateurs
+        const foldersResponse = await this.dbx.filesListFolder({
+          path: BOOKS_ROOT_FOLDER
+        });
+        
+        const userFolders = foldersResponse.result.entries
+          .filter(entry => entry['.tag'] === 'folder' && entry.name.startsWith('user_'));
+        
+        // Pour chaque dossier utilisateur, récupérer les livres
+        const userBooksPromises = userFolders.map(async (folder) => {
+          const userIdMatch = folder.name.match(/user_(\d+)/);
+          if (!userIdMatch) return [];
+          
+          const userId = userIdMatch[1];
+          const folderPath = folder.path_display || '';
+          
+          try {
+            const response = await this.dbx.filesListFolder({
+              path: folderPath
+            });
+            
+            return response.result.entries
+              .filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
+              .map(entry => {
+                const match = entry.name.match(/book_(\d+)\.json/);
+                const id = match ? parseInt(match[1]) : 0;
+                return { 
+                  id, 
+                  path: entry.path_display || '',
+                  userId: parseInt(userId)
+                };
+              })
+              .filter(book => book.id > 0);
+          } catch (error) {
+            console.error(`Erreur lors du listage des livres dans ${folderPath}:`, error);
+            return [];
+          }
+        });
+        
+        const userBooks = await Promise.all(userBooksPromises);
+        
+        // Combiner les livres à la racine avec les livres des utilisateurs
+        return [...rootBooks, ...userBooks.flat()];
+      }
+    } catch (error) {
+      console.error('Erreur lors du listage des livres sur Dropbox:', error);
+      return [];
+    }
+  }
+  
+  /**
+   * Liste les livres stockés à la racine du dossier Dropbox (anciens livres)
+   * @private
+   */
+  private static async listRootBooks(): Promise<{ id: number, path: string }[]> {
+    try {
       const response = await this.dbx.filesListFolder({
-        path: BOOKS_FOLDER
+        path: BOOKS_ROOT_FOLDER
       });
       
       return response.result.entries
@@ -180,7 +343,7 @@ export class DropboxService {
         })
         .filter(book => book.id > 0); // Filtre les livres avec ID valide
     } catch (error) {
-      console.error('Erreur lors du listage des livres sur Dropbox:', error);
+      console.error('Erreur lors du listage des livres à la racine:', error);
       return [];
     }
   }

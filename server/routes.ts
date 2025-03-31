@@ -30,7 +30,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for book management
   app.get('/api/books', async (req: Request, res: Response) => {
     try {
-      const books = await storage.getBooks();
+      // Récupérer l'ID de l'utilisateur depuis la requête si fourni
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Récupérer les livres avec ou sans filtre par utilisateur
+      const books = await storage.getBooks(userId);
       res.json(books);
     } catch (error) {
       console.error('Error fetching books:', error);
@@ -128,9 +132,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Essayer de synchroniser explicitement avec Dropbox après la sauvegarde
+      // Utiliser l'ID utilisateur du contenu du livre
       let dropboxSyncStatus = { success: false, message: "Non synchronisé avec Dropbox" };
       try {
-        await DropboxService.saveBook(id, contentResult.data);
+        await DropboxService.saveBook(id, contentResult.data, contentResult.data.userId);
         dropboxSyncStatus = { success: true, message: "Synchronisé avec Dropbox" };
       } catch (error) {
         console.error("Erreur lors de la synchronisation avec Dropbox:", error);
@@ -156,9 +161,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid book ID' });
       }
       
+      // Récupérer l'ID de l'utilisateur depuis la requête pour la suppression
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Supprimer le livre du stockage mémoire
       const success = await storage.deleteBook(id);
       if (!success) {
         return res.status(404).json({ message: 'Book not found' });
+      }
+      
+      // Supprimer également le livre de Dropbox (dans le dossier de l'utilisateur si spécifié)
+      try {
+        await DropboxService.deleteBook(id, userId);
+      } catch (dropboxError) {
+        console.error("Erreur lors de la suppression du livre dans Dropbox:", dropboxError);
+        // On ne bloque pas la réponse, le livre a déjà été supprimé du stockage principal
       }
       
       res.status(204).end();
@@ -301,8 +318,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint pour synchroniser manuellement les livres avec Dropbox
   app.post('/api/dropbox/sync', async (req: Request, res: Response) => {
     try {
-      // Récupère tous les livres
-      const books = await storage.getBooks();
+      // Récupérer l'ID de l'utilisateur depuis la requête si fourni
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Récupère tous les livres ou seulement ceux de l'utilisateur
+      const books = await storage.getBooks(userId);
       const results = [];
       
       // Synchronise chaque livre avec Dropbox
@@ -310,7 +330,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const content = await storage.getBookContent(book.id);
           if (content) {
-            await DropboxService.saveBook(book.id, content);
+            // Sauvegarder dans le dossier de l'utilisateur si spécifié, sinon utiliser l'userId du livre
+            await DropboxService.saveBook(book.id, content, userId || book.userId);
             results.push({ id: book.id, title: book.title, status: 'success' });
           } else {
             results.push({ id: book.id, title: book.title, status: 'error', message: 'Contenu introuvable' });
@@ -336,7 +357,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Endpoint pour lister les livres stockés sur Dropbox
   app.get('/api/dropbox/books', async (req: Request, res: Response) => {
     try {
-      const books = await DropboxService.listBooks();
+      // Récupérer l'ID de l'utilisateur depuis la requête si fourni
+      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Récupérer les livres de l'utilisateur spécifié ou tous les livres
+      const books = await DropboxService.listBooks(userId);
       res.json(books);
     } catch (error) {
       console.error('Erreur lors de la récupération des livres depuis Dropbox:', error);

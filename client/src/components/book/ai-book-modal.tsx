@@ -6,8 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from '@/lib/queryClient';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Loader2, Sparkles } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AIBookModalProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface AIBookModalProps {
 
 export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookModalProps) {
   const { toast } = useToast();
+  const { userInfo } = useAuth();
   const [prompt, setPrompt] = useState('');
   const [chaptersCount, setChaptersCount] = useState(3);
   const [pagesPerChapter, setPagesPerChapter] = useState(1);
@@ -35,11 +37,14 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
     setIsGenerating(true);
 
     try {
-      const response = await apiRequest('POST', '/api/books/generate-ai', {
+      const payload = {
         prompt,
         chaptersCount,
-        pagesPerChapter
-      });
+        pagesPerChapter,
+        ...(userInfo && { userId: userInfo.id })
+      };
+      
+      const response = await apiRequest('POST', '/api/books/generate-ai', payload);
 
       if (response.ok) {
         const book = await response.json();

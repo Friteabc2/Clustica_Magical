@@ -45,6 +45,7 @@ export const bookContentSchema = z.object({
   author: z.string(),
   coverPage: z.union([pageContentSchema, z.null()]).optional(),
   chapters: z.array(chapterSchema).default([]),
+  userId: z.number().or(z.string()).optional(), // ID de l'utilisateur propriétaire du livre
 });
 
 export type PageContent = z.infer<typeof pageContentSchema>;
