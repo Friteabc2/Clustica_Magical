@@ -100,7 +100,14 @@ export default function Home() {
         title: "Livre créé avec succès",
         description: `"${newBook.title}" a été créé.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      
+      // Invalider la requête appropriée en fonction de l'utilisateur connecté
+      if (userInfo) {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user', userInfo.id, 'books'] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      }
+      
       setIsCreating(false);
       setNewBookTitle('Nouveau Livre');
       setNewBookAuthor('');
@@ -177,7 +184,20 @@ export default function Home() {
         title: "Synchronisation réussie",
         description: `${data.results.filter((r: { status: string }) => r.status === 'success').length} livres synchronisés avec Dropbox.`,
       });
-      queryClient.invalidateQueries({ queryKey: ['/api/dropbox/books'] });
+      
+      // Invalider la requête appropriée pour les livres Dropbox
+      if (userInfo) {
+        queryClient.invalidateQueries({ queryKey: ['/api/dropbox/books', userInfo.id] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/dropbox/books'] });
+      }
+      
+      // Invalider également la requête des livres pour actualiser la liste
+      if (userInfo) {
+        queryClient.invalidateQueries({ queryKey: ['/api/auth/user', userInfo.id, 'books'] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['/api/books'] });
+      }
     },
     onError: (error) => {
       toast({
