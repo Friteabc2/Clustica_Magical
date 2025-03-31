@@ -15,6 +15,12 @@ export interface AIBookRequest {
   authorName?: string;
   genre?: string;
   style?: string;
+  narrativeMode?: string;  // first-person, third-person, etc.
+  mainCharacter?: string;  // Description du personnage principal
+  setting?: string;        // Cadre/époque de l'histoire
+  targetAudience?: string; // Public cible (adultes, jeunesse, etc.)
+  tone?: string;           // Ton de l'histoire (humoristique, sérieux, etc.)
+  paceStyle?: string;      // Rythme (lent, rapide, etc.)
 }
 
 /**
@@ -31,7 +37,13 @@ export class AIService {
       pagesPerChapter = 1,
       authorName,
       genre,
-      style
+      style,
+      narrativeMode,
+      mainCharacter,
+      setting,
+      targetAudience,
+      tone,
+      paceStyle
     } = request;
 
     try {
@@ -58,7 +70,13 @@ export class AIService {
             chapterInfo.description,
             j,
             genre,
-            style
+            style,
+            narrativeMode,
+            mainCharacter,
+            setting,
+            targetAudience,
+            tone,
+            paceStyle
           );
           
           const page = getEmptyPage(j + 1);
@@ -154,7 +172,13 @@ export class AIService {
     chapterDescription: string,
     pageIndex: number,
     genre?: string,
-    style?: string
+    style?: string,
+    narrativeMode?: string,
+    mainCharacter?: string,
+    setting?: string,
+    targetAudience?: string,
+    tone?: string,
+    paceStyle?: string
   ): Promise<string> {
     let genreDirective = '';
     if (genre) {
@@ -213,6 +237,97 @@ export class AIService {
       }
     }
     
+    // Point de vue narratif
+    let narrativeModeDirective = '';
+    if (narrativeMode) {
+      switch (narrativeMode) {
+        case 'first-person':
+          narrativeModeDirective = 'Écris à la première personne (je/nous), en racontant l\'histoire directement du point de vue du personnage principal.';
+          break;
+        case 'second-person':
+          narrativeModeDirective = 'Écris à la deuxième personne (tu/vous), en vous adressant directement au lecteur comme s\'il était le personnage principal.';
+          break;
+        case 'third-person-limited':
+          narrativeModeDirective = 'Écris à la troisième personne (il/elle/ils), en suivant la perspective d\'un seul personnage principal et ses pensées.';
+          break;
+        case 'third-person-omniscient':
+          narrativeModeDirective = 'Écris à la troisième personne omnisciente, en connaissant et partageant les pensées de tous les personnages.';
+          break;
+        case 'multi-perspective':
+          narrativeModeDirective = 'Utilise une perspective multiple, en alternant entre différents points de vue de personnages au cours du récit.';
+          break;
+      }
+    }
+    
+    // Description du personnage principal
+    let characterDirective = mainCharacter ? `Le personnage principal est: ${mainCharacter}. Intègre naturellement ses caractéristiques dans le récit.` : '';
+    
+    // Cadre/époque
+    let settingDirective = setting ? `L'histoire se déroule dans: ${setting}. Utilise cet environnement pour enrichir ton récit.` : '';
+    
+    // Public cible
+    let audienceDirective = '';
+    if (targetAudience) {
+      switch (targetAudience) {
+        case 'children':
+          audienceDirective = 'Adapte le contenu pour un jeune public (enfants), avec un vocabulaire simple et des thèmes appropriés.';
+          break;
+        case 'young-adult':
+          audienceDirective = 'Cible un public adolescent et jeunes adultes avec des thèmes qui les concernent.';
+          break;
+        case 'adult':
+          audienceDirective = 'Écris pour un public adulte, avec des thèmes matures et un vocabulaire élaboré.';
+          break;
+        case 'all-ages':
+          audienceDirective = 'Crée un contenu accessible à tous les âges, avec différents niveaux de lecture.';
+          break;
+      }
+    }
+    
+    // Ton de l'histoire
+    let toneDirective = '';
+    if (tone) {
+      switch (tone) {
+        case 'serious':
+          toneDirective = 'Maintiens un ton sérieux et dramatique.';
+          break;
+        case 'humorous':
+          toneDirective = 'Utilise un ton léger et humoristique tout au long du texte.';
+          break;
+        case 'dark':
+          toneDirective = 'Emploie un ton sombre et parfois inquiétant.';
+          break;
+        case 'uplifting':
+          toneDirective = 'Crée une atmosphère positive et inspirante.';
+          break;
+        case 'satirical':
+          toneDirective = 'Adopte un ton satirique, critiquant subtilement des aspects de la société.';
+          break;
+        case 'melancholic':
+          toneDirective = 'Donne une tonalité mélancolique et nostalgique au récit.';
+          break;
+      }
+    }
+    
+    // Rythme
+    let paceDirective = '';
+    if (paceStyle) {
+      switch (paceStyle) {
+        case 'fast':
+          paceDirective = 'Utilise un rythme rapide avec des phrases courtes et une action soutenue.';
+          break;
+        case 'moderate':
+          paceDirective = 'Maintiens un rythme équilibré entre action et description.';
+          break;
+        case 'slow':
+          paceDirective = 'Privilégie un rythme lent et contemplatif, riche en détails et en descriptions.';
+          break;
+        case 'varied':
+          paceDirective = 'Alterne entre des passages rapides et des moments plus lents pour créer du contraste.';
+          break;
+      }
+    }
+    
     const contentPrompt = `Tu es un écrivain talentueux qui travaille sur le livre "${bookTitle}" inspiré de cette demande: "${prompt}".
     
     Tu dois écrire le contenu pour la page ${pageIndex + 1} du chapitre intitulé "${chapterTitle}".
@@ -220,9 +335,14 @@ export class AIService {
     
     ${genreDirective}
     ${styleDirective}
+    ${narrativeModeDirective}
+    ${characterDirective}
+    ${settingDirective}
+    ${audienceDirective}
+    ${toneDirective}
+    ${paceDirective}
     
     Écris un contenu engageant et détaillé, avec de beaux paragraphes, qui correspond à cette partie du livre.
-    Utilise un style littéraire adapté au sujet.
     Ne mentionne pas le numéro de page ni le titre du chapitre dans le contenu.
     Écris directement le contenu sous forme de texte riche (pas de balises HTML).`;
 

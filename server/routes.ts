@@ -294,6 +294,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         authorName: z.string().optional(),
         genre: z.string().optional(),
         style: z.string().optional(),
+        narrativeMode: z.string().optional(),
+        mainCharacter: z.string().optional(),
+        setting: z.string().optional(),
+        targetAudience: z.string().optional(),
+        tone: z.string().optional(),
+        paceStyle: z.string().optional(),
         userId: z.number().optional()
       });
       

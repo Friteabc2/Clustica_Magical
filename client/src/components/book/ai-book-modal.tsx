@@ -7,9 +7,22 @@ import { Slider } from "@/components/ui/slider";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { Loader2, Sparkles } from 'lucide-react';
+import { 
+  Loader2, 
+  Sparkles, 
+  ChevronDown, 
+  ChevronUp,
+  BookOpen,
+  BookText,
+  User,
+  MapPin,
+  Users,
+  BadgeInfo,
+  PenTool
+} from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 
 interface AIBookModalProps {
   isOpen: boolean;
@@ -27,6 +40,12 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
   const [authorName, setAuthorName] = useState('');
   const [genre, setGenre] = useState('');
   const [style, setStyle] = useState('');
+  const [narrativeMode, setNarrativeMode] = useState('');
+  const [mainCharacter, setMainCharacter] = useState('');
+  const [setting, setSetting] = useState('');
+  const [targetAudience, setTargetAudience] = useState('');
+  const [tone, setTone] = useState('');
+  const [paceStyle, setPaceStyle] = useState('');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -48,6 +67,12 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         authorName: authorName.trim() || undefined,
         genre: genre && genre !== "none" ? genre : undefined,
         style: style && style !== "none" ? style : undefined,
+        narrativeMode: narrativeMode && narrativeMode !== "none" ? narrativeMode : undefined,
+        mainCharacter: mainCharacter.trim() || undefined,
+        setting: setting.trim() || undefined,
+        targetAudience: targetAudience && targetAudience !== "none" ? targetAudience : undefined,
+        tone: tone && tone !== "none" ? tone : undefined,
+        paceStyle: paceStyle && paceStyle !== "none" ? paceStyle : undefined,
         ...(userInfo && { userId: userInfo.id })
       };
       
@@ -96,7 +121,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[550px] lg:max-w-[650px]">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Sparkles className="h-5 w-5 mr-2 text-indigo-500" />
@@ -218,6 +243,132 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
               </p>
             )}
           </div>
+          
+          <Accordion type="single" collapsible className="w-full border rounded-md px-4">
+            <AccordionItem value="advanced-options" className="border-b-0">
+              <AccordionTrigger className="text-sm font-medium">
+                Options narratives avancées
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-2">
+                  {/* Point de vue narratif */}
+                  <div className="space-y-2">
+                    <Label htmlFor="narrativeMode" className="flex items-center">
+                      <BookOpen className="h-4 w-4 mr-2 text-indigo-500" />
+                      Point de vue narratif
+                    </Label>
+                    <Select value={narrativeMode} onValueChange={setNarrativeMode} disabled={isGenerating}>
+                      <SelectTrigger id="narrativeMode">
+                        <SelectValue placeholder="Choisir un point de vue" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Aucune préférence --</SelectItem>
+                        <SelectItem value="first-person">Première personne (je/nous)</SelectItem>
+                        <SelectItem value="second-person">Deuxième personne (tu/vous)</SelectItem>
+                        <SelectItem value="third-person-limited">Troisième personne limitée</SelectItem>
+                        <SelectItem value="third-person-omniscient">Troisième personne omnisciente</SelectItem>
+                        <SelectItem value="multi-perspective">Perspectives multiples</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Personnage principal */}
+                  <div className="space-y-2">
+                    <Label htmlFor="mainCharacter" className="flex items-center">
+                      <User className="h-4 w-4 mr-2 text-indigo-500" />
+                      Personnage principal
+                    </Label>
+                    <Textarea
+                      id="mainCharacter"
+                      placeholder="Décrivez le personnage principal (âge, personnalité, caractéristiques...)"
+                      rows={2}
+                      value={mainCharacter}
+                      onChange={(e) => setMainCharacter(e.target.value)}
+                      disabled={isGenerating}
+                    />
+                  </div>
+                  
+                  {/* Cadre/Lieu/Époque */}
+                  <div className="space-y-2">
+                    <Label htmlFor="setting" className="flex items-center">
+                      <MapPin className="h-4 w-4 mr-2 text-indigo-500" />
+                      Cadre/Lieu/Époque
+                    </Label>
+                    <Textarea
+                      id="setting"
+                      placeholder="Décrivez où et quand se déroule l'histoire"
+                      rows={2}
+                      value={setting}
+                      onChange={(e) => setSetting(e.target.value)}
+                      disabled={isGenerating}
+                    />
+                  </div>
+                  
+                  {/* Public cible */}
+                  <div className="space-y-2">
+                    <Label htmlFor="targetAudience" className="flex items-center">
+                      <Users className="h-4 w-4 mr-2 text-indigo-500" />
+                      Public cible
+                    </Label>
+                    <Select value={targetAudience} onValueChange={setTargetAudience} disabled={isGenerating}>
+                      <SelectTrigger id="targetAudience">
+                        <SelectValue placeholder="Choisir un public cible" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Aucune préférence --</SelectItem>
+                        <SelectItem value="children">Enfants</SelectItem>
+                        <SelectItem value="young-adult">Adolescents/Jeunes adultes</SelectItem>
+                        <SelectItem value="adult">Adultes</SelectItem>
+                        <SelectItem value="all-ages">Tous âges</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Ton de l'histoire */}
+                  <div className="space-y-2">
+                    <Label htmlFor="tone" className="flex items-center">
+                      <BadgeInfo className="h-4 w-4 mr-2 text-indigo-500" />
+                      Ton de l'histoire
+                    </Label>
+                    <Select value={tone} onValueChange={setTone} disabled={isGenerating}>
+                      <SelectTrigger id="tone">
+                        <SelectValue placeholder="Choisir un ton" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Aucune préférence --</SelectItem>
+                        <SelectItem value="serious">Sérieux/Dramatique</SelectItem>
+                        <SelectItem value="humorous">Humoristique</SelectItem>
+                        <SelectItem value="dark">Sombre</SelectItem>
+                        <SelectItem value="uplifting">Inspirant/Positif</SelectItem>
+                        <SelectItem value="satirical">Satirique</SelectItem>
+                        <SelectItem value="melancholic">Mélancolique</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {/* Rythme */}
+                  <div className="space-y-2">
+                    <Label htmlFor="paceStyle" className="flex items-center">
+                      <PenTool className="h-4 w-4 mr-2 text-indigo-500" />
+                      Rythme narratif
+                    </Label>
+                    <Select value={paceStyle} onValueChange={setPaceStyle} disabled={isGenerating}>
+                      <SelectTrigger id="paceStyle">
+                        <SelectValue placeholder="Choisir un rythme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">-- Aucune préférence --</SelectItem>
+                        <SelectItem value="fast">Rapide</SelectItem>
+                        <SelectItem value="moderate">Modéré</SelectItem>
+                        <SelectItem value="slow">Lent et contemplatif</SelectItem>
+                        <SelectItem value="varied">Varié</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
         
         <DialogFooter>
