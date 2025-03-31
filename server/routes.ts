@@ -30,12 +30,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for book management
   app.get('/api/books', async (req: Request, res: Response) => {
     try {
-      // Récupérer l'ID de l'utilisateur depuis la requête si fourni
-      const userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      // Par défaut, nous récupérons uniquement les livres de l'utilisateur connecté
+      // Si aucun utilisateur n'est spécifié et que l'utilisateur n'est pas connecté,
+      // nous ne retournons que les livres sans userId (livres publics)
+      let userId = req.query.userId ? parseInt(req.query.userId as string) : undefined;
+      
+      // Si userId est passé comme 'null' ou 'undefined' en chaîne, le convertir en undefined
+      if (userId === null || userId === undefined || isNaN(userId)) {
+        userId = undefined;
+      }
       
       // Récupérer les livres avec ou sans filtre par utilisateur
       const books = await storage.getBooks(userId);
       res.json(books);
+      
+      console.log(`Livres récupérés pour l'utilisateur ${userId || 'tous'}: ${books.length} livre(s)`);
     } catch (error) {
       console.error('Error fetching books:', error);
       res.status(500).json({ message: 'Failed to fetch books' });

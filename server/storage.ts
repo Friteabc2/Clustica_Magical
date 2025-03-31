@@ -196,25 +196,30 @@ export class DropboxStorage implements IStorage {
   private async loadBooksFromDropbox() {
     try {
       console.log("Chargement des livres depuis Dropbox...");
-      // Récupère la liste des livres disponibles sur Dropbox
+      // Récupère la liste des livres disponibles sur Dropbox (incluant ceux dans les dossiers utilisateurs)
       const dropboxBooks = await DropboxService.listBooks();
       
       // Pour chaque livre trouvé sur Dropbox
       for (const bookInfo of dropboxBooks) {
         try {
-          // Récupère le contenu complet du livre
-          const bookContent = await DropboxService.getBook(bookInfo.id);
+          // Récupère le contenu complet du livre en passant l'userId si disponible
+          const bookContent = await DropboxService.getBook(bookInfo.id, bookInfo.userId);
+          
           if (bookContent) {
             console.log(`Chargement du livre ${bookInfo.id} depuis Dropbox: ${bookContent.title}`);
             
             // Crée ou met à jour le livre dans le stockage mémoire
             const existingBook = await this.memStorage.getBook(bookInfo.id);
             if (!existingBook) {
+              // Utilise l'userId du livre si disponible (soit dans le contenu, soit dans bookInfo)
+              const userId = bookContent.userId || bookInfo.userId;
+              
               // Si le livre n'existe pas localement, le créer
               await this.memStorage.createBook({
                 id: bookInfo.id,
                 title: bookContent.title,
                 author: bookContent.author,
+                userId: userId,
                 coverPage: bookContent.coverPage,
                 chapters: bookContent.chapters
               } as any);
@@ -251,9 +256,13 @@ export class DropboxStorage implements IStorage {
         author: book.author,
         coverPage: book.coverPage as any,
         chapters: book.chapters as any[] || [],
+        userId: typeof book.userId === 'number' ? book.userId : undefined // Assurons-nous d'inclure l'userId correctement typé
       };
       
-      await DropboxService.saveBook(book.id, bookContent);
+      // Passons l'userId à saveBook pour assurer le stockage dans le dossier utilisateur
+      await DropboxService.saveBook(book.id, bookContent, typeof book.userId === 'number' ? book.userId : undefined);
+      
+      console.log(`Livre ${book.id} créé pour l'utilisateur ${book.userId || 'anonyme'}`);
     } catch (error) {
       console.error("Erreur lors de la sauvegarde initiale dans Dropbox:", error);
       // Continuons même en cas d'erreur pour ne pas bloquer l'utilisateur
@@ -267,12 +276,18 @@ export class DropboxStorage implements IStorage {
   }
 
   async deleteBook(id: number): Promise<boolean> {
+    // Récupérer le livre avant de le supprimer pour connaître son userId
+    const book = await this.memStorage.getBook(id);
+    const userId = typeof book?.userId === 'number' ? book.userId : undefined;
+    
     const success = await this.memStorage.deleteBook(id);
     
     // Si la suppression en mémoire a réussi, supprime aussi de Dropbox
     if (success) {
       try {
-        await DropboxService.deleteBook(id);
+        // Passer l'userId pour supprimer le livre du bon dossier utilisateur
+        await DropboxService.deleteBook(id, userId);
+        console.log(`Livre ${id} supprimé pour l'utilisateur ${userId || 'anonyme'}`);
       } catch (error) {
         console.error("Erreur lors de la suppression du livre de Dropbox:", error);
         // Continuons même en cas d'erreur
@@ -285,8 +300,12 @@ export class DropboxStorage implements IStorage {
   // Méthodes de gestion du contenu du livre - utilise Dropbox
   async getBookContent(id: number): Promise<BookContent | undefined> {
     try {
-      // Tente d'abord de récupérer depuis Dropbox
-      const dropboxContent = await DropboxService.getBook(id);
+      // Obtenir les métadonnées du livre pour récupérer l'userId
+      const book = await this.memStorage.getBook(id);
+      const userId = typeof book?.userId === 'number' ? book.userId : undefined;
+      
+      // Tente d'abord de récupérer depuis Dropbox en passant l'userId si disponible
+      const dropboxContent = await DropboxService.getBook(id, userId);
       
       if (dropboxContent) {
         return dropboxContent;
@@ -306,7 +325,13 @@ export class DropboxStorage implements IStorage {
     // Si la mise à jour a réussi, sauvegarde aussi dans Dropbox
     if (updatedBook) {
       try {
-        await DropboxService.saveBook(id, content);
+        // Utiliser l'userId du contenu mis à jour ou de la métadonnée du livre
+        const userId = typeof content.userId === 'number' ? content.userId : updatedBook.userId;
+        
+        // Passer l'userId à saveBook pour assurer le stockage dans le dossier utilisateur
+        await DropboxService.saveBook(id, content, typeof userId === 'number' ? userId : undefined);
+        
+        console.log(`Livre ${id} mis à jour pour l'utilisateur ${userId || 'anonyme'}`);
       } catch (error) {
         console.error("Erreur lors de la sauvegarde dans Dropbox:", error);
         // Continuons même en cas d'erreur
