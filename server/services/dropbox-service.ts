@@ -16,23 +16,23 @@ export class DropboxService {
    * Initialise la connexion Dropbox avec les identifiants d'application
    */
   static initialize(): void {
-    // Utilisez les valeurs des variables d'environnement ou les valeurs par défaut fournies par l'utilisateur
-    const appKey = process.env.DROPBOX_APP_KEY || 'g3lekas6q1y461d';
-    const appSecret = process.env.DROPBOX_APP_SECRET || 'ngfbyt2hgst4fzx';
-    
-    // Le token fourni est un accessToken et non un refreshToken
-    const accessToken = process.env.DROPBOX_REFRESH_TOKEN || 'sl.u.AFqjuDyQBWkseNZZglc-Ol4_vu-UjIlXDJKHNJJED-Uw_oScHRaGsJBcrWdmAaYHYJp0yuGNH_-DdqESBU_N5_Qi33q2SE6sl7KgFQljv-SHacpIqK25-qQpsGdZVTkMSYQYDLeudX1gn8BW7dTtADX5rg0bGS6fIDoC230Zu8t7OEVpaq2Tnh7Yvuah4eXMO_XzI3WVNf0Fg-Mo5OEnP2W6znOsdh3Lnjw6U05gDz1jqsbwVMpEXf7gi4MuejQmhMKG9swjE6jDgI3oaKUCgP3Kacr0nbnV4KtvfzOBlQ_pqjgNy0LcMHbV_0zm09oSgb8RsrovEO-jtXFqYik0jPtSPdIfXCk1z-k-CTp4pqqNjSVPwTkWy8WskdUrqpPHVjeKwsGOcfCAxVuTKfvmKtZq-l4W812bREqci4rMMZ9jo62AOdADwaDl5JRwEZJqoxkHCOrE31l916pwyYcosYi4Nk9KJ1a7i7u3Bwt7Pls_CHWBndaCv0xkg5QmKUnl27Bo2qDHdgWdhpXcgupB6BDCvPdJurYN7YEOfYM-yP0gavKrYvGw3K7azzGeHf6LdHWD_OO_mS1riJJ0ALPA3_BqwiMXs7Y0Qs4LjuBM0sIKe3iz23htSOF3q3b6khAO7RyXWnkD4-QKG3WaBFXo9IYKEalGed8Iuu_BlPOha6l-F-EpOnDD7QHj5NSKAtuY_fCvkBzYKp02zYftDEUmMkP0ORsi9yxfei8C6eoxAkh6KHmYSiNrpgQQknhJORfAEXf2HdkznZcv43xU-z55yWIelzWmVioA7vLbZa3SkD7jbcnJ01j9Dzb6riZSBmdbZ33jR7tTdT-BX_yOdyM-HwvjZZUOpjNQdV2UzQ1s9Ux36Oz8oVtjnG_5mubzANvzARD8W14WNpgPurkufQzCRk0w5sZwRmv_f4iel-CX5mXDgObZ2btyJyg27Wcics2-hkUOONxYpHshKWCFbPuWC-QeBo52QAB5Cc_TROXUxJmJjOVkAZH2vUOjsHqdt-owIKfsgjC6m9rOVPSqWtLF6yHU7R9cbU-oFah6n1eFY3SYuJp-S7uBNt5F8uAqqBMzgHmeah694t6P7B7fNdKpv71yHMRMCIORoEczAJ3_Mr9KESmPDlzIsAaCWxEBDHD7R0qvBnH-CG1Lky4rNnfXlEey9z90jLGhMC-4iTLTzVH0DiU6Q5Ni3Nf3a3tjld5uA7csTpEx71YBu1WbG_qkbtF3eJQM5-BUT1Otk1yyKJf7wtARzEQmy3-CA8IZvXmr0iVCGIk5ZLE1cgSvC55YQxvA0sYYiQggKoAOeQ9Qj9WpkXYMJWgHYKX7lo8N3ss2F_ZOs3XmLUjMh_RsggAOsU7cxVNGEUboETkAgEYac-ktaNnwQeaDLqaIBuSse3VNb2ZyqXPyZH0Zg-taEf46YH3j';
-
     try {
-      // Utiliser l'accessToken directement, sans refreshToken
+      // Utiliser le token d'accès longue durée fourni dans les variables d'environnement
+      const accessToken = process.env.DROPBOX_ACCESS_TOKEN;
+      
+      if (!accessToken) {
+        throw new Error('Token d\'accès Dropbox manquant. Vérifiez la variable d\'environnement DROPBOX_ACCESS_TOKEN.');
+      }
+      
+      // Configuration de Dropbox avec le token d'accès longue durée
       this.dbx = new Dropbox({
         accessToken: accessToken
       });
       
-      console.log('Service Dropbox initialisé avec accessToken');
+      console.log('✅ Variables d\'environnement Dropbox détectées');
     } catch (error) {
-      console.error('Erreur lors de l\'initialisation du service Dropbox:', error);
-      throw new Error('Impossible d\'initialiser le service Dropbox');
+      console.error('❌ Erreur lors de l\'initialisation du service Dropbox:', error);
+      throw new Error('Impossible d\'initialiser le service Dropbox. Vérifiez votre token d\'accès.');
     }
   }
 

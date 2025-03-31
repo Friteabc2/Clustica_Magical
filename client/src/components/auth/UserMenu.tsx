@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, Settings, Sparkles, BookText, Bot } from "lucide-react";
+import { LogOut, User, Settings, Sparkles, BookText, Bot, Database } from "lucide-react";
 
 export default function UserMenu() {
   const { currentUser, userInfo, logout } = useAuth();
@@ -129,6 +129,14 @@ export default function UserMenu() {
         >
           <Settings className="mr-2 h-4 w-4" />
           <span>Paramètres</span>
+        </DropdownMenuItem>
+        {/* Ajout de l'option Admin */}
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={() => navigate("/admin")}
+        >
+          <Database className="mr-2 h-4 w-4" />
+          <span>Admin</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem 

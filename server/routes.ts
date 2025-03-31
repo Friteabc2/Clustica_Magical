@@ -2,7 +2,7 @@ import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { bookContentSchema, insertUserSchema } from "@shared/schema";
+import { bookContentSchema, insertUserSchema, User } from "@shared/schema";
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
@@ -337,7 +337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Ajouter l'ID utilisateur au contenu du livre s'il est fourni
       if (userId) {
-        bookContent.userId = userId;
+        bookContent.userId = typeof userId === 'string' ? parseInt(userId) : userId;
       }
       
       // Création du livre dans le stockage
@@ -450,6 +450,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Endpoint pour vérifier l'état de la connexion Dropbox
+  app.get('/api/dropbox/status', async (_req: Request, res: Response) => {
+    try {
+      // Test simple pour vérifier si le token est valide
+      await DropboxService.ensureRootFolderExists();
+      
+      res.json({ 
+        status: 'connected',
+        message: 'La connexion Dropbox est active et fonctionne correctement'
+      });
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut Dropbox:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      
+      // Vérifier si c'est une erreur d'authentification
+      const isAuthError = errorMessage.includes('401') || 
+                          errorMessage.includes('expired_access_token') ||
+                          errorMessage.includes('invalid_access_token');
+      
+      res.status(isAuthError ? 401 : 500).json({ 
+        status: 'error',
+        message: isAuthError 
+          ? 'Le token d\'accès Dropbox a expiré ou est invalide. Veuillez le mettre à jour.'
+          : 'Erreur lors de la connexion à Dropbox',
+        error: errorMessage
+      });
+    }
+  });
+  
   // Endpoint pour synchroniser manuellement les livres avec Dropbox
   app.post('/api/dropbox/sync', async (req: Request, res: Response) => {
     try {
@@ -466,7 +495,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const content = await storage.getBookContent(book.id);
           if (content) {
             // Sauvegarder dans le dossier de l'utilisateur si spécifié, sinon utiliser l'userId du livre
-            await DropboxService.saveBook(book.id, content, userId || book.userId);
+            // S'assurer que l'userId n'est pas null avant de l'utiliser
+            const userIdToUse = userId || (book.userId || undefined);
+            await DropboxService.saveBook(book.id, content, userIdToUse);
             results.push({ id: book.id, title: book.title, status: 'success' });
           } else {
             results.push({ id: book.id, title: book.title, status: 'error', message: 'Contenu introuvable' });

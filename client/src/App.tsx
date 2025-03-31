@@ -7,6 +7,7 @@ import Home from "@/pages/home";
 import Editor from "@/pages/editor";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import Admin from "@/pages/admin";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
 
@@ -37,6 +38,14 @@ function Router() {
         {() => (
           <PrivateRoute>
             <Editor />
+          </PrivateRoute>
+        )}
+      </Route>
+      
+      <Route path="/admin">
+        {() => (
+          <PrivateRoute>
+            <Admin />
           </PrivateRoute>
         )}
       </Route>
