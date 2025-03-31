@@ -11,7 +11,7 @@ export default function Landing() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <Helmet>
-        <title>ClusterBook | Créateur de Livres Virtuels</title>
+        <title>Clustica Magical - ClusterBook | Créateur de Livres Virtuels</title>
       </Helmet>
       
       {/* Header Navigation */}

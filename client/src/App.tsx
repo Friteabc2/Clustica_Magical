@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -11,51 +11,90 @@ import Admin from "@/pages/admin";
 import Landing from "@/pages/landing";
 import { AuthProvider } from "@/contexts/AuthContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
+import { AnimatePresence } from "framer-motion";
+import { PageTransition } from "@/components/ui/page-transition";
 
 function Router() {
+  const [location] = useLocation();
+  
   return (
-    <Switch>
-      {/* Page d'accueil publique */}
-      <Route path="/" component={Landing} />
-      
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
-      
-      {/* Routes protégées qui nécessitent une authentification */}
-      <Route path="/dashboard">
-        {() => (
-          <PrivateRoute>
-            <Home />
-          </PrivateRoute>
-        )}
-      </Route>
-      
-      <Route path="/editor/:id">
-        {({id}) => (
-          <PrivateRoute>
-            <Editor params={{id}} />
-          </PrivateRoute>
-        )}
-      </Route>
-      
-      <Route path="/editor">
-        {() => (
-          <PrivateRoute>
-            <Editor />
-          </PrivateRoute>
-        )}
-      </Route>
-      
-      <Route path="/admin">
-        {() => (
-          <PrivateRoute>
-            <Admin />
-          </PrivateRoute>
-        )}
-      </Route>
-      
-      <Route component={NotFound} />
-    </Switch>
+    <AnimatePresence mode="wait">
+      <Switch key={location}>
+        {/* Page d'accueil publique */}
+        <Route path="/">
+          {() => (
+            <PageTransition>
+              <Landing />
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route path="/login">
+          {() => (
+            <PageTransition>
+              <Login />
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route path="/register">
+          {() => (
+            <PageTransition>
+              <Register />
+            </PageTransition>
+          )}
+        </Route>
+        
+        {/* Routes protégées qui nécessitent une authentification */}
+        <Route path="/dashboard">
+          {() => (
+            <PageTransition>
+              <PrivateRoute>
+                <Home />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route path="/editor/:id">
+          {({id}) => (
+            <PageTransition>
+              <PrivateRoute>
+                <Editor params={{id}} />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route path="/editor">
+          {() => (
+            <PageTransition>
+              <PrivateRoute>
+                <Editor />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route path="/admin">
+          {() => (
+            <PageTransition>
+              <PrivateRoute>
+                <Admin />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
+        
+        <Route>
+          {() => (
+            <PageTransition>
+              <NotFound />
+            </PageTransition>
+          )}
+        </Route>
+      </Switch>
+    </AnimatePresence>
   );
 }
 

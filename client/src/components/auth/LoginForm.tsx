@@ -34,7 +34,7 @@ interface LoginFormProps {
   redirectPath?: string;
 }
 
-export default function LoginForm({ redirectPath = '/' }: LoginFormProps) {
+export default function LoginForm({ redirectPath = '/dashboard' }: LoginFormProps) {
   const { login } = useAuth();
   const { toast } = useToast();
   const [, navigate] = useLocation();

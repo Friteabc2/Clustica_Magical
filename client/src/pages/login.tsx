@@ -9,7 +9,7 @@ import { useLocation } from "wouter";
 export default function Login() {
   const { currentUser } = useAuth();
   const [location, navigate] = useLocation();
-  const [redirectPath, setRedirectPath] = useState('/');
+  const [redirectPath, setRedirectPath] = useState('/dashboard');
 
   // Extraire le chemin de redirection des paramètres d'URL si présent
   useEffect(() => {
