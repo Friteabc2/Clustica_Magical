@@ -82,9 +82,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/books', async (req: Request, res: Response) => {
     try {
+      console.log("Requête reçue /api/books POST:", {
+        body: req.body,
+        rawBody: JSON.stringify(req.body),
+        contentType: req.headers['content-type'],
+        hasTitle: req.body && req.body.title ? 'Oui' : 'Non',
+        hasAuthor: req.body && req.body.author ? 'Oui' : 'Non',
+      });
+      
       const bookData = req.body;
       // Initial validation
-      if (!bookData.title || !bookData.author) {
+      if (!bookData || !bookData.title || !bookData.author) {
         return res.status(400).json({ message: 'Title and author are required' });
       }
       

@@ -26,32 +26,68 @@ export async function apiRequest(
   let url: string;
   let bodyData: unknown | undefined;
 
+  // Détection de la signature d'appel utilisée
   if (urlOrData === undefined) {
-    // apiRequest('/api/books')
+    // Cas 1: apiRequest('/api/books') - un seul argument = GET
     method = 'GET';
     url = methodOrUrl;
     bodyData = undefined;
   } else if (typeof urlOrData === 'string') {
-    // apiRequest('GET', '/api/books')
+    // Cas 2: apiRequest('POST', '/api/books', data) ou apiRequest('GET', '/api/books')
+    // Le premier argument est une méthode HTTP, le second l'URL
     method = methodOrUrl;
     url = urlOrData;
-    bodyData = undefined;
+    bodyData = data; // Peut être undefined
   } else {
-    // apiRequest('POST', '/api/books', { title: 'Book' })
-    method = methodOrUrl;
-    url = urlOrData as string;
-    bodyData = data;
+    // Cas 3: apiRequest('/api/books', data) - le premier est l'URL, le second est le body
+    method = 'POST'; // Par défaut si la méthode n'est pas spécifiée = POST
+    url = methodOrUrl;
+    bodyData = urlOrData;
   }
 
-  const res = await fetch(url, {
-    method,
-    headers: bodyData ? { "Content-Type": "application/json" } : {},
-    body: bodyData ? JSON.stringify(bodyData) : undefined,
-    credentials: "include",
-  });
+  // Validation des paramètres
+  if (!url || typeof url !== 'string') {
+    console.error('[apiRequest] URL invalide:', url);
+    throw new Error("URL invalide pour la requête API");
+  }
 
-  await throwIfResNotOk(res);
-  return res;
+  if (!['GET', 'POST', 'PUT', 'PATCH', 'DELETE'].includes(method)) {
+    console.warn(`[apiRequest] Méthode HTTP inhabituelle: ${method}, on la remplace par POST`);
+    method = 'POST';
+  }
+
+  // Log de la requête
+  console.log(`[apiRequest] ${method} ${url}`, bodyData !== undefined ? `avec données: ${JSON.stringify(bodyData)}` : "sans données");
+
+  try {
+    // Exécution de la requête
+    const res = await fetch(url, {
+      method,
+      headers: bodyData !== undefined ? { "Content-Type": "application/json" } : {},
+      body: bodyData !== undefined ? JSON.stringify(bodyData) : undefined,
+      credentials: "include",
+    });
+
+    // Log de la réponse en cas d'erreur
+    if (!res.ok) {
+      let errorText;
+      try {
+        errorText = await res.text();
+      } catch (e) {
+        errorText = res.statusText;
+      }
+      console.error(`[apiRequest] Erreur ${res.status} pour ${method} ${url}:`, errorText);
+    } else {
+      console.log(`[apiRequest] Succès ${res.status} pour ${method} ${url}`);
+    }
+
+    // On lance la gestion d'erreurs
+    await throwIfResNotOk(res);
+    return res;
+  } catch (error) {
+    console.error(`[apiRequest] Exception lors de la requête ${method} ${url}:`, error);
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

@@ -43,39 +43,63 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      console.log("État de l'authentification Firebase changé:", user ? `Utilisateur connecté: ${user.uid}` : "Aucun utilisateur");
       setCurrentUser(user);
       
       if (user) {
         try {
           // Récupérer les informations utilisateur depuis le backend
-          const response = await apiRequest('GET', `/api/auth/user/${user.uid}`);
+          console.log("Tentative de récupération des informations utilisateur pour:", user.uid);
+          const response = await fetch(`/api/auth/user/${user.uid}`, {
+            method: 'GET',
+            credentials: 'include'
+          });
+
+          console.log("Réponse de récupération utilisateur:", response.status);
           
-          if (response.ok) {
+          if (response.status === 200) {
             const userData = await response.json();
+            console.log("Données utilisateur récupérées:", userData);
             setUserInfo(userData);
           } else if (response.status === 404) {
             // L'utilisateur existe dans Firebase mais pas dans notre backend
-            // Créons-le automatiquement
-            console.log("Création automatique de l'utilisateur dans le backend");
-            
-            const registerResponse = await apiRequest('POST', '/api/auth/register', {
+            console.log("Création automatique de l'utilisateur dans le backend:", {
               firebaseUid: user.uid,
-              email: user.email || 'unknown@email.com',
-              displayName: user.displayName || 'Utilisateur'
+              email: user.email,
+              displayName: user.displayName
             });
             
-            if (registerResponse.ok) {
+            const registerResponse = await fetch('/api/auth/register', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                firebaseUid: user.uid,
+                email: user.email || 'unknown@email.com',
+                displayName: user.displayName || 'Utilisateur'
+              }),
+              credentials: 'include'
+            });
+            
+            console.log("Réponse d'inscription:", registerResponse.status);
+            
+            if (registerResponse.status === 201) {
               const newUserData = await registerResponse.json();
+              console.log("Nouvel utilisateur créé:", newUserData);
               setUserInfo(newUserData);
             } else {
-              console.error("Échec de la création automatique de l'utilisateur");
+              const errorData = await registerResponse.text();
+              console.error("Échec de la création automatique de l'utilisateur:", errorData);
               setUserInfo(null);
             }
           } else {
-            throw new Error("Erreur de récupération des informations utilisateur");
+            const errorText = await response.text();
+            console.error("Erreur HTTP lors de la récupération utilisateur:", response.status, errorText);
+            throw new Error(`Erreur de récupération des informations utilisateur: ${response.status} ${errorText}`);
           }
         } catch (error) {
-          console.error("Erreur de récupération des informations utilisateur:", error instanceof Error ? error.message : error);
+          console.error("Erreur de récupération des informations utilisateur:", error instanceof Error ? error.message : String(error));
           setUserInfo(null);
         }
       } else {

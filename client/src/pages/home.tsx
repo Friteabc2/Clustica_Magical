@@ -63,13 +63,32 @@ export default function Home() {
           ? { ...bookData, userId: userInfo.id } 
           : bookData;
         
-        console.log("Envoi de la requête avec payload:", payload);
+        console.log("Envoi de la requête de création de livre avec payload:", payload);
         
-        const res = await apiRequest('POST', '/api/books', payload);
+        // Utilisation de fetch directement pour éviter des problèmes avec apiRequest
+        const res = await fetch('/api/books', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload),
+          credentials: 'include'
+        });
+        
+        // Log détaillé de la réponse
+        console.log("Statut de la réponse:", res.status, res.statusText);
+        
         if (!res.ok) {
-          const errorData = await res.json();
+          let errorData;
+          try {
+            errorData = await res.json();
+          } catch (e) {
+            errorData = { message: await res.text() };
+          }
+          console.error("Erreur détaillée:", errorData);
           throw new Error(errorData.message || "Erreur lors de la création du livre");
         }
+        
         return await res.json();
       } catch (error) {
         console.error("Erreur de création de livre:", error);
