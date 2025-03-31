@@ -8,8 +8,10 @@ import Editor from "@/pages/editor";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Admin from "@/pages/admin";
+import Settings from "@/pages/settings";
 import Landing from "@/pages/landing";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
@@ -85,6 +87,16 @@ function Router() {
             </PageTransition>
           )}
         </Route>
+
+        <Route path="/settings">
+          {() => (
+            <PageTransition>
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
         
         <Route>
           {() => (
@@ -102,8 +114,10 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <Router />
-        <Toaster />
+        <ThemeProvider>
+          <Router />
+          <Toaster />
+        </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

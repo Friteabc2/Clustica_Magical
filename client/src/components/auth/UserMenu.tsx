@@ -1,4 +1,5 @@
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { LogOut, User, Settings, Sparkles, BookText, Bot, Database } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { LogOut, User, Settings, Sparkles, BookText, Bot, Database, Moon, Sun } from "lucide-react";
 
 export default function UserMenu() {
   const { currentUser, userInfo, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const [, navigate] = useLocation();
 
@@ -145,6 +148,22 @@ export default function UserMenu() {
           <Database className="mr-2 h-4 w-4" />
           <span>Admin</span>
         </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        {/* Option de thème */}
+        <div className="px-2 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {theme === 'dark' ? (
+              <Moon className="h-4 w-4" />
+            ) : (
+              <Sun className="h-4 w-4" />
+            )}
+            <span>Mode {theme === 'dark' ? 'sombre' : 'clair'}</span>
+          </div>
+          <Switch 
+            checked={theme === 'dark'}
+            onCheckedChange={toggleTheme}
+          />
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer text-red-500 focus:text-red-500" 

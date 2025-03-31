@@ -819,6 +819,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // API pour gérer le thème
+  app.post('/api/theme', async (req: Request, res: Response) => {
+    try {
+      const { appearance = 'light', primary = 'hsl(222.2 47.4% 11.2%)' } = req.body;
+      
+      // Valider les paramètres
+      if (!['light', 'dark'].includes(appearance)) {
+        return res.status(400).json({ message: 'Appearance doit être "light" ou "dark"' });
+      }
+      
+      // Lire le fichier theme.json actuel
+      const themePath = path.join(process.cwd(), 'theme.json');
+      const currentTheme = JSON.parse(fs.readFileSync(themePath, 'utf8'));
+      
+      // Mettre à jour le thème
+      const newTheme = {
+        ...currentTheme,
+        appearance,
+        // Mettre à jour la couleur primaire pour le mode sombre si nécessaire
+        primary: appearance === 'dark' ? 'hsl(260 60% 60%)' : primary
+      };
+      
+      // Écrire le nouveau thème
+      fs.writeFileSync(themePath, JSON.stringify(newTheme, null, 2));
+      
+      res.json({ success: true, theme: newTheme });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du thème:', error);
+      res.status(500).json({ message: 'Échec de la mise à jour du thème' });
+    }
+  });
+  
   // Routes d'authentification Firebase
   
   // Endpoint pour créer un nouvel utilisateur après inscription via Firebase

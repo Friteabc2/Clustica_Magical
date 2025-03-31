@@ -10,4 +10,55 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* Styles pour le thème sombre */
+  .dark-theme {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    
+    --primary: 260 60% 60%;
+    --primary-foreground: 0 0% 98%;
+    
+    --secondary: 240 4.5% 14%;
+    --secondary-foreground: 0 0% 98%;
+    
+    --muted: 240 4.5% 14%;
+    --muted-foreground: 240 5% 64.9%;
+    
+    --accent: 240 4.5% 14%;
+    --accent-foreground: 0 0% 98%;
+    
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 0 0% 98%;
+    
+    --border: 240 4.5% 14%;
+    --input: 240 4.5% 14%;
+    --ring: 260 60% 60%;
+  }
+  
+  .dark-theme body {
+    background-color: hsl(240 10% 3.9%);
+    color: hsl(0 0% 98%);
+  }
+  
+  /* Transitions douces pour le changement de thème */
+  body {
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .dark-theme .card,
+  .dark-theme .popover,
+  .dark-theme .dropdown-menu,
+  .dark-theme .modal,
+  .dark-theme .dialog {
+    background-color: hsl(240 10% 3.9%);
+    color: hsl(0 0% 98%);
+    border-color: hsl(240 4.5% 14%);
+  }
 }
