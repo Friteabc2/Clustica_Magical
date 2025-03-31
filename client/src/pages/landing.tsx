@@ -1,76 +1,92 @@
 import { useState } from 'react';
-import { useLocation } from 'wouter';
+import { useLocation, Link } from 'wouter';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import { ChevronRight, BookOpen, Sparkles, Cloud, Book, Feather, Star } from 'lucide-react';
+import { Helmet } from 'react-helmet';
 
 export default function Landing() {
   const [_, navigate] = useLocation();
 
   return (
-    <div className="min-h-screen bg-white flex flex-col">
-      {/* Hero Section */}
-      <header className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center">
-              <span className="text-2xl font-bold">ClusterBook</span>
-            </div>
-            <div className="hidden md:flex items-center space-x-6">
-              <a href="#features" className="hover:text-blue-200 transition">Fonctionnalités</a>
-              <a href="#pricing" className="hover:text-blue-200 transition">Tarifs</a>
-              <a href="#testimonials" className="hover:text-blue-200 transition">Témoignages</a>
-            </div>
-            <div>
-              <Button 
-                onClick={() => navigate('/login')} 
-                variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-indigo-700 mr-2"
-              >
-                Connexion
-              </Button>
-              <Button 
-                onClick={() => navigate('/register')} 
-                className="bg-white text-indigo-700 hover:bg-blue-100"
-              >
-                S'inscrire
-              </Button>
-            </div>
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <Helmet>
+        <title>ClusterBook | Créateur de Livres Virtuels</title>
+      </Helmet>
+      
+      {/* Header Navigation */}
+      <header className="bg-background sticky top-0 z-10 border-b">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 flex h-16 items-center justify-between py-4">
+          <div className="flex items-center">
+            <Link href="/">
+              <span className="flex items-center gap-2 font-semibold text-xl cursor-pointer">
+                <span className="text-primary font-bold">ClusterBook</span>
+              </span>
+            </Link>
+            <nav className="hidden md:flex gap-6 ml-6">
+              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                Fonctionnalités
+              </a>
+              <a href="#pricing" className="text-muted-foreground hover:text-foreground transition-colors">
+                Tarifs
+              </a>
+              <a href="#testimonials" className="text-muted-foreground hover:text-foreground transition-colors">
+                Témoignages
+              </a>
+            </nav>
+          </div>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => navigate('/login')} 
+              variant="outline"
+            >
+              Connexion
+            </Button>
+            <Button 
+              onClick={() => navigate('/register')}
+              className="bg-primary hover:bg-primary/90"
+            >
+              S'inscrire
+            </Button>
           </div>
         </div>
-        
+      </header>
+      
+      {/* Hero Section */}
+      <section className="bg-gradient-to-r from-primary/90 to-primary/70 text-white">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 flex flex-col lg:flex-row items-center">
           <div className="lg:w-1/2 mb-10 lg:mb-0">
             <h1 className="text-4xl md:text-5xl font-bold mb-6 leading-tight">
               Créez des livres professionnels en toute simplicité
             </h1>
-            <p className="text-xl mb-8 text-blue-100">
+            <p className="text-xl mb-8 text-white/80">
               Avec ClusterBook, transformez vos idées en œuvres littéraires de qualité, 
               qu'il s'agisse de romans, manuels, portfolios ou livres pour enfants.
             </p>
             <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
               <Button 
                 onClick={() => navigate('/register')} 
-                className="bg-white text-indigo-700 hover:bg-blue-100 py-3 px-6 text-lg"
+                className="bg-white text-primary hover:bg-white/90 py-2 px-4"
               >
                 Commencer gratuitement <ChevronRight className="ml-2 h-5 w-5" />
               </Button>
               <Button 
                 onClick={() => navigate('/login')} 
                 variant="outline"
-                className="bg-transparent border-white text-white hover:bg-white hover:text-indigo-700 py-3 px-6 text-lg"
+                className="bg-transparent border-white text-white hover:bg-white hover:text-primary py-2 px-4"
               >
-                Découvrir les fonctionnalités
+                Se connecter
               </Button>
             </div>
           </div>
           <div className="lg:w-1/2 flex justify-center">
             <div className="relative">
               <div className="w-80 h-96 rounded-lg bg-white/10 backdrop-blur-sm shadow-xl transform rotate-3 absolute"></div>
-              <div className="w-80 h-96 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 shadow-xl relative z-10 -rotate-3">
+              <div className="w-80 h-96 rounded-lg bg-white/20 shadow-xl relative z-10 -rotate-3">
                 <div className="p-8 flex flex-col h-full justify-between">
                   <div>
                     <h3 className="text-xl font-bold mb-4">Le Mystère des Étoiles</h3>
-                    <p className="text-sm text-blue-100">Un voyage à travers les étoiles, où chaque page révèle un nouveau mystère de l'univers. Une aventure captivante écrite avec ClusterBook.</p>
+                    <p className="text-sm text-white/80">Un voyage à travers les étoiles, où chaque page révèle un nouveau mystère de l'univers. Une aventure captivante écrite avec ClusterBook.</p>
                   </div>
                   <div className="text-right text-sm">
                     <p>Par Marie Laurent</p>
@@ -82,25 +98,25 @@ export default function Landing() {
           </div>
         </div>
         
-        <div className="bg-indigo-800 py-10">
+        <div className="bg-primary/90 py-10">
           <div className="container mx-auto px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
               <div>
                 <div className="font-bold text-3xl mb-2">10,000+</div>
-                <div className="text-blue-200">Ouvrages créés</div>
+                <div className="text-white/80">Ouvrages créés</div>
               </div>
               <div>
                 <div className="font-bold text-3xl mb-2">5,000+</div>
-                <div className="text-blue-200">Auteurs actifs</div>
+                <div className="text-white/80">Auteurs actifs</div>
               </div>
               <div>
                 <div className="font-bold text-3xl mb-2">12</div>
-                <div className="text-blue-200">Formats d'exportation</div>
+                <div className="text-white/80">Formats d'exportation</div>
               </div>
             </div>
           </div>
         </div>
-      </header>
+      </section>
 
       {/* Features Section */}
       <section id="features" className="py-20 bg-gray-50">
