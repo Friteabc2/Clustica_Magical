@@ -234,14 +234,14 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Header />
 
       <main className="flex-1 py-10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <FadeInElement>
             <div className="flex justify-between items-center mb-8">
-              <h1 className="text-2xl font-bold text-gray-800">Vos Livres</h1>
+              <h1 className="text-2xl font-bold text-foreground">Vos Livres</h1>
               {!isCreating && (
                 <div className="flex space-x-2">
                   <FadeInElement delay={0.1}>
@@ -286,7 +286,7 @@ export default function Home() {
                 <CardContent className="space-y-4">
                   <FadeInElement delay={0.1}>
                     <div>
-                      <label htmlFor="book-title" className="block text-sm font-medium text-gray-700 mb-1">Titre</label>
+                      <label htmlFor="book-title" className="block text-sm font-medium text-foreground mb-1">Titre</label>
                       <Input
                         id="book-title"
                         value={newBookTitle}
@@ -298,7 +298,7 @@ export default function Home() {
                   
                   <FadeInElement delay={0.2}>
                     <div>
-                      <label htmlFor="book-author" className="block text-sm font-medium text-gray-700 mb-1">Auteur</label>
+                      <label htmlFor="book-author" className="block text-sm font-medium text-foreground mb-1">Auteur</label>
                       <Input
                         id="book-author"
                         value={newBookAuthor}
@@ -343,8 +343,8 @@ export default function Home() {
                     <CardContent className="p-6">
                       <div className="flex justify-between items-start">
                         <div>
-                          <h3 className="text-lg font-semibold text-gray-800 mb-1">{book.title}</h3>
-                          <p className="text-sm text-gray-500">par {book.author}</p>
+                          <h3 className="text-lg font-semibold text-foreground mb-1">{book.title}</h3>
+                          <p className="text-sm text-muted-foreground">par {book.author}</p>
                         </div>
                         <Button 
                           variant="ghost" 
@@ -360,7 +360,7 @@ export default function Home() {
                         </Button>
                       </div>
                     </CardContent>
-                    <CardFooter className="bg-gray-50 px-6 py-3">
+                    <CardFooter className="bg-muted px-6 py-3">
                       <Button 
                         variant="link" 
                         className="text-primary w-full"
@@ -375,13 +375,13 @@ export default function Home() {
             </div>
           ) : (
             <FadeInElement>
-              <div className="text-center py-12 border rounded-lg bg-white">
+              <div className="text-center py-12 border rounded-lg bg-card">
                 <FadeInElement delay={0.1}>
-                  <BookOpen className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <BookOpen className="h-12 w-12 text-muted-foreground/50 mx-auto mb-4" />
                 </FadeInElement>
                 <FadeInElement delay={0.2}>
-                  <h3 className="text-lg font-medium text-gray-800 mb-1">Aucun livre</h3>
-                  <p className="text-gray-500 mb-4">Vous n'avez pas encore créé de livres.</p>
+                  <h3 className="text-lg font-medium text-foreground mb-1">Aucun livre</h3>
+                  <p className="text-muted-foreground mb-4">Vous n'avez pas encore créé de livres.</p>
                 </FadeInElement>
                 {!isCreating && (
                   <FadeInElement delay={0.3}>
@@ -397,9 +397,9 @@ export default function Home() {
         </div>
       </main>
 
-      <footer className="bg-white border-t border-gray-200 py-6">
+      <footer className="bg-card border-t border-border py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <p className="text-center text-sm text-gray-500">
+          <p className="text-center text-sm text-muted-foreground">
             Clustica Magical &copy; {new Date().getFullYear()} - Créateur de Livres Virtuels
           </p>
         </div>
