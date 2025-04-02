@@ -307,6 +307,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         additionalStyles: z.array(z.string()).optional(),
         themes: z.array(z.string()).optional(),
         characters: z.array(characterSchema).optional(),
+        // Options d'images
+        generateImages: z.boolean().optional().default(true),
+        imageStyle: z.string().optional(),
+        imageAspectRatio: z.enum(['square', 'portrait', 'landscape', 'panoramic']).optional(),
         userId: z.number().optional()
       });
       

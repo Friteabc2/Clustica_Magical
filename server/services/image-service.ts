@@ -150,10 +150,19 @@ export class ImageService {
   
   /**
    * Enrichit un livre avec des images générées
+   * @param book Le livre à enrichir avec des images
+   * @param options Options pour la génération d'images (style, etc.)
    */
-  static async enrichBookWithImages(book: BookContent): Promise<BookContent> {
+  static async enrichBookWithImages(book: BookContent, options?: { style?: string, aspectRatio?: 'square' | 'portrait' | 'landscape' | 'panoramic' }): Promise<BookContent> {
     try {
       console.log(`🎨 Enrichissement du livre "${book.title}" avec des images...`);
+      
+      // Options par défaut
+      const imageStyle = options?.style || 'realistic';
+      const coverAspectRatio: 'portrait' = 'portrait';  // Toujours portrait pour les couvertures
+      const pageAspectRatio = options?.aspectRatio || 'landscape';
+      
+      console.log(`Style d'image: ${imageStyle}, Format de couverture: ${coverAspectRatio}, Format de page: ${pageAspectRatio}`);
       
       // Clone du livre pour éviter de modifier l'original
       const enrichedBook: BookContent = JSON.parse(JSON.stringify(book));
@@ -161,13 +170,20 @@ export class ImageService {
       // Génère l'image de couverture
       if (enrichedBook.coverPage) {
         console.log('Génération de l\'image de couverture...');
-        const coverImageUrl = await this.generateCoverImage(book);
+        const coverPrompt = `Book cover for "${book.title}" by ${book.author}. Professional, elegant book cover design`;
+        
+        const coverImageUrl = await this.generateImage({
+          prompt: coverPrompt,
+          aspectRatio: coverAspectRatio,
+          style: imageStyle,
+          negativePrompt: 'text, words, title, author name, bad quality, deformed'
+        });
         
         if (coverImageUrl) {
           enrichedBook.coverPage.image = {
             url: coverImageUrl,
-            aspectRatio: 'portrait',
-            prompt: `Book cover for "${book.title}" by ${book.author}`,
+            aspectRatio: coverAspectRatio,
+            prompt: coverPrompt,
             alt: `Couverture du livre "${book.title}" par ${book.author}`,
             caption: `Couverture illustrée pour "${book.title}"`
           };
@@ -188,18 +204,25 @@ export class ImageService {
           // Attente pour éviter de surcharger l'API
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // Génère l'image pour cette page
-          const imageUrl = await this.generateImageForPage(
-            page.content,
-            chapter.title,
-            enrichedBook.title
-          );
+          // Extrait le premier paragraphe pour créer un prompt pertinent
+          const firstParagraph = page.content.replace(/<[^>]*>/g, '').substring(0, 200); 
+          const prompt = `Illustration for chapter "${chapter.title}" from book "${enrichedBook.title}": ${firstParagraph}`;
+          
+          // Génère l'image pour cette page avec le format spécifié
+          const pageFormat = pageAspectRatio as 'square' | 'portrait' | 'landscape' | 'panoramic';
+          
+          const imageUrl = await this.generateImage({
+            prompt,
+            aspectRatio: pageFormat,
+            style: imageStyle,
+            negativePrompt: 'text, words, bad quality, deformed'
+          });
           
           if (imageUrl) {
             page.image = {
               url: imageUrl,
-              aspectRatio: 'landscape',
-              prompt: `Illustration for chapter "${chapter.title}" from book "${enrichedBook.title}"`,
+              aspectRatio: pageFormat,
+              prompt: prompt,
               alt: `Illustration pour le chapitre "${chapter.title}"`,
               caption: `Illustration pour "${chapter.title}"` 
             };

@@ -18,7 +18,10 @@ import {
   MapPin,
   Users,
   BadgeInfo,
-  PenTool
+  PenTool,
+  Image,
+  ImagePlus,
+  Wand2
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,6 +54,9 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
   const [paceStyle, setPaceStyle] = useState('');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [additionalStyles, setAdditionalStyles] = useState<StyleOption[]>([]);
+  const [generateImages, setGenerateImages] = useState(true);
+  const [imageStyle, setImageStyle] = useState('realistic');
+  const [imageAspectRatio, setImageAspectRatio] = useState('landscape');
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
@@ -101,6 +107,12 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
         ...(additionalStylesList.length > 0 && { additionalStyles: additionalStylesList }),
         ...(themesList.length > 0 && { themes: themesList }),
         ...(characters.length > 0 && { characters: characterData }),
+        // Options d'images
+        generateImages,
+        ...(generateImages && { 
+          imageStyle,
+          imageAspectRatio 
+        }),
         ...(userInfo && { userId: userInfo.id })
       };
       
@@ -409,6 +421,94 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
                     onChange={setCharacters}
                     disabled={isGenerating}
                   />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+            
+            <AccordionItem value="image-options" className="border-b-0">
+              <AccordionTrigger className="text-sm font-medium">
+                Options d'illustrations
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 pt-2">
+                  {/* Activation des images */}
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="generateImages" className="flex items-center">
+                      <ImagePlus className="h-4 w-4 mr-2 text-indigo-500" />
+                      Générer des illustrations
+                    </Label>
+                    <div className="flex items-center justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setGenerateImages(!generateImages)}
+                        disabled={isGenerating}
+                        className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          generateImages ? 'bg-indigo-500' : 'bg-gray-200'
+                        }`}
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                            generateImages ? 'translate-x-5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Style d'image */}
+                  {generateImages && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="imageStyle" className="flex items-center">
+                          <Wand2 className="h-4 w-4 mr-2 text-indigo-500" />
+                          Style d'illustration
+                        </Label>
+                        <Select value={imageStyle} onValueChange={setImageStyle} disabled={isGenerating}>
+                          <SelectTrigger id="imageStyle">
+                            <SelectValue placeholder="Choisir un style d'image" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="realistic">Réaliste</SelectItem>
+                            <SelectItem value="cartoon">Cartoon</SelectItem>
+                            <SelectItem value="manga">Manga/Anime</SelectItem>
+                            <SelectItem value="painting">Peinture</SelectItem>
+                            <SelectItem value="watercolor">Aquarelle</SelectItem>
+                            <SelectItem value="sketch">Croquis</SelectItem>
+                            <SelectItem value="digital-art">Art digital</SelectItem>
+                            <SelectItem value="fantasy">Fantasy</SelectItem>
+                            <SelectItem value="3d-render">3D</SelectItem>
+                            <SelectItem value="minimalist">Minimaliste</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Format d'image */}
+                      <div className="space-y-2 mt-4">
+                        <Label htmlFor="imageAspectRatio" className="flex items-center">
+                          <Image className="h-4 w-4 mr-2 text-indigo-500" />
+                          Format d'illustration
+                        </Label>
+                        <Select value={imageAspectRatio} onValueChange={setImageAspectRatio} disabled={isGenerating}>
+                          <SelectTrigger id="imageAspectRatio">
+                            <SelectValue placeholder="Choisir un format d'image" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="landscape">Paysage (horizontal)</SelectItem>
+                            <SelectItem value="portrait">Portrait (vertical)</SelectItem>
+                            <SelectItem value="square">Carré</SelectItem>
+                            <SelectItem value="panoramic">Panoramique</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* Note sur les images */}
+                  {generateImages && (
+                    <div className="text-sm text-gray-500 mt-2">
+                      <p>Les illustrations sont générées en fonction du contenu de chaque page. Elles seront incluses dans le livre exporté en EPUB.</p>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>

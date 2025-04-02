@@ -37,6 +37,11 @@ export interface AIBookRequest {
   additionalStyles?: string[]; // Styles d'écriture supplémentaires
   themes?: string[];           // Thèmes supplémentaires
   characters?: AICharacter[];  // Personnages supplémentaires
+  
+  // Options d'images
+  generateImages?: boolean;    // Activer/désactiver la génération d'images
+  imageStyle?: string;         // Style des images générées
+  imageAspectRatio?: 'square' | 'portrait' | 'landscape' | 'panoramic';  // Format des images générées
 }
 
 /**
@@ -62,7 +67,10 @@ export class AIService {
       paceStyle,
       additionalStyles = [],
       themes = [],
-      characters = []
+      characters = [],
+      generateImages = true,
+      imageStyle = 'realistic',
+      imageAspectRatio = 'landscape'
     } = request;
 
     try {
@@ -118,11 +126,22 @@ export class AIService {
         bookContent.coverPage.content = this.formatCoverPage(bookContent.title, bookContent.author, coverDescription);
       }
       
-      // Enrichissement du livre avec des images générées par IA
-      console.log('🖼️ Enrichissement du livre avec des images générées par IA...');
-      const enrichedBook = await ImageService.enrichBookWithImages(bookContent);
-      
-      return enrichedBook;
+      // Enrichissement du livre avec des images générées par IA si l'option est activée
+      if (generateImages) {
+        console.log('🖼️ Enrichissement du livre avec des images générées par IA...');
+        console.log(`Style d'image sélectionné: ${imageStyle}`);
+        
+        // Configurer les options d'images pour le service (supprimé la variable pour éviter la duplication)
+        
+        const enrichedBook = await ImageService.enrichBookWithImages(bookContent, {
+          style: imageStyle,
+          aspectRatio: imageAspectRatio
+        });
+        return enrichedBook;
+      } else {
+        console.log('⏭️ Génération d\'images désactivée, aucune illustration ne sera ajoutée.');
+        return bookContent;
+      }
     } catch (error) {
       console.error('Erreur lors de la génération du livre:', error);
       throw new Error('Échec de la génération du livre avec l\'IA');
