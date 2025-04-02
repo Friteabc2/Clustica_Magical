@@ -74,6 +74,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userData = await response.json();
             console.log("Données utilisateur récupérées:", userData);
             setUserInfo(userData);
+            
+            // Récupérer le profil Dropbox pour avoir les compteurs à jour
+            try {
+              const profileResponse = await fetch(`/api/user/${userData.id}/profile`);
+              
+              if (profileResponse.ok) {
+                const profileData = await profileResponse.json();
+                console.log("Profil utilisateur récupéré depuis Dropbox:", profileData);
+                
+                // Mettre à jour les informations utilisateur avec les données du profil Dropbox
+                setUserInfo(prevUserInfo => ({
+                  ...prevUserInfo!,
+                  plan: profileData.plan,
+                  booksCreated: profileData.booksCreated,
+                  aiBooksCreated: profileData.aiBooksCreated
+                }));
+              }
+            } catch (profileError) {
+              console.error("Erreur lors de la récupération du profil Dropbox:", profileError);
+            }
           } else if (response.status === 404) {
             // L'utilisateur existe dans Firebase mais pas dans notre backend
             console.log("Création automatique de l'utilisateur dans le backend:", {
@@ -196,6 +216,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const userData = await response.json();
         console.log("Données utilisateur rafraîchies:", userData);
         setUserInfo(userData);
+        
+        // Récupérer le profil Dropbox pour avoir les compteurs à jour
+        try {
+          const profileResponse = await fetch(`/api/user/${userData.id}/profile`);
+          
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            console.log("Profil utilisateur récupéré depuis Dropbox:", profileData);
+            
+            // Mettre à jour les informations utilisateur avec les données du profil Dropbox
+            setUserInfo(prevUserInfo => ({
+              ...prevUserInfo!,
+              plan: profileData.plan,
+              booksCreated: profileData.booksCreated,
+              aiBooksCreated: profileData.aiBooksCreated
+            }));
+          } else {
+            console.error("Erreur lors de la récupération du profil Dropbox:", profileResponse.status);
+          }
+        } catch (profileError) {
+          console.error("Erreur lors de la récupération du profil Dropbox:", profileError);
+        }
       } else {
         console.error("Erreur lors du rafraîchissement des informations utilisateur:", response.status);
       }

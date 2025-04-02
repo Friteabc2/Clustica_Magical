@@ -2,6 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -17,10 +18,15 @@ import { Switch } from "@/components/ui/switch";
 import { LogOut, User, Settings, Sparkles, BookText, Bot, Database, Moon, Sun } from "lucide-react";
 
 export default function UserMenu() {
-  const { currentUser, userInfo, logout } = useAuth();
+  const { currentUser, userInfo, logout, refreshUserInfo } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const { toast } = useToast();
   const [, navigate] = useLocation();
+  
+  // Rafraîchir les informations de l'utilisateur à chaque ouverture du menu
+  useEffect(() => {
+    refreshUserInfo();
+  }, [refreshUserInfo]);
 
   // Fonction de déconnexion
   async function handleLogout() {

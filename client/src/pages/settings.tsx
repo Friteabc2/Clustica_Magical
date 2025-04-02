@@ -12,7 +12,7 @@ import { Moon, Sun, Monitor } from "lucide-react";
 
 export default function Settings() {
   const { theme, toggleTheme } = useTheme();
-  const { currentUser, userInfo } = useAuth();
+  const { currentUser, userInfo, refreshUserInfo } = useAuth();
   const { toast } = useToast();
   
   // État pour suivre si les paramètres ont été enregistrés avec succès
@@ -27,6 +27,11 @@ export default function Settings() {
       return () => clearTimeout(timer);
     }
   }, [savedSuccess]);
+  
+  // Rafraîchir les informations de l'utilisateur à chaque affichage de la page
+  useEffect(() => {
+    refreshUserInfo();
+  }, [refreshUserInfo]);
 
   // Fonction pour enregistrer les paramètres
   const saveSettings = async () => {
