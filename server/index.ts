@@ -2,6 +2,7 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { DropboxService } from "./services/dropbox-service";
+import * as path from "path";
 
 // Vérification des variables d'environnement pour Dropbox
 // Nous pouvons utiliser un access token ou un refresh token
@@ -31,6 +32,9 @@ if (!hasAccessToken && !hasRefreshToken) {
 const app = express();
 app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les livres volumineux
 app.use(express.urlencoded({ extended: false }));
+
+// Servir les images générées statiquement
+app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images')));
 
 app.use((req, res, next) => {
   const start = Date.now();

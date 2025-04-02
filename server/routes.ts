@@ -403,18 +403,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add cover page as first chapter if it exists
       if (content.coverPage) {
+        let coverHtml = content.coverPage.content || '';
+        
+        // Add cover image if available
+        if (content.coverPage.image && content.coverPage.image.url) {
+          const imageUrl = content.coverPage.image.url;
+          const imageAlt = content.coverPage.image.alt || `Couverture de ${content.title}`;
+          coverHtml = `<div class="cover-image"><img src="${imageUrl}" alt="${imageAlt}" /></div>` + coverHtml;
+        }
+        
         epubContent.push({
           title: 'Couverture',
-          data: content.coverPage.content
+          data: coverHtml
         });
       }
       
       // Add regular chapters
       content.chapters.forEach(chapter => {
-        const chapterContent = chapter.pages.map(page => page.content).join('');
+        // Process each page and include images if available
+        const chapterHtml = chapter.pages.map(page => {
+          let pageHtml = page.content || '';
+          
+          // Add page image if available
+          if (page.image && page.image.url) {
+            const imageUrl = page.image.url;
+            const imageAlt = page.image.alt || `Illustration pour ${chapter.title}`;
+            const imageCaption = page.image.caption ? `<p class="image-caption">${page.image.caption}</p>` : '';
+            
+            pageHtml = `<div class="page-image">
+              <img src="${imageUrl}" alt="${imageAlt}" />
+              ${imageCaption}
+            </div>` + pageHtml;
+          }
+          
+          return pageHtml;
+        }).join('');
+        
         epubContent.push({
           title: chapter.title,
-          data: chapterContent
+          data: chapterHtml
         });
       });
       

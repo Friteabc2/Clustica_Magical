@@ -2,6 +2,7 @@ import { Mistral } from '@mistralai/mistralai';
 import { BookContent, Chapter, PageContent } from '@shared/schema';
 import { getEmptyBook, getEmptyChapter, getEmptyPage } from '../../client/src/lib/book-types';
 import { v4 as uuidv4 } from 'uuid';
+import { ImageService } from './image-service';
 
 // Initialisation du client Mistral avec la clé API
 const client = new Mistral({ apiKey: process.env.MISTRAL_API_KEY || '' });
@@ -65,6 +66,9 @@ export class AIService {
     } = request;
 
     try {
+      // Initialisation du service d'images
+      ImageService.initialize();
+      
       // Génération du titre et structure générale du livre
       const bookStructure = await this.generateBookStructure(prompt, chaptersCount, authorName);
       
@@ -114,7 +118,11 @@ export class AIService {
         bookContent.coverPage.content = this.formatCoverPage(bookContent.title, bookContent.author, coverDescription);
       }
       
-      return bookContent;
+      // Enrichissement du livre avec des images générées par IA
+      console.log('🖼️ Enrichissement du livre avec des images générées par IA...');
+      const enrichedBook = await ImageService.enrichBookWithImages(bookContent);
+      
+      return enrichedBook;
     } catch (error) {
       console.error('Erreur lors de la génération du livre:', error);
       throw new Error('Échec de la génération du livre avec l\'IA');

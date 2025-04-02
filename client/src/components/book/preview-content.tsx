@@ -148,6 +148,17 @@ export default function PreviewContent({
               </div>
             </div>
             
+            {/* Image de couverture si disponible */}
+            {book.coverPage && book.coverPage.image && (
+              <div className="relative">
+                <img 
+                  src={book.coverPage.image.url} 
+                  alt={book.coverPage.image.alt || `Couverture de ${book.title}`}
+                  className="w-full h-auto object-cover border-t border-gray-200"
+                />
+              </div>
+            )}
+            
             {/* Contenu de la page de couverture */}
             {book.coverPage && book.coverPage.content && (
               <div className="p-8 prose max-w-none bg-white border-t border-gray-200" 
@@ -166,6 +177,20 @@ export default function PreviewContent({
             <div className="border-b border-gray-200 pb-4 mb-6">
               <h2 className="text-2xl font-bold text-gray-800 font-serif">{currentChapter?.title}</h2>
             </div>
+            
+            {/* Image de la page si disponible */}
+            {currentPage?.image && (
+              <div className="mb-6">
+                <img 
+                  src={currentPage.image.url} 
+                  alt={currentPage.image.alt || `Illustration pour ${currentChapter?.title}`}
+                  className="w-full h-auto max-h-[400px] object-contain rounded-lg border border-gray-200 mb-4"
+                />
+                {currentPage.image.caption && (
+                  <p className="text-center text-gray-600 italic text-sm">{currentPage.image.caption}</p>
+                )}
+              </div>
+            )}
             
             <div className="prose max-w-none font-serif" 
                  dangerouslySetInnerHTML={{ __html: currentPage?.content || '' }}>

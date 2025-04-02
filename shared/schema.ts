@@ -35,6 +35,14 @@ export const pageContentSchema = z.object({
   content: z.string().default(""),
   pageNumber: z.number(),
   isCover: z.boolean().optional().default(false),
+  image: z.object({
+    url: z.string(),
+    style: z.string().optional(),
+    aspectRatio: z.enum(['square', 'portrait', 'landscape', 'panoramic']).optional().default('landscape'),
+    prompt: z.string().optional(),
+    alt: z.string().optional(),
+    caption: z.string().optional(),
+  }).optional(),
 });
 
 export const chapterSchema = z.object({
