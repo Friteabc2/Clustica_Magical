@@ -594,110 +594,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const exportOptions = exportOptionsSchema.parse(req.body);
       
-      // Generate EPUB
-      const filename = `${content.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.epub`;
-      const outputPath = path.join(tempDir, filename);
-      
-      // Prepare content for EPUB
-      let epubContent = [];
-      
-      // Add cover page as first chapter if it exists
-      if (content.coverPage) {
-        let coverHtml = content.coverPage.content || '';
-        
-        // Add cover image if available
-        if (content.coverPage.image && content.coverPage.image.url) {
-          const imageUrl = content.coverPage.image.url;
-          const imageAlt = content.coverPage.image.alt || `Couverture de ${content.title}`;
-          coverHtml = `<div class="cover-image"><img src="${imageUrl}" alt="${imageAlt}" /></div>` + coverHtml;
-        }
-        
-        epubContent.push({
-          title: 'Couverture',
-          data: coverHtml
-        });
+      const tempDir = path.join(process.cwd(), 'temp');
+      // Ensure temp directory exists
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir, { recursive: true });
       }
       
-      // Add regular chapters
-      content.chapters.forEach(chapter => {
-        // Process each page and include images if available
-        const chapterHtml = chapter.pages.map(page => {
-          let pageHtml = page.content || '';
+      // Generate a unique ID for this export
+      const exportId = Date.now().toString();
+      const filename = `${content.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${exportId}.epub`;
+      const outputPath = path.join(tempDir, filename);
+      
+      // Create a specific temporary directory for this export
+      const exportDir = path.join(tempDir, `export_${exportId}`);
+      const imagesDir = path.join(exportDir, 'images');
+      
+      try {
+        // Create the necessary directories
+        await fs.promises.mkdir(exportDir, { recursive: true });
+        await fs.promises.mkdir(imagesDir, { recursive: true });
+        
+        // Define image handling function
+        const handleImage = async (imageUrl: string): Promise<string | null> => {
+          if (!imageUrl) return null;
           
-          // Add page image if available
-          if (page.image && page.image.url) {
-            const imageUrl = page.image.url;
-            const imageAlt = page.image.alt || `Illustration pour ${chapter.title}`;
-            const imageCaption = page.image.caption ? `<p class="image-caption">${page.image.caption}</p>` : '';
-            
-            pageHtml = `<div class="page-image">
-              <img src="${imageUrl}" alt="${imageAlt}" />
-              ${imageCaption}
-            </div>` + pageHtml;
+          try {
+            if (imageUrl.startsWith('/generated-images/')) {
+              const publicPath = path.join(process.cwd(), 'public', imageUrl);
+              const filename = path.basename(imageUrl);
+              const localPath = path.join(imagesDir, filename);
+              
+              await fs.promises.copyFile(publicPath, localPath);
+              return path.join('images', filename);
+            }
+            return null;
+          } catch (error) {
+            console.error(`Error processing image ${imageUrl}:`, error);
+            return null;
+          }
+        };
+        
+        // Add CSS for styling
+        const cssFile = path.join(exportDir, 'style.css');
+        const cssContent = `
+          body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 1em;
+          }
+          h1, h2, h3, h4, h5, h6 {
+            font-family: 'Arial', sans-serif;
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
+          }
+          h1 { font-size: 2em; color: #333; }
+          h2 { font-size: 1.8em; color: #444; }
+          h3 { font-size: 1.5em; color: #555; }
+          p { margin-bottom: 1em; }
+          .page-image, .cover-image {
+            margin: 1em 0;
+            text-align: center;
+          }
+          .page-image img, .cover-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+          }
+          .image-caption {
+            font-style: italic;
+            font-size: 0.9em;
+            text-align: center;
+            color: #666;
+          }
+          blockquote {
+            font-style: italic;
+            margin-left: 1em;
+            padding-left: 1em;
+            border-left: 3px solid #ccc;
+          }
+          .ql-align-center { text-align: center; }
+          .ql-align-right { text-align: right; }
+          .ql-align-justify { text-align: justify; }
+        `;
+        await fs.promises.writeFile(cssFile, cssContent);
+        
+        // Prepare content for EPUB
+        const epubContent = [];
+        
+        // Add cover page as first chapter if it exists
+        if (content.coverPage) {
+          let coverHtml = content.coverPage.content || '';
+          
+          if (content.coverPage.image && content.coverPage.image.url) {
+            const localImagePath = await handleImage(content.coverPage.image.url);
+            if (localImagePath) {
+              const imageAlt = content.coverPage.image.alt || `Cover of ${content.title}`;
+              coverHtml = `<div class="cover-image"><img src="${localImagePath}" alt="${imageAlt}" /></div>` + coverHtml;
+            }
           }
           
-          return pageHtml;
-        }).join('');
+          epubContent.push({
+            title: 'Cover',
+            data: coverHtml,
+            beforeToc: true
+          });
+        }
         
-        epubContent.push({
-          title: chapter.title,
-          data: chapterHtml
-        });
-      });
-      
-      // Créer une image de couverture SVG si demandé
-      let coverImage = undefined;
-      if (exportOptions.includeCover) {
-        try {
-          // Générer le SVG de couverture
+        // Add chapters
+        for (const chapter of content.chapters) {
+          const pageHtmls = [];
+          
+          for (const page of chapter.pages) {
+            let pageHtml = page.content || '';
+            
+            if (page.image && page.image.url) {
+              const localImagePath = await handleImage(page.image.url);
+              if (localImagePath) {
+                const imageAlt = page.image.alt || `Illustration for ${chapter.title}`;
+                const imageCaption = page.image.caption ? `<p class="image-caption">${page.image.caption}</p>` : '';
+                pageHtml = `<div class="page-image"><img src="${localImagePath}" alt="${imageAlt}" />${imageCaption}</div>` + pageHtml;
+              }
+            }
+            
+            pageHtmls.push(pageHtml);
+          }
+          
+          epubContent.push({
+            title: chapter.title,
+            data: pageHtmls.join('<hr class="page-break" />')
+          });
+        }
+        
+        // Create SVG cover if requested
+        let coverImage;
+        if (exportOptions.includeCover) {
           const svgContent = `
           <svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
             <rect width="600" height="800" fill="#6366F1" />
             <text x="300" y="350" font-family="sans-serif" font-size="40" text-anchor="middle" fill="white">${content.title}</text>
-            <text x="300" y="450" font-family="sans-serif" font-size="30" text-anchor="middle" fill="white">par ${content.author}</text>
+            <text x="300" y="450" font-family="sans-serif" font-size="30" text-anchor="middle" fill="white">by ${content.author}</text>
           </svg>`;
           
-          // Sauvegarder l'image au format SVG dans le dossier temporaire
-          const coverPath = path.join(tempDir, `cover_${Date.now()}.svg`);
-          fs.writeFileSync(coverPath, svgContent);
+          const coverPath = path.join(exportDir, 'cover.svg');
+          await fs.promises.writeFile(coverPath, svgContent);
           coverImage = coverPath;
-          
-          console.log(`Image de couverture générée à ${coverPath}`);
-        } catch (coverError) {
-          console.error("Erreur lors de la génération de l'image de couverture:", coverError);
-          // En cas d'erreur, continuer sans image de couverture
-        }
-      }
-      
-      // Create EPUB with basic content
-      const epubOptions = {
-        title: content.title,
-        author: content.author,
-        publisher: 'Clustica Magical',
-        content: epubContent,
-        lang: exportOptions.language,
-        tocTitle: 'Table des matières',
-        cover: coverImage
-      };
-      
-      await new Promise<void>((resolve, reject) => {
-        new Epub(epubOptions, outputPath).promise
-          .then(() => resolve())
-          .catch((err: Error) => reject(err));
-      });
-      
-      // Send the file back to the client
-      res.download(outputPath, filename, (err: Error | null) => {
-        if (err) {
-          console.error('Error sending file:', err);
-          return res.status(500).json({ message: 'Failed to send EPUB file' });
         }
         
-        // Clean up the file after sending
-        fs.unlink(outputPath, (unlinkErr: NodeJS.ErrnoException | null) => {
-          if (unlinkErr) console.error('Error deleting temporary file:', unlinkErr);
+        // EPUB configuration
+        const epubOptions = {
+          title: content.title,
+          author: content.author,
+          publisher: 'Clustica Magical',
+          content: epubContent,
+          lang: exportOptions.language,
+          tocTitle: 'Table of Contents',
+          cover: coverImage,
+          css: path.join(exportDir, 'style.css'),
+          customHtmlTags: `
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <style>@page { margin: 0.5cm; }</style>
+          `,
+          version: 3
+        };
+        
+        // Generate EPUB
+        await new Promise<void>((resolve, reject) => {
+          new Epub(epubOptions, outputPath).promise
+            .then(() => resolve())
+            .catch((err) => reject(err));
         });
-      });
+        
+        // Send the file back to the client
+        res.download(outputPath, filename, (err) => {
+          if (err) {
+            console.error('Error sending file:', err);
+            return res.status(500).json({ message: 'Failed to send EPUB file' });
+          }
+          
+          // Clean up after sending
+          fs.unlink(outputPath, (unlinkErr) => {
+            if (unlinkErr) console.error('Error deleting temporary file:', unlinkErr);
+          });
+        });
+      } catch (innerError) {
+        console.error('Error in EPUB generation process:', innerError);
+        throw innerError;
+      }
     } catch (error) {
       console.error('Error exporting book to EPUB:', error);
       res.status(500).json({ message: 'Failed to export book to EPUB' });
