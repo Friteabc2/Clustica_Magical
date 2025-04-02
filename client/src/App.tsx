@@ -18,6 +18,7 @@ import AdminRoute from "@/components/auth/AdminRoute";
 import BookAccessRoute from "@/components/auth/BookAccessRoute";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
+import BetaWarningToast from "@/components/BetaWarningToast";
 
 function Router() {
   const [location] = useLocation();
@@ -132,6 +133,7 @@ function App() {
         <ThemeProvider>
           <Router />
           <Toaster />
+          <BetaWarningToast />
         </ThemeProvider>
       </AuthProvider>
     </QueryClientProvider>
