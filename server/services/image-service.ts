@@ -1,8 +1,7 @@
 import { BookContent, PageContent } from '@shared/schema';
 import axios from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as crypto from 'crypto';
+import { PostImagesService } from './postimages-service';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -12,24 +11,21 @@ export interface ImageGenerationOptions {
 }
 
 /**
- * Service pour générer des images avec NetMind.ai FLUX.1-schnell
+ * Service pour générer des images avec NetMind.ai et les stocker sur PostImages
  */
 export class ImageService {
   private static readonly API_KEY = process.env.NETMIND_API_KEY;
   private static readonly API_URL = 'https://api.netmind.ai/inference-api/openai/v1/images/generations';
   private static readonly MODEL = 'black-forest-labs/FLUX.1-schnell';
-  private static readonly IMAGE_FOLDER = path.join(process.cwd(), 'public', 'generated-images');
   
   /**
    * Initialise le service d'images
    */
   static initialize() {
-    // Crée le dossier de stockage des images si nécessaire
-    if (!fs.existsSync(this.IMAGE_FOLDER)) {
-      fs.mkdirSync(this.IMAGE_FOLDER, { recursive: true });
-    }
+    // Initialise le service PostImages
+    PostImagesService.initialize();
     
-    console.log(`✅ Service d'images initialisé - dossier: ${this.IMAGE_FOLDER}`);
+    console.log(`✅ Service d'images initialisé avec stockage sur PostImages`);
   }
   
   /**
@@ -99,16 +95,21 @@ export class ImageService {
         const b64Image = response.data.data[0].b64_json;
         const imageData = Buffer.from(b64Image, 'base64');
         
-        // Crée un nom de fichier unique basé sur un hash du prompt
-        const hash = crypto.createHash('md5').update(options.prompt).digest('hex').substring(0, 10);
-        const filename = `image_${hash}_${Date.now()}.png`;
-        const filePath = path.join(this.IMAGE_FOLDER, filename);
+        // Télécharger l'image sur PostImages au lieu de la stocker localement
+        const postImageResult = await PostImagesService.uploadImage({
+          source: imageData,
+          title: `Image générée pour Clustica - ${options.prompt.substring(0, 30)}`,
+          description: options.prompt,
+          tags: ['clustica', 'ai-generated', options.aspectRatio || 'landscape']
+        });
         
-        // Écrit l'image sur le disque
-        fs.writeFileSync(filePath, imageData);
+        if (postImageResult) {
+          // On utilise l'URL de l'image téléchargée
+          return postImageResult.display_url;
+        }
         
-        // Retourne l'URL relative de l'image
-        return `/generated-images/${filename}`;
+        console.error('❌ Erreur lors du téléchargement sur PostImages');
+        return null;
       }
       
       console.error('❌ Aucune image générée dans la réponse');

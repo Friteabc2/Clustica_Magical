@@ -33,9 +33,6 @@ const app = express();
 app.use(express.json({ limit: '50mb' })); // Augmenter la limite pour les livres volumineux
 app.use(express.urlencoded({ extended: false }));
 
-// Servir les images générées statiquement
-app.use('/generated-images', express.static(path.join(process.cwd(), 'public', 'generated-images')));
-
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
