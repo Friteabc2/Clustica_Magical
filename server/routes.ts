@@ -1569,6 +1569,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Échec de la suppression de l\'utilisateur' });
     }
   });
+  
+  // Endpoint d'administration pour ajuster les crédits de livres AI
+  app.post('/api/admin/user/:userId/adjust-ai-credits', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      // Valider les données de la requête
+      const adjustSchema = z.object({
+        adjustment: z.number().optional(),
+        reset: z.boolean().optional().default(false)
+      })
+      .refine(data => data.reset || data.adjustment !== undefined, {
+        message: "Vous devez fournir soit 'reset' à true, soit une valeur pour 'adjustment'",
+        path: ["adjustment"]
+      });
+      
+      const validationResult = adjustSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Données d\'ajustement invalides', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      let profile;
+      
+      // Réinitialiser ou ajuster les crédits
+      if (validationResult.data.reset) {
+        profile = await UserProfileManager.resetAIBooksCreated(userId);
+        console.log(`Crédits AI réinitialisés pour l'utilisateur ${userId}`);
+      } else {
+        profile = await UserProfileManager.adjustAIBooksCreated(userId, validationResult.data.adjustment);
+        console.log(`Crédits AI ajustés de ${validationResult.data.adjustment} pour l'utilisateur ${userId}`);
+      }
+      
+      if (!profile) {
+        return res.status(500).json({ message: 'Échec de l\'ajustement des crédits AI' });
+      }
+      
+      // Mettre à jour les crédits dans la base de données locale
+      const user = await storage.getUser(userId);
+      if (user) {
+        await storage.updateUser(userId, { aiBooksCreated: profile.aiBooksCreated });
+      }
+      
+      res.json({ 
+        success: true, 
+        profile,
+        message: validationResult.data.reset 
+          ? 'Crédits AI réinitialisés avec succès' 
+          : `Crédits AI ajustés de ${validationResult.data.adjustment}`
+      });
+    } catch (error) {
+      console.error('Erreur lors de l\'ajustement des crédits AI:', error);
+      res.status(500).json({ message: 'Échec de l\'ajustement des crédits AI' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;

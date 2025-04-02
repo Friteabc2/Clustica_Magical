@@ -849,6 +849,58 @@ export class UserProfileManager {
   }
   
   /**
+   * Modifie le compteur de livres IA créés pour un utilisateur
+   * @param userId ID de l'utilisateur
+   * @param adjustment Valeur d'ajustement (peut être négatif pour réduire le compteur)
+   */
+  static async adjustAIBooksCreated(userId: number | string, adjustment: number): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Ajuster le compteur (ne pas descendre en dessous de 0)
+      profile.aiBooksCreated = Math.max(0, profile.aiBooksCreated + adjustment);
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de l'ajustement du compteur de livres IA pour l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Réinitialise le compteur de livres IA créés pour un utilisateur
+   */
+  static async resetAIBooksCreated(userId: number | string): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Réinitialiser le compteur
+      profile.aiBooksCreated = 0;
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de la réinitialisation du compteur de livres IA pour l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
    * Met à jour les informations de profil d'un utilisateur
    */
   static async updateUserInfo(userId: number | string, info: Partial<UserProfileData>): Promise<UserProfileData | null> {
