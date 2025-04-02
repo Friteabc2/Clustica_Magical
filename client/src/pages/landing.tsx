@@ -180,9 +180,9 @@ export default function Landing() {
               <div className="text-primary mb-4">
                 <Cloud className="h-12 w-12" />
               </div>
-              <h3 className="text-xl font-bold mb-3 text-gray-900">Synchronisation Dropbox</h3>
+              <h3 className="text-xl font-bold mb-3 text-gray-900">Synchronisation Cloud</h3>
               <p className="text-gray-600">
-                Sauvegardez vos projets dans Dropbox pour les protéger et y accéder depuis n'importe quel appareil.
+                Sauvegardez vos projets dans le Cloud pour les protéger et y accéder depuis n'importe quel appareil.
               </p>
             </div>
 
@@ -225,11 +225,11 @@ export default function Landing() {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">Choisissez le plan qui vous convient</h2>
             <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Des options flexibles pour tous les types d'auteurs, des débutants aux professionnels.
+              Des options simples adaptées à vos besoins pour créer des livres de qualité.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="p-6 border-b">
                 <h3 className="text-2xl font-bold text-gray-900">Gratuit</h3>
@@ -246,7 +246,7 @@ export default function Landing() {
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">1 livre IA (limite définitive)</p>
+                  <p className="ml-3 text-gray-700">1 livre IA maximum</p>
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
@@ -290,17 +290,17 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="bg-white border-2 border-indigo-600 rounded-lg shadow-lg transform scale-105 overflow-hidden">
-              <div className="bg-indigo-600 px-3 py-1 text-white text-center text-sm font-medium">
+            <div className="bg-white border-2 border-primary rounded-lg shadow-lg transform md:scale-105 overflow-hidden">
+              <div className="bg-primary px-3 py-1 text-white text-center text-sm font-medium">
                 RECOMMANDÉ
               </div>
               <div className="p-6 border-b">
                 <h3 className="text-2xl font-bold text-gray-900">Premium</h3>
                 <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold">9,99€</span>
+                  <span className="text-4xl font-extrabold">4,99€</span>
                   <span className="ml-1 text-gray-500">/mois</span>
                 </div>
-                <p className="mt-2 text-gray-500">Idéal pour les auteurs actifs</p>
+                <p className="mt-2 text-gray-500">Idéal pour les auteurs passionnés</p>
               </div>
               <div className="p-6 space-y-4">
                 <div className="flex items-center">
@@ -336,14 +336,14 @@ export default function Landing() {
                 {currentUser ? (
                   <Button 
                     onClick={() => navigate('/dashboard')} 
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     Accéder à mon espace
                   </Button>
                 ) : (
                   <Button 
                     onClick={() => navigate('/register')} 
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                    className="w-full bg-primary hover:bg-primary/90"
                   >
                     S'abonner maintenant
                   </Button>
@@ -440,7 +440,7 @@ export default function Landing() {
               </div>
               <h3 className="text-xl font-bold mb-3 text-gray-900">État actuel</h3>
               <p className="text-gray-700 mb-4">
-                La pré-bêta inclut les fonctionnalités essentielles : création et édition de livres, organisation en chapitres, sauvegarde cloud via Dropbox et export EPUB basique.
+                La pré-bêta inclut les fonctionnalités essentielles : création et édition de livres, organisation en chapitres, sauvegarde Cloud et export EPUB basique.
               </p>
               <p className="text-gray-700">
                 Notre IA assistante est en phase expérimentale et s'améliore continuellement. L'interface utilisateur est fonctionnelle mais sera affinée avant la version finale.
@@ -572,6 +572,7 @@ export default function Landing() {
                 <li><a href="#" className="text-gray-400 hover:text-white transition">Équipe</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition">Confidentialité</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition">Conditions</a></li>
+                <li><a href="/legal" className="text-gray-400 hover:text-white transition">Mentions légales</a></li>
               </ul>
             </div>
           </div>

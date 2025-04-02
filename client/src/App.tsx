@@ -11,6 +11,7 @@ import Admin from "@/pages/admin";
 import Settings from "@/pages/settings";
 import Profile from "@/pages/profile";
 import Landing from "@/pages/landing";
+import Legal from "@/pages/legal";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
@@ -47,6 +48,14 @@ function Router() {
           {() => (
             <PageTransition>
               <Register />
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/legal">
+          {() => (
+            <PageTransition>
+              <Legal />
             </PageTransition>
           )}
         </Route>
