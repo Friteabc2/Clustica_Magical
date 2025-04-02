@@ -54,7 +54,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
   const [paceStyle, setPaceStyle] = useState('');
   const [characters, setCharacters] = useState<Character[]>([]);
   const [additionalStyles, setAdditionalStyles] = useState<StyleOption[]>([]);
-  const [generateImages, setGenerateImages] = useState(true);
+  const [generateImages, setGenerateImages] = useState(false);
   const [imageStyle, setImageStyle] = useState('realistic');
   const [imageAspectRatio, setImageAspectRatio] = useState('landscape');
 

@@ -68,7 +68,7 @@ export class AIService {
       additionalStyles = [],
       themes = [],
       characters = [],
-      generateImages = true,
+      generateImages = false, // Par défaut, ne pas générer d'images
       imageStyle = 'realistic',
       imageAspectRatio = 'landscape'
     } = request;

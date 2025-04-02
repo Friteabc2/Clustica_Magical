@@ -645,6 +645,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       });
       
+      // Créer une image de couverture SVG si demandé
+      let coverImage = undefined;
+      if (exportOptions.includeCover) {
+        try {
+          // Générer le SVG de couverture
+          const svgContent = `
+          <svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
+            <rect width="600" height="800" fill="#6366F1" />
+            <text x="300" y="350" font-family="sans-serif" font-size="40" text-anchor="middle" fill="white">${content.title}</text>
+            <text x="300" y="450" font-family="sans-serif" font-size="30" text-anchor="middle" fill="white">par ${content.author}</text>
+          </svg>`;
+          
+          // Sauvegarder l'image au format SVG dans le dossier temporaire
+          const coverPath = path.join(tempDir, `cover_${Date.now()}.svg`);
+          fs.writeFileSync(coverPath, svgContent);
+          coverImage = coverPath;
+          
+          console.log(`Image de couverture générée à ${coverPath}`);
+        } catch (coverError) {
+          console.error("Erreur lors de la génération de l'image de couverture:", coverError);
+          // En cas d'erreur, continuer sans image de couverture
+        }
+      }
+      
       // Create EPUB with basic content
       const epubOptions = {
         title: content.title,
@@ -653,20 +677,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: epubContent,
         lang: exportOptions.language,
         tocTitle: 'Table des matières',
-        cover: exportOptions.includeCover ? 
-          `data:image/svg+xml;base64,${Buffer.from(`
-            <svg xmlns="http://www.w3.org/2000/svg" width="600" height="800" viewBox="0 0 600 800">
-              <rect width="600" height="800" fill="url(#grad)" />
-              <defs>
-                <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="0%">
-                  <stop offset="0%" style="stop-color:#6366F1;stop-opacity:1" />
-                  <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
-                </linearGradient>
-              </defs>
-              <text x="300" y="350" font-family="sans-serif" font-size="40" text-anchor="middle" fill="white">${content.title}</text>
-              <text x="300" y="450" font-family="sans-serif" font-size="30" text-anchor="middle" fill="white">par ${content.author}</text>
-            </svg>
-          `).toString('base64')}` : undefined
+        cover: coverImage
       };
       
       await new Promise<void>((resolve, reject) => {
