@@ -27,6 +27,65 @@ if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
 
+/**
+ * Middleware pour vérifier si l'utilisateur a le droit d'accéder à un livre
+ * Il vérifie que l'utilisateur qui fait la requête est le même que celui qui a créé le livre
+ * Si le livre n'a pas d'utilisateur associé, il est considéré comme public
+ */
+interface AuthRequest extends Request {
+  requestUserId?: number;
+}
+
+async function checkBookAccess(req: AuthRequest, res: Response, next: NextFunction) {
+  try {
+    const bookId = parseInt(req.params.id);
+    if (isNaN(bookId)) {
+      return res.status(400).json({ message: 'ID de livre invalide' });
+    }
+    
+    // Si l'utilisateur a fourni son ID dans la requête (soit dans le corps, soit en paramètre de requête)
+    const requestUserId = req.body.userId || req.query.userId;
+    
+    // Si aucun utilisateur n'est spécifié, on autorise l'accès (le livre est public)
+    if (!requestUserId) {
+      return next();
+    }
+    
+    // Récupérer les informations du livre
+    const book = await storage.getBook(bookId);
+    if (!book) {
+      return res.status(404).json({ message: 'Livre non trouvé' });
+    }
+    
+    // Si le livre n'a pas d'utilisateur associé, il est public
+    if (!book.userId) {
+      return next();
+    }
+    
+    // Convertir les IDs en nombre pour comparaison
+    const bookUserId = typeof book.userId === 'string' ? parseInt(book.userId) : book.userId;
+    const userIdNum = typeof requestUserId === 'string' ? parseInt(requestUserId) : requestUserId;
+    
+    // Stocke l'ID utilisateur dans la requête pour utilisation ultérieure
+    req.requestUserId = userIdNum;
+    
+    // Vérifier si l'utilisateur est autorisé à accéder au livre
+    if (bookUserId !== userIdNum) {
+      return res.status(403).json({ 
+        message: 'Accès non autorisé',
+        error: 'UNAUTHORIZED_ACCESS',
+        details: 'Vous n\'avez pas l\'autorisation d\'accéder à ce livre'
+      });
+    }
+    
+    // L'utilisateur est autorisé
+    next();
+  } catch (error) {
+    console.error('Erreur lors de la vérification des autorisations:', error);
+    res.status(500).json({ message: 'Erreur serveur lors de la vérification des autorisations' });
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // API routes for book management
   app.get('/api/books', async (req: Request, res: Response) => {
@@ -52,7 +111,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/books/:id', async (req: Request, res: Response) => {
+  app.get('/api/books/:id', checkBookAccess, async (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -71,7 +130,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/books/:id/content', async (req: Request, res: Response) => {
+  app.get('/api/books/:id/content', checkBookAccess, async (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -166,7 +225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put('/api/books/:id/content', async (req: Request, res: Response) => {
+  app.put('/api/books/:id/content', checkBookAccess, async (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -238,7 +297,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete('/api/books/:id', async (req: Request, res: Response) => {
+  app.delete('/api/books/:id', checkBookAccess, async (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
@@ -413,7 +472,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // EPUB export endpoint
-  app.post('/api/books/:id/export', async (req: Request, res: Response) => {
+  app.post('/api/books/:id/export', checkBookAccess, async (req: AuthRequest, res: Response) => {
     try {
       const id = parseInt(req.params.id);
       if (isNaN(id)) {
