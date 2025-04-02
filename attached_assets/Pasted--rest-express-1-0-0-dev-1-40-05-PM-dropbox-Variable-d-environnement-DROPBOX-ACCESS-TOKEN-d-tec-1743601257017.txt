@@ -1,0 +1,113 @@
+
+> rest-express@1.0.0 dev
+1:40:05 PM [dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+1:40:05 PM [dropbox] ✅ Variable d'environnement DROPBOX_REFRESH_TOKEN détectée
+[dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+[dropbox] ✅ Variables d'environnement pour refresh token détectées
+[dropbox] ✅ Service Dropbox initialisé avec succès
+1:40:05 PM [dropbox] ✅ Service Dropbox initialisé avec succès
+1:40:05 PM [express] serving on port 5000
+Chargement des livres depuis Dropbox...
+Erreur lors du listage des livres sur Dropbox: DropboxResponseError: Response failed with a 400 code
+    at /home/runner/workspace/node_modules/dropbox/cjs/src/response.js:34:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Function.ensureRootFolderExists (/home/runner/workspace/server/services/dropbox-service.ts:216:9)
+    at async Function.listBooks (/home/runner/workspace/server/services/dropbox-service.ts:509:9)
+    at async DropboxStorage.loadBooksFromDropbox (/home/runner/workspace/server/storage.ts:205:28) {
+  status: 400,
+  headers: Headers {
+    [Symbol(map)]: [Object: null prototype] {
+      'content-type': [Array],
+      'content-security-policy': [Array],
+      date: [Array],
+      server: [Array],
+      'content-length': [Array],
+      'x-dropbox-response-origin': [Array],
+      'x-dropbox-request-id': [Array]
+    }
+  },
+  error: { error: 'invalid_client: Invalid client_id or client_secret' }
+}
+0 livres chargés depuis Dropbox.
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+1:40:16 PM [express] GET /api/theme 200 in 3ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:40:23 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:40:23 PM [express] GET /api/theme 304 in 0ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:40:41 PM [express] GET /api/theme 304 in 2ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:40:44 PM [express] GET /api/auth/user/7UOTFN10n0hL3OapkEtcIp2o6tl2 404 in 1ms :: {"message":"Utili…
+Erreur lors de la récupération du profil utilisateur 1: DropboxResponseError: Response failed with a 400 code
+    at /home/runner/workspace/node_modules/dropbox/cjs/src/response.js:34:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Function.ensureUserFolderExists (/home/runner/workspace/server/services/dropbox-service.ts:246:7)
+    at async Function.getUserProfile (/home/runner/workspace/server/services/dropbox-service.ts:630:7)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1230:32) {
+  status: 400,
+  headers: Headers {
+    [Symbol(map)]: [Object: null prototype] {
+      'content-type': [Array],
+      'content-security-policy': [Array],
+      date: [Array],
+      server: [Array],
+      'content-length': [Array],
+      'x-dropbox-response-origin': [Array],
+      'x-dropbox-request-id': [Array]
+    }
+  },
+  error: { error: 'invalid_client: Invalid client_id or client_secret' }
+}
+Profil Dropbox créé pour l'utilisateur 1: {
+  userId: 1,
+  email: 'nnie06884@gmail.com',
+  displayName: null,
+  plan: 'free',
+  booksCreated: 0,
+  aiBooksCreated: 0,
+  createdAt: '2025-04-02T13:40:44.570Z',
+  updatedAt: '2025-04-02T13:40:44.570Z'
+}
+Erreur lors de la récupération du profil utilisateur 1: DropboxResponseError: Response failed with a 400 code
+    at /home/runner/workspace/node_modules/dropbox/cjs/src/response.js:34:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Function.ensureUserFolderExists (/home/runner/workspace/server/services/dropbox-service.ts:246:7)
+    at async Function.getUserProfile (/home/runner/workspace/server/services/dropbox-service.ts:630:7)
+    at async Function.updateUserInfo (/home/runner/workspace/server/services/dropbox-service.ts:852:23)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1241:11) {
+  status: 400,
+  headers: Headers {
+    [Symbol(map)]: [Object: null prototype] {
+      'content-type': [Array],
+      'content-security-policy': [Array],
+      date: [Array],
+      server: [Array],
+      'content-length': [Array],
+      'x-dropbox-response-origin': [Array],
+      'x-dropbox-request-id': [Array]
+    }
+  },
+  error: { error: 'invalid_client: Invalid client_id or client_secret' }
+}
+Erreur lors de la sauvegarde du profil utilisateur 1: DropboxResponseError: Response failed with a 400 code
+    at /home/runner/workspace/node_modules/dropbox/cjs/src/response.js:34:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async Function.ensureUserFolderExists (/home/runner/workspace/server/services/dropbox-service.ts:246:7)
+    at async Function.saveUserProfile (/home/runner/workspace/server/services/dropbox-service.ts:744:7)
+    at async Function.updateUserInfo (/home/runner/workspace/server/services/dropbox-service.ts:869:23)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:1241:11) {
+  status: 400,
+  headers: Headers {
+    [Symbol(map)]: [Object: null prototype] {
+      'content-type': [Array],
+      'content-security-policy': [Array],
+      date: [Array],
+      server: [Array],
+      'content-length': [Array],
+      'x-dropbox-response-origin': [Array],
+      'x-dropbox-request-id': [Array]
+    }
+  },
+  error: { error: 'invalid_client: Invalid client_id or client_secret' }
+}
+1:40:44 PM [express] POST /api/auth/register 201 in 335ms :: {"id":1,"email":"nnie06884@gmail.com","…
+1:40:45 PM [express] GET /api/auth/user/1/books 304 in 1ms :: []

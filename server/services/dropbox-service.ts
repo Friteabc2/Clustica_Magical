@@ -154,13 +154,18 @@ export class DropboxService {
       const accessToken = process.env.DROPBOX_ACCESS_TOKEN;
       const refreshToken = process.env.DROPBOX_REFRESH_TOKEN;
       
-      // Valeurs des identifiants client (hardcoded pour simplifier)
-      const clientId = 'h5nfdgfd4y1o1o5';
-      const clientSecret = 'ihiy44wxczjic9p';
+      // Récupérer les identifiants client depuis les variables d'environnement
+      const clientId = process.env.DROPBOX_APP_KEY;
+      const clientSecret = process.env.DROPBOX_APP_SECRET;
       
       // Vérifier qu'au moins un mode d'authentification est disponible
       if (!accessToken && !refreshToken) {
         throw new Error('Token d\'accès Dropbox manquant. Vous devez fournir DROPBOX_ACCESS_TOKEN ou DROPBOX_REFRESH_TOKEN.');
+      }
+      
+      // Vérifier que les identifiants client sont disponibles si on utilise un refresh token
+      if (refreshToken && (!clientId || !clientSecret)) {
+        console.warn('[dropbox] ⚠️ Variables d\'environnement DROPBOX_APP_KEY ou DROPBOX_APP_SECRET manquantes. Le rafraîchissement automatique du token ne fonctionnera pas.');
       }
       
       // Configurer Dropbox
@@ -172,8 +177,8 @@ export class DropboxService {
         console.log('[dropbox] ✅ Variable d\'environnement DROPBOX_ACCESS_TOKEN détectée');
       }
       
-      // Si on a un refresh token, configurer les paramètres pour le refresh automatique
-      if (refreshToken) {
+      // Si on a un refresh token et les identifiants client, configurer les paramètres pour le refresh automatique
+      if (refreshToken && clientId && clientSecret) {
         config.clientId = clientId;
         config.clientSecret = clientSecret;
         config.refreshToken = refreshToken;
