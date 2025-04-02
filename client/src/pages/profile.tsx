@@ -437,24 +437,36 @@ export default function Profile() {
                     </div>
                     
                     <DialogFooter>
-                      {({ close }) => (
-                        <>
-                          <Button variant="outline" onClick={close}>Annuler</Button>
-                          <Button 
-                            onClick={() => handleChangePassword(close)}
-                            disabled={isChangingPassword}
-                          >
-                            {isChangingPassword ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Traitement...
-                              </>
-                            ) : (
-                              <>Confirmer</>
-                            )}
-                          </Button>
-                        </>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        className="mr-auto"
+                        onClick={() => {
+                          const closeButton = document.querySelector('[data-radix-focus-guard]')?.parentElement?.querySelector('button[aria-label="Close"]');
+                          if (closeButton instanceof HTMLButtonElement) closeButton.click();
+                        }}
+                      >
+                        Annuler
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          const close = () => {
+                            // Trouver et fermer la boîte de dialogue
+                            const closeButton = document.querySelector('[data-radix-focus-guard]')?.parentElement?.querySelector('button[aria-label="Close"]');
+                            if (closeButton instanceof HTMLButtonElement) closeButton.click();
+                          };
+                          handleChangePassword(close);
+                        }}
+                        disabled={isChangingPassword}
+                      >
+                        {isChangingPassword ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Traitement...
+                          </>
+                        ) : (
+                          <>Confirmer</>
+                        )}
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -488,24 +500,36 @@ export default function Profile() {
                     </div>
                     
                     <DialogFooter>
-                      {({ close }) => (
-                        <>
-                          <Button variant="outline" onClick={close}>Annuler</Button>
-                          <Button 
-                            onClick={() => handleResetPassword(close)}
-                            disabled={isResettingPassword}
-                          >
-                            {isResettingPassword ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Envoi...
-                              </>
-                            ) : (
-                              <>Envoyer l'email</>
-                            )}
-                          </Button>
-                        </>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        className="mr-auto"
+                        onClick={() => {
+                          const closeButton = document.querySelector('[data-radix-focus-guard]')?.parentElement?.querySelector('button[aria-label="Close"]');
+                          if (closeButton instanceof HTMLButtonElement) closeButton.click();
+                        }}
+                      >
+                        Annuler
+                      </Button>
+                      <Button 
+                        onClick={() => {
+                          const close = () => {
+                            // Trouver et fermer la boîte de dialogue
+                            const closeButton = document.querySelector('[data-radix-focus-guard]')?.parentElement?.querySelector('button[aria-label="Close"]');
+                            if (closeButton instanceof HTMLButtonElement) closeButton.click();
+                          };
+                          handleResetPassword(close);
+                        }}
+                        disabled={isResettingPassword}
+                      >
+                        {isResettingPassword ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Envoi...
+                          </>
+                        ) : (
+                          <>Envoyer l'email</>
+                        )}
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
