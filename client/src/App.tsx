@@ -14,6 +14,7 @@ import Landing from "@/pages/landing";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
+import BookAccessRoute from "@/components/auth/BookAccessRoute";
 import { AnimatePresence } from "framer-motion";
 import { PageTransition } from "@/components/ui/page-transition";
 
@@ -63,7 +64,9 @@ function Router() {
           {({id}) => (
             <PageTransition>
               <PrivateRoute>
-                <Editor params={{id}} />
+                <BookAccessRoute bookId={id}>
+                  <Editor params={{id}} />
+                </BookAccessRoute>
               </PrivateRoute>
             </PageTransition>
           )}
