@@ -15,6 +15,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { BookContent } from '@shared/schema';
 import { useToast } from '@/hooks/use-toast';
 import { FileOutput, X } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface ExportModalProps {
   isOpen: boolean;
@@ -25,6 +26,7 @@ interface ExportModalProps {
 
 export default function ExportModal({ isOpen, onClose, book, bookId }: ExportModalProps) {
   const { toast } = useToast();
+  const { userInfo } = useAuth();
   const [exportTitle, setExportTitle] = useState(book.title);
   const [exportAuthor, setExportAuthor] = useState(book.author);
   const [language, setLanguage] = useState('fr');
@@ -58,13 +60,16 @@ export default function ExportModal({ isOpen, onClose, book, bookId }: ExportMod
         includeCover
       };
 
-      // Use fetch directly for file download
-      const response = await fetch(`/api/books/${bookId}/export`, {
+      // Use fetch directly for file download, en incluant l'ID utilisateur dans les paramètres
+      const response = await fetch(`/api/books/${bookId}/export?userId=${userInfo?.id || ''}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(exportOptions)
+        body: JSON.stringify({
+          ...exportOptions,
+          _userId: userInfo?.id // Ajouter l'ID utilisateur dans le corps de la requête aussi
+        })
       });
 
       if (!response.ok) {

@@ -46,11 +46,6 @@ async function checkBookAccess(req: AuthRequest, res: Response, next: NextFuncti
     // Si l'utilisateur a fourni son ID dans la requête (soit dans le corps, soit en paramètre de requête)
     const requestUserId = req.body.userId || req.query.userId;
     
-    // Si aucun utilisateur n'est spécifié, on autorise l'accès (le livre est public)
-    if (!requestUserId) {
-      return next();
-    }
-    
     // Récupérer les informations du livre
     const book = await storage.getBook(bookId);
     if (!book) {
@@ -62,15 +57,30 @@ async function checkBookAccess(req: AuthRequest, res: Response, next: NextFuncti
       return next();
     }
     
-    // Convertir les IDs en nombre pour comparaison
+    // Si aucun utilisateur n'est spécifié dans la requête, mais que le livre a un propriétaire
+    if (!requestUserId) {
+      return res.status(403).json({ 
+        message: 'Accès non autorisé',
+        error: 'UNAUTHORIZED_ACCESS',
+        details: 'Vous n\'avez pas l\'autorisation d\'accéder à ce livre'
+      });
+    }
+    
+    // Convertir les IDs en nombre pour comparaison en assurant un type cohérent
     const bookUserId = typeof book.userId === 'string' ? parseInt(book.userId) : book.userId;
-    const userIdNum = typeof requestUserId === 'string' ? parseInt(requestUserId) : requestUserId;
+    let userIdNum = typeof requestUserId === 'string' ? parseInt(requestUserId) : requestUserId;
+    
+    // Si l'ID utilisateur n'a pas pu être parsé ou est invalide, le rejeter
+    if (isNaN(userIdNum)) {
+      userIdNum = 0; // Valeur qui ne correspondra à aucun ID valide
+    }
     
     // Stocke l'ID utilisateur dans la requête pour utilisation ultérieure
     req.requestUserId = userIdNum;
     
     // Vérifier si l'utilisateur est autorisé à accéder au livre
     if (bookUserId !== userIdNum) {
+      console.log(`Accès refusé: l'utilisateur ${userIdNum} tente d'accéder au livre appartenant à l'utilisateur ${bookUserId}`);
       return res.status(403).json({ 
         message: 'Accès non autorisé',
         error: 'UNAUTHORIZED_ACCESS',

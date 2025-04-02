@@ -49,12 +49,19 @@ export default function Editor({ params }: EditorProps = {}) {
   const [bookContent, setBookContent] = useState<BookContent>(defaultBookContent);
   
   // Fetch book content if ID is provided
-  const { data, isLoading, isError } = useQuery<BookContent>({
-    queryKey: ['/api/books', id, 'content'],
+  const { data, isLoading, isError, error } = useQuery<BookContent>({
+    queryKey: ['/api/books', id, 'content', userInfo?.id],
     queryFn: async ({ queryKey }) => {
       if (!id) return defaultBookContent;
-      const res = await fetch(`/api/books/${id}/content`);
-      if (!res.ok) throw new Error('Failed to fetch book content');
+      // Passer l'ID utilisateur dans la requête pour vérifier l'autorisation
+      const res = await fetch(`/api/books/${id}/content?userId=${userInfo?.id || ''}`);
+      if (!res.ok) {
+        // Si status est 403, c'est un problème d'autorisation
+        if (res.status === 403) {
+          throw new Error('Accès non autorisé - Vous n\'avez pas le droit d\'accéder à ce livre');
+        }
+        throw new Error('Failed to fetch book content');
+      }
       return res.json();
     },
     enabled: !!id,
@@ -97,7 +104,12 @@ export default function Editor({ params }: EditorProps = {}) {
   // Update book mutation
   const updateBook = useMutation({
     mutationFn: async (params: { id: string; content: BookContent }) => {
-      const res = await apiRequest('PUT', `/api/books/${params.id}/content`, params.content);
+      // Assurons-nous que le contenu inclut l'ID de l'utilisateur pour la vérification d'autorisation
+      const contentWithUserId = {
+        ...params.content,
+        _userId: userInfo?.id // Nous utilisons un préfixe _ pour indiquer que c'est un champ technique
+      };
+      const res = await apiRequest('PUT', `/api/books/${params.id}/content?userId=${userInfo?.id || ''}`, contentWithUserId);
       return await res.json();
     },
     onSuccess: (data) => {
@@ -125,7 +137,7 @@ export default function Editor({ params }: EditorProps = {}) {
         });
       }
       
-      queryClient.invalidateQueries({ queryKey: ['/api/books', id, 'content'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/books', id, 'content', userInfo?.id] });
     },
     onError: (error) => {
       toast({
@@ -379,14 +391,23 @@ export default function Editor({ params }: EditorProps = {}) {
   }
   
   if (isError && id) {
+    // On vérifie si c'est une erreur d'autorisation ou une autre erreur
+    const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+    const isAccessError = errorMessage.includes('Accès non autorisé');
+    
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="text-red-500 text-4xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">Erreur de chargement</h2>
-          <p className="text-gray-600 mb-4">Impossible de charger le livre demandé.</p>
-          <Button onClick={() => navigate('/')} className="bg-primary hover:bg-primary/90">
-            {/* icône flèche */}
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {isAccessError ? "Accès non autorisé" : "Erreur de chargement"}
+          </h2>
+          <p className="text-gray-600 mb-4">
+            {isAccessError 
+              ? "Vous n'avez pas l'autorisation d'accéder à ce livre. Seul le créateur du livre peut y accéder." 
+              : "Impossible de charger le livre demandé."}
+          </p>
+          <Button onClick={() => navigate('/dashboard')} className="bg-primary hover:bg-primary/90">
             Retour à la liste des livres
           </Button>
         </div>
