@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { 
   createUserWithEmailAndPassword, 
   signInWithEmailAndPassword, 
@@ -53,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -202,8 +203,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
   
-  async function refreshUserInfo() {
-    if (!currentUser?.uid) return;
+  // Fonction pour rafraîchir les informations utilisateur avec un verrou pour éviter les appels multiples simultanés
+  const refreshUserInfo = useCallback(async () => {
+    if (!currentUser?.uid || isRefreshing) return;
+    
+    setIsRefreshing(true);
     
     try {
       console.log("Rafraîchissement des informations utilisateur pour:", currentUser.uid);
@@ -215,7 +219,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.status === 200) {
         const userData = await response.json();
         console.log("Données utilisateur rafraîchies:", userData);
-        setUserInfo(userData);
+        
+        // Attendre un court instant pour éviter les appels trop rapprochés
+        await new Promise(resolve => setTimeout(resolve, 100));
         
         // Récupérer le profil Dropbox pour avoir les compteurs à jour
         try {
@@ -226,25 +232,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("Profil utilisateur récupéré depuis Dropbox:", profileData);
             
             // Mettre à jour les informations utilisateur avec les données du profil Dropbox
-            setUserInfo(prevUserInfo => ({
-              ...prevUserInfo!,
+            setUserInfo({
+              ...userData,
               plan: profileData.plan,
               booksCreated: profileData.booksCreated,
               aiBooksCreated: profileData.aiBooksCreated
-            }));
+            });
           } else {
             console.error("Erreur lors de la récupération du profil Dropbox:", profileResponse.status);
+            setUserInfo(userData);
           }
         } catch (profileError) {
           console.error("Erreur lors de la récupération du profil Dropbox:", profileError);
+          setUserInfo(userData);
         }
       } else {
         console.error("Erreur lors du rafraîchissement des informations utilisateur:", response.status);
       }
     } catch (error) {
       console.error("Exception lors du rafraîchissement des informations utilisateur:", error);
+    } finally {
+      setIsRefreshing(false);
     }
-  }
+  }, [currentUser, isRefreshing]);
 
   // Fonction pour changer le mot de passe
   async function changePassword(currentPassword: string, newPassword: string) {

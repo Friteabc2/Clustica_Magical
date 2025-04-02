@@ -2,7 +2,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,10 +23,14 @@ export default function UserMenu() {
   const { toast } = useToast();
   const [, navigate] = useLocation();
   
-  // Rafraîchir les informations de l'utilisateur à chaque ouverture du menu
+  // Rafraîchir les informations de l'utilisateur uniquement lors de l'ouverture du menu
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  
   useEffect(() => {
-    refreshUserInfo();
-  }, [refreshUserInfo]);
+    if (isMenuOpen && currentUser && userInfo) {
+      refreshUserInfo();
+    }
+  }, [isMenuOpen, refreshUserInfo, currentUser, userInfo]);
 
   // Fonction de déconnexion
   async function handleLogout() {
@@ -69,7 +73,7 @@ export default function UserMenu() {
   const initials = displayName ? displayName.substring(0, 2).toUpperCase() : "?";
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={setIsMenuOpen}>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative rounded-full h-10 w-10 p-0">
           <Avatar>
