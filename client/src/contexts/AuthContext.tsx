@@ -25,6 +25,7 @@ interface UserInfo {
   id: number;
   email: string;
   displayName: string | null;
+  bio?: string;
   plan: 'free' | 'premium';
   booksCreated: number;
   aiBooksCreated: number;

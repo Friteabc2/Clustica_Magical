@@ -960,6 +960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
+        bio: user.bio,
         plan: user.plan,
         booksCreated: user.booksCreated,
         aiBooksCreated: user.aiBooksCreated
@@ -983,6 +984,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erreur lors de la récupération des livres de l\'utilisateur:', error);
       res.status(500).json({ message: 'Échec de la récupération des livres de l\'utilisateur' });
+    }
+  });
+
+  // Endpoint pour mettre à jour les informations d'un utilisateur
+  app.put('/api/auth/user/:userId', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+
+      // Récupérer l'utilisateur existant
+      const user = await storage.getUser(userId);
+      if (!user) {
+        return res.status(404).json({ message: 'Utilisateur non trouvé' });
+      }
+
+      // Valider les données de mise à jour
+      const updateSchema = z.object({
+        displayName: z.string().optional(),
+        bio: z.string().optional()
+      });
+
+      const validationResult = updateSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({
+          message: 'Données utilisateur invalides',
+          errors: validationResult.error.errors
+        });
+      }
+
+      // Mettre à jour l'utilisateur
+      const updatedUser = await storage.updateUser(userId, validationResult.data);
+      
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'Échec de la mise à jour de l\'utilisateur' });
+      }
+
+      // Retourner les informations mises à jour
+      res.json({
+        id: updatedUser.id,
+        email: updatedUser.email,
+        displayName: updatedUser.displayName,
+        bio: updatedUser.bio,
+        plan: updatedUser.plan,
+        booksCreated: updatedUser.booksCreated,
+        aiBooksCreated: updatedUser.aiBooksCreated
+      });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
+      res.status(500).json({ message: 'Échec de la mise à jour de l\'utilisateur' });
     }
   });
 

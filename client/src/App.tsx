@@ -9,6 +9,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Admin from "@/pages/admin";
 import Settings from "@/pages/settings";
+import Profile from "@/pages/profile";
 import Landing from "@/pages/landing";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
@@ -93,6 +94,16 @@ function Router() {
             <PageTransition>
               <PrivateRoute>
                 <Settings />
+              </PrivateRoute>
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/profile">
+          {() => (
+            <PageTransition>
+              <PrivateRoute>
+                <Profile />
               </PrivateRoute>
             </PageTransition>
           )}
