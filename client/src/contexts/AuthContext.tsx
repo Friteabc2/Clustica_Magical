@@ -5,6 +5,11 @@ import {
   signOut, 
   onAuthStateChanged,
   updateProfile,
+  updatePassword,
+  deleteUser,
+  sendPasswordResetEmail,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   User, 
   UserCredential 
 } from "firebase/auth";
@@ -19,6 +24,9 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<UserCredential>;
   logout: () => Promise<void>;
   refreshUserInfo: () => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  resetPassword: (email: string) => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 interface UserInfo {
@@ -196,6 +204,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  // Fonction pour changer le mot de passe
+  async function changePassword(currentPassword: string, newPassword: string) {
+    if (!currentUser || !currentUser.email) {
+      throw new Error("Aucun utilisateur connecté");
+    }
+
+    try {
+      // Réauthentifier l'utilisateur avant de changer le mot de passe
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        currentPassword
+      );
+
+      await reauthenticateWithCredential(currentUser, credential);
+      
+      // Changer le mot de passe
+      await updatePassword(currentUser, newPassword);
+    } catch (error) {
+      console.error("Erreur de changement de mot de passe:", error);
+      throw error;
+    }
+  }
+
+  // Fonction pour réinitialiser le mot de passe par email
+  async function resetPassword(email: string) {
+    try {
+      await sendPasswordResetEmail(auth, email);
+    } catch (error) {
+      console.error("Erreur d'envoi d'email de réinitialisation:", error);
+      throw error;
+    }
+  }
+
+  // Fonction pour supprimer un compte
+  async function deleteAccount(password: string) {
+    if (!currentUser || !currentUser.email || !userInfo) {
+      throw new Error("Aucun utilisateur connecté");
+    }
+
+    try {
+      // Réauthentifier l'utilisateur avant de supprimer le compte
+      const credential = EmailAuthProvider.credential(
+        currentUser.email,
+        password
+      );
+
+      await reauthenticateWithCredential(currentUser, credential);
+      
+      // Supprimer l'utilisateur de notre backend
+      const response = await apiRequest("DELETE", `/api/auth/user/${userInfo.id}`);
+      
+      if (!response.ok) {
+        throw new Error("Échec de la suppression du compte dans le backend");
+      }
+      
+      // Supprimer l'utilisateur de Firebase
+      await deleteUser(currentUser);
+    } catch (error) {
+      console.error("Erreur de suppression de compte:", error);
+      throw error;
+    }
+  }
+
   const value = {
     currentUser,
     userInfo,
@@ -203,7 +274,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     register,
     login,
     logout,
-    refreshUserInfo
+    refreshUserInfo,
+    changePassword,
+    resetPassword,
+    deleteAccount
   };
 
   return (
