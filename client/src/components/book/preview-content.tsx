@@ -1,6 +1,7 @@
 import { BookContent } from '@shared/schema';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { CloudinaryImage } from '@/components/ui/cloudinary-image';
 
 interface PreviewContentProps {
   book: BookContent;
@@ -151,10 +152,12 @@ export default function PreviewContent({
             {/* Image de couverture si disponible */}
             {book.coverPage && book.coverPage.image && (
               <div className="relative">
-                <img 
+                <CloudinaryImage 
                   src={book.coverPage.image.url} 
                   alt={book.coverPage.image.alt || `Couverture de ${book.title}`}
-                  className="w-full h-auto object-cover border-t border-gray-200"
+                  className="w-full h-auto border-t border-gray-200"
+                  aspectRatio="portrait"
+                  width={600}
                 />
               </div>
             )}
@@ -181,10 +184,13 @@ export default function PreviewContent({
             {/* Image de la page si disponible */}
             {currentPage?.image && (
               <div className="mb-6">
-                <img 
+                <CloudinaryImage 
                   src={currentPage.image.url} 
                   alt={currentPage.image.alt || `Illustration pour ${currentChapter?.title}`}
-                  className="w-full h-auto max-h-[400px] object-contain rounded-lg border border-gray-200 mb-4"
+                  className="w-full max-h-[400px] rounded-lg border border-gray-200 mb-4"
+                  aspectRatio={currentPage.image.aspectRatio || "landscape"}
+                  width={800}
+                  fit="scale"
                 />
                 {currentPage.image.caption && (
                   <p className="text-center text-gray-600 italic text-sm">{currentPage.image.caption}</p>

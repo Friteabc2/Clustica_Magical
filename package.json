@@ -11,6 +11,8 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@cloudinary/react": "^1.14.1",
+    "@cloudinary/url-gen": "^1.21.0",
     "@hookform/resolvers": "^3.9.1",
     "@jridgewell/trace-mapping": "^0.3.25",
     "@mistralai/mistralai": "^1.5.2",
@@ -47,6 +49,7 @@
     "@types/react-helmet": "^6.1.11",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.0",
+    "cloudinary": "^2.6.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
     "connect-pg-simple": "^10.0.0",

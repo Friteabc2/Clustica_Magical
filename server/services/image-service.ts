@@ -1,8 +1,7 @@
 import { BookContent, PageContent } from '@shared/schema';
 import axios from 'axios';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as crypto from 'crypto';
+import { CloudinaryService } from './cloudinary-service';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -12,24 +11,21 @@ export interface ImageGenerationOptions {
 }
 
 /**
- * Service pour générer des images avec NetMind.ai
+ * Service pour générer des images avec NetMind.ai et les stocker sur Cloudinary
  */
 export class ImageService {
   private static readonly API_KEY = process.env.NETMIND_API_KEY;
   private static readonly API_URL = 'https://api.netmind.ai/inference-api/openai/v1/images/generations';
   private static readonly MODEL = 'black-forest-labs/FLUX.1-schnell';
-  private static readonly IMAGE_FOLDER = path.join(process.cwd(), 'public', 'generated-images');
   
   /**
    * Initialise le service d'images
    */
   static initialize() {
-    // Crée le dossier de stockage des images si nécessaire
-    if (!fs.existsSync(this.IMAGE_FOLDER)) {
-      fs.mkdirSync(this.IMAGE_FOLDER, { recursive: true });
-    }
+    // Initialise le service Cloudinary
+    CloudinaryService.initialize();
     
-    console.log(`✅ Service d'images initialisé - dossier: ${this.IMAGE_FOLDER}`);
+    console.log(`✅ Service d'images initialisé avec stockage sur Cloudinary`);
   }
   
   /**
@@ -99,16 +95,33 @@ export class ImageService {
         const b64Image = response.data.data[0].b64_json;
         const imageData = Buffer.from(b64Image, 'base64');
         
-        // Crée un nom de fichier unique basé sur un hash du prompt
+        // Crée un hash du prompt pour un ID unique
         const hash = crypto.createHash('md5').update(options.prompt).digest('hex').substring(0, 10);
-        const filename = `image_${hash}_${Date.now()}.png`;
-        const filePath = path.join(this.IMAGE_FOLDER, filename);
+        const publicId = `clustica_${hash}_${Date.now()}`;
         
-        // Écrit l'image sur le disque
-        fs.writeFileSync(filePath, imageData);
+        // Télécharger l'image sur Cloudinary
+        const cloudinaryResult = await CloudinaryService.uploadImage({
+          source: imageData,
+          folderPath: 'clustica_images',
+          publicId: publicId,
+          tags: ['clustica', 'ai-generated', options.aspectRatio || 'landscape'],
+          transformation: {
+            width: width,
+            height: height,
+            crop: 'fill',
+            gravity: 'auto',
+            quality: 'auto',
+            format: 'auto'
+          }
+        });
         
-        // Retourne l'URL relative de l'image
-        return `/generated-images/${filename}`;
+        if (cloudinaryResult && cloudinaryResult.secure_url) {
+          console.log(`✅ Image téléchargée sur Cloudinary: ${cloudinaryResult.public_id}`);
+          return cloudinaryResult.secure_url;
+        }
+        
+        console.error('❌ Échec du téléchargement sur Cloudinary');
+        return this.generatePlaceholderImage(options.aspectRatio || 'landscape');
       }
       
       console.error('❌ Aucune image générée dans la réponse');
@@ -122,14 +135,9 @@ export class ImageService {
   /**
    * Génère une image placeholder au cas où la génération d'image échoue
    */
-  private static generatePlaceholderImage(aspectRatio: 'square' | 'portrait' | 'landscape' | 'panoramic'): string {
-    // On utilise des images placeholder préexistantes en fonction du ratio
-    const placeholderFilename = `placeholder_${aspectRatio}.png`;
-    const placeholderPath = path.join(this.IMAGE_FOLDER, placeholderFilename);
-    
-    // Vérifie si le placeholder existe déjà, sinon le crée
-    if (!fs.existsSync(placeholderPath)) {
-      // Crée une image placeholder simple avec du texte
+  private static async generatePlaceholderImage(aspectRatio: 'square' | 'portrait' | 'landscape' | 'panoramic'): Promise<string> {
+    try {
+      // Définir les dimensions en fonction du ratio
       const width = aspectRatio === 'square' ? 512 : 
                    aspectRatio === 'portrait' ? 512 :
                    aspectRatio === 'panoramic' ? 1024 : 768;
@@ -145,11 +153,27 @@ export class ImageService {
         </text>
       </svg>`;
       
-      // Sauvegarder le SVG comme fichier PNG placeholder
-      fs.writeFileSync(placeholderPath, Buffer.from(svgContent));
+      // Télécharger le SVG sur Cloudinary
+      const placeholderId = `clustica_placeholder_${aspectRatio}`;
+      
+      const cloudinaryResult = await CloudinaryService.uploadImage({
+        source: `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`,
+        folderPath: 'clustica_placeholders',
+        publicId: placeholderId,
+        tags: ['clustica', 'placeholder', aspectRatio]
+      });
+      
+      if (cloudinaryResult && cloudinaryResult.secure_url) {
+        return cloudinaryResult.secure_url;
+      }
+      
+      // En cas d'échec, retourner une URL d'image par défaut
+      return `https://res.cloudinary.com/doh47zakc/image/upload/v1/clustica_placeholders/default_placeholder_${aspectRatio}`;
+    } catch (error) {
+      console.error('❌ Erreur lors de la génération du placeholder:', error);
+      // URL de secours absolue
+      return 'https://res.cloudinary.com/doh47zakc/image/upload/v1/clustica_placeholders/default_placeholder';
     }
-    
-    return `/generated-images/${placeholderFilename}`;
   }
   
   /**

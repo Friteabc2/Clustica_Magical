@@ -153,8 +153,10 @@ export class DropboxService {
       // Récupérer les tokens dans les variables d'environnement
       const accessToken = process.env.DROPBOX_ACCESS_TOKEN;
       const refreshToken = process.env.DROPBOX_REFRESH_TOKEN;
-      const clientId = process.env.DROPBOX_APP_KEY;
-      const clientSecret = process.env.DROPBOX_APP_SECRET;
+      
+      // Valeurs des identifiants client (hardcoded pour simplifier)
+      const clientId = 'h5nfdgfd4y1o1o5';
+      const clientSecret = 'ihiy44wxczjic9p';
       
       // Vérifier qu'au moins un mode d'authentification est disponible
       if (!accessToken && !refreshToken) {
@@ -171,7 +173,7 @@ export class DropboxService {
       }
       
       // Si on a un refresh token, configurer les paramètres pour le refresh automatique
-      if (refreshToken && clientId && clientSecret) {
+      if (refreshToken) {
         config.clientId = clientId;
         config.clientSecret = clientSecret;
         config.refreshToken = refreshToken;
