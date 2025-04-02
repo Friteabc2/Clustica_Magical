@@ -180,35 +180,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Invalid user ID' });
       }
       
-      // Vérification des limites du plan gratuit si un utilisateur est spécifié
+      // Vérification des limites du plan si un utilisateur est spécifié
       if (bookData.userId) {
         const userId = parseInt(bookData.userId);
-        const user = await storage.getUser(userId);
         
-        if (user && user.plan === 'free') {
-          // Vérifier le nombre de livres créés pour le plan gratuit (max 3)
-          if (user.booksCreated >= 3) {
-            return res.status(403).json({ 
-              message: 'Limite atteinte pour le plan gratuit', 
-              error: 'FREE_PLAN_LIMIT_REACHED',
-              details: 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Supprimez un livre existant ou passez à un plan premium pour en créer davantage.'
-            });
+        try {
+          // Obtenir le profil utilisateur à partir de Dropbox pour obtenir les valeurs les plus à jour
+          const dropboxProfile = await UserProfileManager.getUserProfile(userId);
+          if (dropboxProfile) {
+            const planType = dropboxProfile.plan || 'free';
+            const booksLimit = planType === 'premium' ? 10 : 3;
+            const currentBooksCount = dropboxProfile.booksCreated || 0;
+            
+            console.log(`[Limite Livres] Utilisateur ${userId}: ${currentBooksCount}/${booksLimit} livres créés. Plan: ${planType}`);
+            
+            // Vérifier si l'utilisateur a atteint sa limite de livres
+            if (currentBooksCount >= booksLimit) {
+              return res.status(403).json({ 
+                message: `Limite atteinte pour le plan ${planType}`, 
+                error: `${planType.toUpperCase()}_PLAN_LIMIT_REACHED`,
+                details: planType === 'premium' 
+                  ? 'Les utilisateurs premium peuvent créer un maximum de 10 livres. Supprimez un livre existant pour en créer un nouveau.'
+                  : 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Supprimez un livre existant ou passez à un plan premium pour en créer davantage.'
+              });
+            }
+            
+            // Mettre à jour l'utilisateur dans la base de données locale pour être synchronisé
+            const user = await storage.getUser(userId);
+            if (user) {
+              await storage.updateUser(userId, {
+                plan: dropboxProfile.plan,
+                booksCreated: currentBooksCount,
+                aiBooksCreated: dropboxProfile.aiBooksCreated || 0
+              });
+            }
           }
-        } else if (user && user.plan === 'premium') {
-          // Vérifier le nombre de livres créés pour le plan premium (max 10)
-          if (user.booksCreated >= 10) {
-            return res.status(403).json({ 
-              message: 'Limite atteinte pour le plan premium', 
-              error: 'PREMIUM_PLAN_LIMIT_REACHED',
-              details: 'Les utilisateurs premium peuvent créer un maximum de 10 livres.'
+        } catch (error) {
+          console.error(`Erreur lors de la vérification du profil Dropbox pour l'utilisateur ${userId}:`, error);
+          // Si nous ne pouvons pas vérifier Dropbox, replier sur la vérification locale
+          const user = await storage.getUser(userId);
+          
+          if (user) {
+            const booksLimit = user.plan === 'premium' ? 10 : 3;
+            
+            if (user.booksCreated >= booksLimit) {
+              return res.status(403).json({ 
+                message: `Limite atteinte pour le plan ${user.plan}`, 
+                error: `${user.plan.toUpperCase()}_PLAN_LIMIT_REACHED`,
+                details: user.plan === 'premium' 
+                  ? 'Les utilisateurs premium peuvent créer un maximum de 10 livres. Supprimez un livre existant pour en créer un nouveau.'
+                  : 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Supprimez un livre existant ou passez à un plan premium pour en créer davantage.'
+              });
+            }
+            
+            // Incrémenter le compteur local
+            await storage.updateUser(userId, {
+              booksCreated: (user.booksCreated || 0) + 1
             });
           }
         }
-          
-        // Incrémenter le compteur de livres créés
-        await storage.updateUser(userId, {
-          booksCreated: (user.booksCreated || 0) + 1
-        });
       }
       
       // Create default book structure if not provided
@@ -428,46 +458,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Vérification des limites du plan si un userId est spécifié
       if (userId) {
-        const user = await storage.getUser(userId);
-        
-        if (user) {
-          if (user.plan === 'free') {
-            // Vérifier la limite de livres AI pour le plan gratuit (max 1)
-            if (user.aiBooksCreated >= 1) {
+        try {
+          // Obtenir le profil utilisateur à partir de Dropbox pour obtenir les valeurs les plus à jour
+          const dropboxProfile = await UserProfileManager.getUserProfile(userId);
+          if (dropboxProfile) {
+            const planType = dropboxProfile.plan || 'free';
+            const aiLimit = planType === 'premium' ? 5 : 1;
+            const currentAICount = dropboxProfile.aiBooksCreated || 0;
+            
+            console.log(`[Limite AI] Utilisateur ${userId}: ${currentAICount}/${aiLimit} livres AI créés. Plan: ${planType}`);
+            
+            // Vérifier si l'utilisateur a atteint sa limite de livres AI
+            if (currentAICount >= aiLimit) {
               return res.status(403).json({ 
-                message: 'Limite atteinte pour le plan gratuit', 
-                error: 'FREE_PLAN_AI_LIMIT_REACHED',
-                details: 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
-              });
-            }
-          } else if (user.plan === 'premium') {
-            // Vérifier la limite de livres AI pour le plan premium (max 5)
-            if (user.aiBooksCreated >= 5) {
-              return res.status(403).json({ 
-                message: 'Limite atteinte pour le plan premium', 
-                error: 'PREMIUM_PLAN_AI_LIMIT_REACHED',
-                details: 'Les utilisateurs premium peuvent créer un maximum de 5 livres avec l\'IA.'
+                message: `Limite atteinte pour le plan ${planType}`, 
+                error: `${planType.toUpperCase()}_PLAN_AI_LIMIT_REACHED`,
+                details: planType === 'premium' 
+                  ? 'Les utilisateurs premium peuvent créer un maximum de 5 livres avec l\'IA.'
+                  : 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
               });
             }
             
             // Mettre à jour les limites pour les utilisateurs premium
-            chaptersMaxLimit = 6;
-            pagesMaxLimit = 4;
+            if (planType === 'premium') {
+              chaptersMaxLimit = 6;
+              pagesMaxLimit = 4;
+            }
+            
+            // Mettre à jour l'utilisateur dans la base de données locale pour être synchronisé
+            const user = await storage.getUser(userId);
+            if (user) {
+              await storage.updateUser(userId, {
+                plan: dropboxProfile.plan,
+                booksCreated: dropboxProfile.booksCreated || 0,
+                aiBooksCreated: currentAICount
+              });
+            }
           }
+        } catch (error) {
+          console.error(`Erreur lors de la vérification du profil Dropbox pour l'utilisateur ${userId}:`, error);
+          // Si nous ne pouvons pas vérifier Dropbox, replier sur la vérification locale
+          const user = await storage.getUser(userId);
           
-          // Limiter le nombre de chapitres et de pages selon le plan
-          const chaptersCount = Math.min(validatedData.chaptersCount, chaptersMaxLimit);
-          const pagesPerChapter = Math.min(validatedData.pagesPerChapter, pagesMaxLimit);
-          
-          // Mettre à jour les valeurs limitées
-          validatedData.chaptersCount = chaptersCount;
-          validatedData.pagesPerChapter = pagesPerChapter;
-          
-          // Incrémenter le compteur de livres AI créés
-          await storage.updateUser(userId, {
-            aiBooksCreated: (user.aiBooksCreated || 0) + 1
-          });
+          if (user) {
+            const aiLimit = user.plan === 'premium' ? 5 : 1;
+            
+            if (user.aiBooksCreated >= aiLimit) {
+              return res.status(403).json({ 
+                message: `Limite atteinte pour le plan ${user.plan}`, 
+                error: `${user.plan.toUpperCase()}_PLAN_AI_LIMIT_REACHED`,
+                details: user.plan === 'premium' 
+                  ? 'Les utilisateurs premium peuvent créer un maximum de 5 livres avec l\'IA.'
+                  : 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
+              });
+            }
+            
+            // Mettre à jour les limites pour les utilisateurs premium
+            if (user.plan === 'premium') {
+              chaptersMaxLimit = 6;
+              pagesMaxLimit = 4;
+            }
+            
+            // Incrémenter le compteur local
+            await storage.updateUser(userId, {
+              aiBooksCreated: (user.aiBooksCreated || 0) + 1
+            });
+          }
         }
+        
+        // Limiter le nombre de chapitres et de pages selon le plan
+        const chaptersCount = Math.min(validatedData.chaptersCount, chaptersMaxLimit);
+        const pagesPerChapter = Math.min(validatedData.pagesPerChapter, pagesMaxLimit);
+        
+        // Mettre à jour les valeurs limitées
+        validatedData.chaptersCount = chaptersCount;
+        validatedData.pagesPerChapter = pagesPerChapter;
       
         // Vérifier et créer le dossier utilisateur dans Dropbox
         try {
