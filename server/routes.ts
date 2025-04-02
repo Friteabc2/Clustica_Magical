@@ -139,6 +139,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const book = await storage.createBook(bookData);
+      
+      // Si un utilisateur est associé au livre, mettre à jour son profil Dropbox
+      if (book.userId) {
+        try {
+          // S'assurer que le dossier utilisateur existe
+          await DropboxService.ensureUserFolderExists(book.userId);
+          
+          // Récupérer/créer le profil utilisateur pour mettre à jour les stats
+          const user = await storage.getUser(book.userId);
+          if (user) {
+            // Incrémenter le compteur de livres dans le profil Dropbox
+            await UserProfileManager.incrementBooksCreated(book.userId);
+            console.log(`Profil Dropbox: livre créé pour l'utilisateur ${book.userId}`);
+          }
+        } catch (dropboxError) {
+          console.error(`Erreur Dropbox pour l'utilisateur ${book.userId}:`, dropboxError);
+          // Ne pas bloquer la création du livre si l'opération Dropbox échoue
+        }
+      }
+      
       res.status(201).json(book);
     } catch (error) {
       console.error('Error creating book:', error);
@@ -352,6 +372,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
+      // Vérifier et créer le dossier utilisateur dans Dropbox si un utilisateur est spécifié
+      if (userId) {
+        try {
+          // S'assurer que le dossier utilisateur existe dans Dropbox
+          await DropboxService.ensureUserFolderExists(userId);
+          
+          // Mettre à jour le profil utilisateur dans Dropbox pour les statistiques de livres AI
+          await UserProfileManager.incrementAIBooksCreated(userId);
+          console.log(`Profil Dropbox: livre AI créé pour l'utilisateur ${userId}`);
+        } catch (dropboxError) {
+          console.error(`Erreur Dropbox pour l'utilisateur ${userId}:`, dropboxError);
+          // Ne pas bloquer la création du livre si l'opération Dropbox échoue
+        }
+      }
+
       // Génération du livre avec l'IA
       const bookContent = await AIService.generateBook(validationResult.data);
       
@@ -931,6 +966,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         booksCreated: 0,
         aiBooksCreated: 0
       });
+      
+      // Créer un profil utilisateur dans Dropbox
+      try {
+        const dropboxProfile = await UserProfileManager.getUserProfile(
+          user.id, 
+          user.email
+        );
+        
+        console.log(`Profil Dropbox créé pour l'utilisateur ${user.id}:`, dropboxProfile);
+        
+        // Si le profil n'a pas les infos correctes, les mettre à jour
+        if (dropboxProfile.displayName !== user.displayName || 
+            dropboxProfile.plan !== user.plan) {
+          const userPlan: 'free' | 'premium' = user.plan === 'premium' ? 'premium' : 'free';
+          await UserProfileManager.updateUserInfo(user.id, {
+            displayName: user.displayName,
+            plan: userPlan
+          });
+        }
+      } catch (dropboxError) {
+        console.error(`Erreur lors de la création du profil Dropbox pour l'utilisateur ${user.id}:`, dropboxError);
+        // Ne pas bloquer la création de l'utilisateur si la création du profil Dropbox échoue
+      }
       
       res.status(201).json({
         id: user.id,
