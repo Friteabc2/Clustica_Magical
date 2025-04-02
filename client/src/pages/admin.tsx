@@ -23,13 +23,13 @@ export default function Admin() {
     <div className="container mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold mb-6">Administration</h1>
       
-      <Tabs defaultValue="dropbox" className="w-full">
+      <Tabs defaultValue="cloud" className="w-full">
         <TabsList className="mb-4">
-          <TabsTrigger value="dropbox">Dropbox</TabsTrigger>
+          <TabsTrigger value="cloud">Cloud</TabsTrigger>
           <TabsTrigger value="users">Utilisateurs</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="dropbox" className="py-4">
+        <TabsContent value="cloud" className="py-4">
           <CloudManager />
         </TabsContent>
         
