@@ -14,8 +14,8 @@ import Epub from 'epub-gen';
 // Service d'IA pour la génération de livres
 import { AIService, AIBookRequest } from "./services/ai-service";
 
-// Services Dropbox pour la synchronisation des livres et l'authentification OAuth
-import { DropboxService } from "./services/dropbox-service";
+// Services Dropbox pour la synchronisation des livres, l'authentification OAuth et la gestion des profils utilisateurs
+import { DropboxService, UserProfileManager, UserProfileData } from "./services/dropbox-service";
 import { DropboxOAuth } from "./services/dropbox-oauth";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1035,6 +1035,184 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Erreur lors de la mise à jour de l\'utilisateur:', error);
       res.status(500).json({ message: 'Échec de la mise à jour de l\'utilisateur' });
+    }
+  });
+  
+  // Endpoints pour gérer le profil utilisateur dans Dropbox
+  app.get('/api/user/:userId/profile', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      // Récupérer les informations du profil depuis Dropbox
+      const profile = await UserProfileManager.getUserProfile(userId);
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Erreur lors de la récupération du profil utilisateur:', error);
+      res.status(500).json({ message: 'Échec de la récupération du profil utilisateur' });
+    }
+  });
+  
+  // Endpoint pour mettre à jour le plan de l'utilisateur
+  app.put('/api/user/:userId/plan', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      // Valider le plan
+      const planSchema = z.object({
+        plan: z.enum(['free', 'premium'])
+      });
+      
+      const validationResult = planSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Plan invalide', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      // Mettre à jour le plan de l'utilisateur
+      const profile = await UserProfileManager.updateUserPlan(userId, validationResult.data.plan);
+      if (!profile) {
+        return res.status(500).json({ message: 'Échec de la mise à jour du plan' });
+      }
+      
+      // Mettre également à jour le plan dans la base de données
+      await storage.updateUser(userId, { plan: validationResult.data.plan });
+      
+      res.json({ success: true, profile });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du plan:', error);
+      res.status(500).json({ message: 'Échec de la mise à jour du plan' });
+    }
+  });
+  
+  // Endpoint pour incrémenter le compteur de livres créés
+  app.post('/api/user/:userId/increment-books', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      // Valider le type de livre (normal ou AI)
+      const typeSchema = z.object({
+        type: z.enum(['normal', 'ai'])
+      });
+      
+      const validationResult = typeSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Type de livre invalide', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      let profile;
+      
+      // Incrémenter le compteur approprié
+      if (validationResult.data.type === 'ai') {
+        profile = await UserProfileManager.incrementAIBooksCreated(userId);
+      } else {
+        profile = await UserProfileManager.incrementBooksCreated(userId);
+      }
+      
+      if (!profile) {
+        return res.status(500).json({ message: 'Échec de l\'incrémentation du compteur' });
+      }
+      
+      // Mettre également à jour les compteurs dans la base de données
+      const user = await storage.getUser(userId);
+      if (user) {
+        if (validationResult.data.type === 'ai') {
+          await storage.updateUser(userId, { aiBooksCreated: (user.aiBooksCreated || 0) + 1 });
+        } else {
+          await storage.updateUser(userId, { booksCreated: (user.booksCreated || 0) + 1 });
+        }
+      }
+      
+      res.json({ success: true, profile });
+    } catch (error) {
+      console.error('Erreur lors de l\'incrémentation du compteur de livres:', error);
+      res.status(500).json({ message: 'Échec de l\'incrémentation du compteur de livres' });
+    }
+  });
+  
+  // Endpoint pour mettre à jour les informations du profil
+  app.put('/api/user/:userId/info', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      // Valider les données du profil
+      const infoSchema = z.object({
+        displayName: z.string().optional(),
+        email: z.string().email().optional()
+      });
+      
+      const validationResult = infoSchema.safeParse(req.body);
+      if (!validationResult.success) {
+        return res.status(400).json({ 
+          message: 'Données de profil invalides', 
+          errors: validationResult.error.errors 
+        });
+      }
+      
+      // Mettre à jour les informations du profil
+      const profile = await UserProfileManager.updateUserInfo(userId, validationResult.data);
+      if (!profile) {
+        return res.status(500).json({ message: 'Échec de la mise à jour des informations du profil' });
+      }
+      
+      // Mettre également à jour les informations dans la base de données
+      await storage.updateUser(userId, validationResult.data);
+      
+      res.json({ success: true, profile });
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des informations du profil:', error);
+      res.status(500).json({ message: 'Échec de la mise à jour des informations du profil' });
+    }
+  });
+  
+  // Endpoint pour vérifier le statut premium
+  app.get('/api/user/:userId/is-premium', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      const isPremium = await UserProfileManager.isUserPremium(userId);
+      
+      res.json({ isPremium });
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut premium:', error);
+      res.status(500).json({ message: 'Échec de la vérification du statut premium' });
+    }
+  });
+  
+  // Endpoint pour compter les livres créés
+  app.get('/api/user/:userId/books-count', async (req: Request, res: Response) => {
+    try {
+      const userId = parseInt(req.params.userId);
+      if (isNaN(userId)) {
+        return res.status(400).json({ message: 'ID utilisateur invalide' });
+      }
+      
+      const counts = await UserProfileManager.getUserBooksCount(userId);
+      
+      res.json(counts);
+    } catch (error) {
+      console.error('Erreur lors du comptage des livres:', error);
+      res.status(500).json({ message: 'Échec du comptage des livres' });
     }
   });
   

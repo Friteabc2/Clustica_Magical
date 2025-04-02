@@ -16,6 +16,17 @@ export interface TokenExpirationEvent {
 
 export type DropboxServiceEvent = TokenExpirationEvent;
 
+export interface UserProfileData {
+  userId: number;
+  email: string;
+  displayName: string | null;
+  plan: 'free' | 'premium';
+  booksCreated: number;
+  aiBooksCreated: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 type EventListener = (event: DropboxServiceEvent) => void;
 
 export class DropboxService {
@@ -553,6 +564,17 @@ export class DropboxService {
   }
   
   /**
+   * Méthodes d'accès à l'API Dropbox à travers l'objet dbx
+   */
+  static async filesDownload(args: any): Promise<any> {
+    return this.dbx.filesDownload(args);
+  }
+  
+  static async filesUpload(args: any): Promise<any> {
+    return this.dbx.filesUpload(args);
+  }
+  
+  /**
    * Liste les livres stockés à la racine du dossier Dropbox (anciens livres)
    * @private
    */
@@ -577,6 +599,309 @@ export class DropboxService {
     } catch (error) {
       console.error('Erreur lors du listage des livres à la racine:', error);
       return [];
+    }
+  }
+}
+
+/**
+ * Gère le profil des utilisateurs dans Dropbox
+ * Maintient un fichier protégé pour chaque utilisateur avec son plan et ses statistiques
+ */
+export class UserProfileManager {
+  private static readonly PROFILE_FILENAME = "user_profile.json";
+  
+  /**
+   * Construit le chemin vers le fichier de profil d'un utilisateur
+   */
+  private static getProfilePath(userId: number | string): string {
+    const userFolder = getUserBooksFolder(userId);
+    return `${userFolder}/${this.PROFILE_FILENAME}`;
+  }
+  
+  /**
+   * Récupère le profil d'un utilisateur depuis Dropbox
+   * Si le profil n'existe pas, en crée un nouveau avec des valeurs par défaut
+   */
+  static async getUserProfile(userId: number | string, email?: string): Promise<UserProfileData> {
+    try {
+      // S'assurer que le dossier utilisateur existe
+      await DropboxService.ensureUserFolderExists(userId);
+      
+      const profilePath = this.getProfilePath(userId);
+      
+      try {
+        // Tenter de récupérer le profil existant
+        // On utilise ici la méthode publique de la classe DropboxService
+        const response = await DropboxService.filesDownload({
+          path: profilePath
+        });
+        
+        // Extraire le contenu du profil
+        let contentText = '';
+        const data = response.result as files.FileMetadata;
+        
+        if (typeof Buffer !== 'undefined' && (data as any).fileBinary) {
+          // Environnement Node.js
+          contentText = (data as any).fileBinary.toString('utf8');
+        } else if ((data as any).fileBlob) {
+          // Environnement navigateur
+          const fileBlob = (data as any).fileBlob;
+          contentText = await new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = function() {
+              resolve(reader.result as string);
+            };
+            reader.readAsText(fileBlob);
+          });
+        }
+        
+        if (!contentText) {
+          throw new Error("Impossible de lire le contenu du profil depuis Dropbox");
+        }
+        
+        // Parse le contenu JSON
+        const profile = JSON.parse(contentText) as UserProfileData;
+        console.log(`Profil utilisateur ${userId} récupéré depuis Dropbox`);
+        
+        // Vérifier si le profil a tous les champs nécessaires
+        return this.validateAndUpdateProfile(profile, userId, email);
+      } catch (error) {
+        // Si le profil n'existe pas ou est corrompu, en créer un nouveau
+        console.log(`Création d'un nouveau profil pour l'utilisateur ${userId}`);
+        return await this.createDefaultProfile(userId, email);
+      }
+    } catch (error) {
+      console.error(`Erreur lors de la récupération du profil utilisateur ${userId}:`, error);
+      // En cas d'erreur, retourner un profil par défaut sans le sauvegarder
+      return this.getDefaultProfile(userId, email);
+    }
+  }
+  
+  /**
+   * Crée un profil par défaut pour un utilisateur
+   */
+  private static async createDefaultProfile(userId: number | string, email?: string): Promise<UserProfileData> {
+    try {
+      const profile = this.getDefaultProfile(userId, email);
+      
+      // Sauvegarder le nouveau profil dans Dropbox
+      await this.saveUserProfile(profile);
+      
+      return profile;
+    } catch (error) {
+      console.error(`Erreur lors de la création du profil par défaut pour l'utilisateur ${userId}:`, error);
+      return this.getDefaultProfile(userId, email);
+    }
+  }
+  
+  /**
+   * Retourne un objet de profil par défaut
+   */
+  private static getDefaultProfile(userId: number | string, email?: string): UserProfileData {
+    const now = new Date().toISOString();
+    return {
+      userId: typeof userId === 'string' ? parseInt(userId, 10) || 0 : userId,
+      email: email || "",
+      displayName: null,
+      plan: 'free',
+      booksCreated: 0,
+      aiBooksCreated: 0,
+      createdAt: now,
+      updatedAt: now
+    };
+  }
+  
+  /**
+   * Valide un profil utilisateur et ajoute des champs manquants si nécessaire
+   */
+  private static validateAndUpdateProfile(profile: Partial<UserProfileData>, userId: number | string, email?: string): UserProfileData {
+    const defaultProfile = this.getDefaultProfile(userId, email);
+    const now = new Date().toISOString();
+    
+    // Fusionner le profil récupéré avec les valeurs par défaut pour les champs manquants
+    const validatedProfile: UserProfileData = {
+      ...defaultProfile,
+      ...profile,
+      // S'assurer que l'ID utilisateur correspond
+      userId: typeof userId === 'string' ? parseInt(userId, 10) || 0 : userId,
+      // Mettre à jour l'email si fourni
+      email: email || profile.email || defaultProfile.email,
+      // Toujours mettre à jour la date de dernière modification
+      updatedAt: now
+    };
+    
+    return validatedProfile;
+  }
+  
+  /**
+   * Sauvegarde le profil d'un utilisateur dans Dropbox
+   */
+  static async saveUserProfile(profile: UserProfileData): Promise<boolean> {
+    try {
+      // S'assurer que le dossier utilisateur existe
+      await DropboxService.ensureUserFolderExists(profile.userId);
+      
+      const profilePath = this.getProfilePath(profile.userId);
+      const contentStr = JSON.stringify(profile, null, 2);
+      
+      // Mettre à jour la date de modification
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder le profil dans Dropbox
+      await DropboxService.filesUpload({
+        path: profilePath,
+        contents: contentStr,
+        mode: { '.tag': 'overwrite' }
+      });
+      
+      console.log(`Profil utilisateur ${profile.userId} sauvegardé dans Dropbox`);
+      return true;
+    } catch (error) {
+      console.error(`Erreur lors de la sauvegarde du profil utilisateur ${profile.userId}:`, error);
+      
+      // Vérifier si c'est une erreur d'authentification
+      DropboxService.checkForAuthError(error);
+      
+      return false;
+    }
+  }
+  
+  /**
+   * Met à jour le plan d'un utilisateur (free ou premium)
+   */
+  static async updateUserPlan(userId: number | string, plan: 'free' | 'premium'): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Mettre à jour le plan
+      profile.plan = plan;
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour du plan de l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Incrémente le compteur de livres créés pour un utilisateur
+   */
+  static async incrementBooksCreated(userId: number | string): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Incrémenter le compteur
+      profile.booksCreated += 1;
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de l'incrémentation du compteur de livres pour l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Incrémente le compteur de livres IA créés pour un utilisateur
+   */
+  static async incrementAIBooksCreated(userId: number | string): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Incrémenter le compteur
+      profile.aiBooksCreated += 1;
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de l'incrémentation du compteur de livres IA pour l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Met à jour les informations de profil d'un utilisateur
+   */
+  static async updateUserInfo(userId: number | string, info: Partial<UserProfileData>): Promise<UserProfileData | null> {
+    try {
+      // Récupérer le profil actuel
+      const profile = await this.getUserProfile(userId);
+      
+      // Mettre à jour les champs fournis
+      if (info.displayName !== undefined) {
+        profile.displayName = info.displayName;
+      }
+      
+      if (info.email !== undefined) {
+        profile.email = info.email;
+      }
+      
+      // Ne pas permettre la mise à jour directe des compteurs ou du plan ici
+      // Utiliser les méthodes dédiées pour cela
+      
+      profile.updatedAt = new Date().toISOString();
+      
+      // Sauvegarder les modifications
+      const success = await this.saveUserProfile(profile);
+      
+      if (success) {
+        return profile;
+      }
+      return null;
+    } catch (error) {
+      console.error(`Erreur lors de la mise à jour des informations de l'utilisateur ${userId}:`, error);
+      return null;
+    }
+  }
+  
+  /**
+   * Vérifie si un utilisateur est premium
+   */
+  static async isUserPremium(userId: number | string): Promise<boolean> {
+    try {
+      const profile = await this.getUserProfile(userId);
+      return profile.plan === 'premium';
+    } catch (error) {
+      console.error(`Erreur lors de la vérification du statut premium de l'utilisateur ${userId}:`, error);
+      return false;
+    }
+  }
+  
+  /**
+   * Compte le nombre de livres créés par l'utilisateur
+   */
+  static async getUserBooksCount(userId: number | string): Promise<{ total: number, ai: number }> {
+    try {
+      const profile = await this.getUserProfile(userId);
+      return {
+        total: profile.booksCreated,
+        ai: profile.aiBooksCreated
+      };
+    } catch (error) {
+      console.error(`Erreur lors du comptage des livres de l'utilisateur ${userId}:`, error);
+      return { total: 0, ai: 0 };
     }
   }
 }
