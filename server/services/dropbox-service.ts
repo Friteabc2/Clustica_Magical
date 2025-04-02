@@ -1,5 +1,6 @@
 import { Dropbox, files } from 'dropbox';
 import { BookContent } from '@shared/schema';
+import { DropboxOAuth } from './dropbox-oauth';
 
 // Emplacement du dossier racine dans Dropbox où les livres seront stockés
 const BOOKS_ROOT_FOLDER = '/clustica_books';
@@ -29,10 +30,15 @@ export interface UserProfileData {
 
 type EventListener = (event: DropboxServiceEvent) => void;
 
+// Type pour les fonctions Dropbox avec retry automatique
+type DropboxApiCall<T> = () => Promise<T>;
+
 export class DropboxService {
   private static dbx: Dropbox;
   private static isTokenExpired: boolean = false;
   private static eventListeners: EventListener[] = [];
+  private static isRefreshing: boolean = false;
+  private static refreshPromise: Promise<string | null> | null = null;
   
   // Codes d'erreur Dropbox connus pour les problèmes d'authentification
   private static AUTH_ERROR_CODES = [
@@ -200,7 +206,7 @@ export class DropboxService {
       }
       
       // Vérifie si le dossier racine existe
-      await this.dbx.filesGetMetadata({
+      await this.filesGetMetadata({
         path: BOOKS_ROOT_FOLDER
       });
     } catch (error) {
@@ -211,7 +217,7 @@ export class DropboxService {
       
       // Si le dossier n'existe pas, on le crée
       try {
-        await this.dbx.filesCreateFolderV2({
+        await this.filesCreateFolderV2({
           path: BOOKS_ROOT_FOLDER,
           autorename: false
         });
@@ -235,13 +241,13 @@ export class DropboxService {
       const userFolder = getUserBooksFolder(userId);
       
       // Vérifie si le dossier de l'utilisateur existe
-      await this.dbx.filesGetMetadata({
+      await this.filesGetMetadata({
         path: userFolder
       });
     } catch (error) {
       // Si le dossier n'existe pas, on le crée
       const userFolder = getUserBooksFolder(userId);
-      await this.dbx.filesCreateFolderV2({
+      await this.filesCreateFolderV2({
         path: userFolder,
         autorename: false
       });
@@ -282,7 +288,7 @@ export class DropboxService {
         const filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
         const contentStr = JSON.stringify(content, null, 2);
         
-        await this.dbx.filesUpload({
+        await this.filesUpload({
           path: filePath,
           contents: contentStr,
           mode: { '.tag': 'overwrite' }
@@ -298,7 +304,7 @@ export class DropboxService {
         const filePath = `${userFolder}/book_${bookId}.json`;
         const contentStr = JSON.stringify(content, null, 2);
         
-        await this.dbx.filesUpload({
+        await this.filesUpload({
           path: filePath,
           contents: contentStr,
           mode: { '.tag': 'overwrite' }
@@ -368,7 +374,7 @@ export class DropboxService {
    */
   private static async downloadAndParseBook(filePath: string): Promise<BookContent | null> {
     try {
-      const response = await this.dbx.filesDownload({
+      const response = await this.filesDownload({
         path: filePath
       });
       
@@ -451,7 +457,7 @@ export class DropboxService {
         filePath = `${BOOKS_ROOT_FOLDER}/book_${bookId}.json`;
       }
       
-      await this.dbx.filesDeleteV2({
+      await this.filesDeleteV2({
         path: filePath
       });
       
@@ -481,13 +487,13 @@ export class DropboxService {
           // Vérifie d'abord si le dossier utilisateur existe
           await this.ensureUserFolderExists(userId);
           
-          const response = await this.dbx.filesListFolder({
+          const response = await this.filesListFolder({
             path: userFolder
           });
           
           return response.result.entries
-            .filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
-            .map(entry => {
+            .filter((entry: any) => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
+            .map((entry: any) => {
               // Extrait l'ID du livre à partir du nom de fichier (book_123.json -> 123)
               const match = entry.name.match(/book_(\d+)\.json/);
               const id = match ? parseInt(match[1]) : 0;
@@ -497,7 +503,7 @@ export class DropboxService {
                 userId: userId
               };
             })
-            .filter(book => book.id > 0); // Filtre les livres avec ID valide
+            .filter((book: any) => book.id > 0); // Filtre les livres avec ID valide
         } catch (error) {
           console.error(`Erreur lors du listage des livres de l'utilisateur ${userId}:`, error);
           return [];
@@ -510,15 +516,15 @@ export class DropboxService {
         const rootBooks = await this.listRootBooks();
         
         // Ensuite, récupérer les dossiers utilisateurs
-        const foldersResponse = await this.dbx.filesListFolder({
+        const foldersResponse = await this.filesListFolder({
           path: BOOKS_ROOT_FOLDER
         });
         
         const userFolders = foldersResponse.result.entries
-          .filter(entry => entry['.tag'] === 'folder' && entry.name.startsWith('user_'));
+          .filter((entry: any) => entry['.tag'] === 'folder' && entry.name.startsWith('user_'));
         
         // Pour chaque dossier utilisateur, récupérer les livres
-        const userBooksPromises = userFolders.map(async (folder) => {
+        const userBooksPromises = userFolders.map(async (folder: any) => {
           const userIdMatch = folder.name.match(/user_(\d+)/);
           if (!userIdMatch) return [];
           
@@ -526,13 +532,13 @@ export class DropboxService {
           const folderPath = folder.path_display || '';
           
           try {
-            const response = await this.dbx.filesListFolder({
+            const response = await this.filesListFolder({
               path: folderPath
             });
             
             return response.result.entries
-              .filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
-              .map(entry => {
+              .filter((entry: any) => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
+              .map((entry: any) => {
                 const match = entry.name.match(/book_(\d+)\.json/);
                 const id = match ? parseInt(match[1]) : 0;
                 return { 
@@ -541,7 +547,7 @@ export class DropboxService {
                   userId: parseInt(userId)
                 };
               })
-              .filter(book => book.id > 0);
+              .filter((book: any) => book.id > 0);
           } catch (error) {
             console.error(`Erreur lors du listage des livres dans ${folderPath}:`, error);
             return [];
@@ -566,12 +572,93 @@ export class DropboxService {
   /**
    * Méthodes d'accès à l'API Dropbox à travers l'objet dbx
    */
+  /**
+   * Exécute un appel à l'API Dropbox avec tentative de rafraîchissement du token en cas d'erreur d'authentification
+   * @private
+   */
+  private static async withTokenRefresh<T>(apiCall: DropboxApiCall<T>, maxRetries = 1): Promise<T> {
+    let retries = 0;
+    
+    while (true) {
+      try {
+        return await apiCall();
+      } catch (error) {
+        // Si ce n'est pas une erreur d'authentification ou si on a dépassé le nombre de tentatives,
+        // propager l'erreur
+        const isAuthError = this.checkForAuthError(error);
+        
+        if (!isAuthError || retries >= maxRetries) {
+          throw error;
+        }
+        
+        console.log(`[dropbox] 🔄 Tentative de rafraîchissement du token (${retries + 1}/${maxRetries})...`);
+        
+        // Rafraîchir le token si ce n'est pas déjà en cours
+        // Cette stratégie évite d'avoir plusieurs requêtes rafraîchissant le token simultanément
+        if (this.isRefreshing) {
+          console.log('[dropbox] 🔄 Rafraîchissement déjà en cours, attente de la fin...');
+          // Attendre que le rafraîchissement en cours se termine
+          if (this.refreshPromise) {
+            const newToken = await this.refreshPromise;
+            if (!newToken) {
+              throw new Error('Échec du rafraîchissement du token Dropbox');
+            }
+          } else {
+            throw new Error('État incohérent: rafraîchissement en cours mais aucune promesse trouvée');
+          }
+        } else {
+          // Marquer comme rafraîchissement en cours
+          this.isRefreshing = true;
+          
+          try {
+            // Stocker la promesse pour que les autres requêtes puissent l'attendre
+            this.refreshPromise = DropboxOAuth.refreshAccessToken();
+            const newToken = await this.refreshPromise;
+            
+            if (!newToken) {
+              throw new Error('Échec du rafraîchissement du token Dropbox');
+            }
+            
+            // À ce stade, le token a été rafraîchi et l'instance Dropbox réinitialisée
+            console.log('[dropbox] ✅ Token rafraîchi avec succès, nouvelle tentative...');
+          } catch (refreshError) {
+            console.error('[dropbox] ❌ Erreur lors du rafraîchissement du token:', refreshError);
+            throw new Error('Échec du rafraîchissement du token Dropbox');
+          } finally {
+            // Ne pas oublier de réinitialiser les indicateurs
+            this.isRefreshing = false;
+            this.refreshPromise = null;
+          }
+        }
+        
+        // Incrémenter le compteur de tentatives
+        retries++;
+      }
+    }
+  }
+
   static async filesDownload(args: any): Promise<any> {
-    return this.dbx.filesDownload(args);
+    return this.withTokenRefresh(() => this.dbx.filesDownload(args));
   }
   
   static async filesUpload(args: any): Promise<any> {
-    return this.dbx.filesUpload(args);
+    return this.withTokenRefresh(() => this.dbx.filesUpload(args));
+  }
+  
+  static async filesGetMetadata(args: any): Promise<any> {
+    return this.withTokenRefresh(() => this.dbx.filesGetMetadata(args));
+  }
+  
+  static async filesCreateFolderV2(args: any): Promise<any> {
+    return this.withTokenRefresh(() => this.dbx.filesCreateFolderV2(args));
+  }
+  
+  static async filesDeleteV2(args: any): Promise<any> {
+    return this.withTokenRefresh(() => this.dbx.filesDeleteV2(args));
+  }
+  
+  static async filesListFolder(args: any): Promise<any> {
+    return this.withTokenRefresh(() => this.dbx.filesListFolder(args));
   }
   
   /**
@@ -580,13 +667,13 @@ export class DropboxService {
    */
   private static async listRootBooks(): Promise<{ id: number, path: string }[]> {
     try {
-      const response = await this.dbx.filesListFolder({
+      const response = await this.filesListFolder({
         path: BOOKS_ROOT_FOLDER
       });
       
       return response.result.entries
-        .filter(entry => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
-        .map(entry => {
+        .filter((entry: any) => entry['.tag'] === 'file' && entry.name.endsWith('.json'))
+        .map((entry: any) => {
           // Extrait l'ID du livre à partir du nom de fichier (book_123.json -> 123)
           const match = entry.name.match(/book_(\d+)\.json/);
           const id = match ? parseInt(match[1]) : 0;
@@ -595,7 +682,7 @@ export class DropboxService {
             path: entry.path_display || '' 
           };
         })
-        .filter(book => book.id > 0); // Filtre les livres avec ID valide
+        .filter((book: any) => book.id > 0); // Filtre les livres avec ID valide
     } catch (error) {
       console.error('Erreur lors du listage des livres à la racine:', error);
       return [];

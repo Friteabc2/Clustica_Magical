@@ -847,6 +847,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Route de test pour simuler un token expiré
+  app.post('/api/dropbox/simulate-expired-token', async (_req: Request, res: Response) => {
+    try {
+      DropboxService.setTokenExpired();
+      console.log("[TEST] Token Dropbox marqué comme expiré pour test");
+      res.json({ success: true, message: "Token marqué comme expiré" });
+    } catch (error) {
+      console.error('Erreur lors de la simulation du token expiré:', error);
+      res.status(500).json({ message: 'Erreur lors de la simulation' });
+    }
+  });
+  
   // Endpoint pour synchroniser manuellement les livres avec Dropbox
   app.post('/api/dropbox/sync', async (req: Request, res: Response) => {
     try {
