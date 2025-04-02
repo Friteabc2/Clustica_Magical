@@ -242,7 +242,19 @@ export default function Landing() {
               <div className="p-6 space-y-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">2 livres maximum</p>
+                  <p className="ml-3 text-gray-700">3 livres maximum</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
+                  <p className="ml-3 text-gray-700">1 livre IA (limite définitive)</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
+                  <p className="ml-3 text-gray-700">3 chapitres par livre maximum</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
+                  <p className="ml-3 text-gray-700">3 pages par chapitre maximum</p>
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
@@ -251,10 +263,6 @@ export default function Landing() {
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
                   <p className="ml-3 text-gray-700">Sauvegarde cloud basique</p>
-                </div>
-                <div className="flex items-center opacity-50">
-                  <div className="flex-shrink-0 h-5 w-5 text-gray-300">✗</div>
-                  <p className="ml-3 text-gray-400">Génération AI</p>
                 </div>
                 <div className="flex items-center opacity-50">
                   <div className="flex-shrink-0 h-5 w-5 text-gray-300">✗</div>
@@ -297,7 +305,7 @@ export default function Landing() {
               <div className="p-6 space-y-4">
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Livres illimités</p>
+                  <p className="ml-3 text-gray-700">10 livres maximum</p>
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
@@ -309,7 +317,15 @@ export default function Landing() {
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">5 générations AI/mois</p>
+                  <p className="ml-3 text-gray-700">5 livres IA maximum</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
+                  <p className="ml-3 text-gray-700">6 chapitres par livre maximum</p>
+                </div>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
+                  <p className="ml-3 text-gray-700">4 pages par chapitre maximum</p>
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>

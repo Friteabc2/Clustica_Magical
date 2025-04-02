@@ -252,7 +252,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             <Slider 
               id="chapters"
               min={1}
-              max={userInfo?.plan === 'free' ? 3 : 10}
+              max={userInfo?.plan === 'free' ? 3 : 6}
               step={1}
               value={[chaptersCount]}
               onValueChange={(values) => setChaptersCount(values[0])}
@@ -261,6 +261,11 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             {userInfo?.plan === 'free' && chaptersCount >= 3 && (
               <p className="text-xs text-amber-600 mt-1">
                 Vous avez atteint la limite de chapitres pour le plan gratuit
+              </p>
+            )}
+            {userInfo?.plan === 'premium' && chaptersCount >= 6 && (
+              <p className="text-xs text-amber-600 mt-1">
+                Vous avez atteint la limite de chapitres pour le plan premium
               </p>
             )}
           </div>
@@ -273,7 +278,7 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             <Slider 
               id="pages"
               min={1}
-              max={userInfo?.plan === 'free' ? 3 : 5}
+              max={userInfo?.plan === 'free' ? 3 : 4}
               step={1}
               value={[pagesPerChapter]}
               onValueChange={(values) => setPagesPerChapter(values[0])}
@@ -282,6 +287,11 @@ export default function AIBookModal({ isOpen, onClose, onBookCreated }: AIBookMo
             {userInfo?.plan === 'free' && pagesPerChapter >= 3 && (
               <p className="text-xs text-amber-600 mt-1">
                 Vous avez atteint la limite de pages par chapitre pour le plan gratuit
+              </p>
+            )}
+            {userInfo?.plan === 'premium' && pagesPerChapter >= 4 && (
+              <p className="text-xs text-amber-600 mt-1">
+                Vous avez atteint la limite de pages par chapitre pour le plan premium
               </p>
             )}
           </div>

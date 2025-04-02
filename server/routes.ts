@@ -191,15 +191,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return res.status(403).json({ 
               message: 'Limite atteinte pour le plan gratuit', 
               error: 'FREE_PLAN_LIMIT_REACHED',
-              details: 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Passez à un plan premium pour créer plus de livres.'
+              details: 'Les utilisateurs gratuits peuvent créer un maximum de 3 livres. Supprimez un livre existant ou passez à un plan premium pour en créer davantage.'
             });
           }
-          
-          // Incrémenter le compteur de livres créés
-          await storage.updateUser(userId, {
-            booksCreated: (user.booksCreated || 0) + 1
-          });
+        } else if (user && user.plan === 'premium') {
+          // Vérifier le nombre de livres créés pour le plan premium (max 10)
+          if (user.booksCreated >= 10) {
+            return res.status(403).json({ 
+              message: 'Limite atteinte pour le plan premium', 
+              error: 'PREMIUM_PLAN_LIMIT_REACHED',
+              details: 'Les utilisateurs premium peuvent créer un maximum de 10 livres.'
+            });
+          }
         }
+          
+        // Incrémenter le compteur de livres créés
+        await storage.updateUser(userId, {
+          booksCreated: (user.booksCreated || 0) + 1
+        });
       }
       
       // Create default book structure if not provided
@@ -411,38 +420,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
-      // Vérification des limites du plan gratuit si un userId est spécifié
-      const userId = validationResult.data.userId;
+      // Récupération des données validées
+      const validatedData = validationResult.data;
+      const userId = validatedData.userId;
+      let chaptersMaxLimit = 3; // Valeur par défaut pour les utilisateurs gratuits
+      let pagesMaxLimit = 3;    // Valeur par défaut pour les utilisateurs gratuits
+      
+      // Vérification des limites du plan si un userId est spécifié
       if (userId) {
         const user = await storage.getUser(userId);
         
-        if (user && user.plan === 'free') {
-          // Vérifier la limite de livres AI pour le plan gratuit (max 1)
-          if (user.aiBooksCreated >= 1) {
-            return res.status(403).json({ 
-              message: 'Limite atteinte pour le plan gratuit', 
-              error: 'FREE_PLAN_AI_LIMIT_REACHED',
-              details: 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
-            });
+        if (user) {
+          if (user.plan === 'free') {
+            // Vérifier la limite de livres AI pour le plan gratuit (max 1)
+            if (user.aiBooksCreated >= 1) {
+              return res.status(403).json({ 
+                message: 'Limite atteinte pour le plan gratuit', 
+                error: 'FREE_PLAN_AI_LIMIT_REACHED',
+                details: 'Les utilisateurs gratuits peuvent créer un maximum d\'1 livre avec l\'IA. Passez à un plan premium pour créer plus de livres avec l\'IA.'
+              });
+            }
+          } else if (user.plan === 'premium') {
+            // Vérifier la limite de livres AI pour le plan premium (max 5)
+            if (user.aiBooksCreated >= 5) {
+              return res.status(403).json({ 
+                message: 'Limite atteinte pour le plan premium', 
+                error: 'PREMIUM_PLAN_AI_LIMIT_REACHED',
+                details: 'Les utilisateurs premium peuvent créer un maximum de 5 livres avec l\'IA.'
+              });
+            }
+            
+            // Mettre à jour les limites pour les utilisateurs premium
+            chaptersMaxLimit = 6;
+            pagesMaxLimit = 4;
           }
           
-          // Limiter le nombre de chapitres et de pages pour les utilisateurs gratuits
-          const chaptersCount = Math.min(validationResult.data.chaptersCount, 3);
-          const pagesPerChapter = Math.min(validationResult.data.pagesPerChapter, 3);
+          // Limiter le nombre de chapitres et de pages selon le plan
+          const chaptersCount = Math.min(validatedData.chaptersCount, chaptersMaxLimit);
+          const pagesPerChapter = Math.min(validatedData.pagesPerChapter, pagesMaxLimit);
           
           // Mettre à jour les valeurs limitées
-          validationResult.data.chaptersCount = chaptersCount;
-          validationResult.data.pagesPerChapter = pagesPerChapter;
+          validatedData.chaptersCount = chaptersCount;
+          validatedData.pagesPerChapter = pagesPerChapter;
           
           // Incrémenter le compteur de livres AI créés
           await storage.updateUser(userId, {
             aiBooksCreated: (user.aiBooksCreated || 0) + 1
           });
         }
-      }
       
-      // Vérifier et créer le dossier utilisateur dans Dropbox si un utilisateur est spécifié
-      if (userId) {
+        // Vérifier et créer le dossier utilisateur dans Dropbox
         try {
           // S'assurer que le dossier utilisateur existe dans Dropbox
           await DropboxService.ensureUserFolderExists(userId);
@@ -457,11 +484,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Génération du livre avec l'IA
-      const bookContent = await AIService.generateBook(validationResult.data);
+      const bookContent = await AIService.generateBook(validatedData);
       
       // Ajouter l'ID utilisateur au contenu du livre s'il est fourni
       if (userId) {
-        bookContent.userId = typeof userId === 'string' ? parseInt(userId) : userId;
+        bookContent.userId = userId;
       }
       
       // Création du livre dans le stockage
