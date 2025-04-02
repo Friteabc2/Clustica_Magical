@@ -3,10 +3,10 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { RefreshCw, AlertTriangle, CheckCircle2, LinkIcon, UnlinkIcon } from 'lucide-react';
+import { RefreshCw, AlertTriangle, CheckCircle2, LinkIcon, UnlinkIcon, CloudIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
-interface DropboxStatus {
+interface CloudStatus {
   status: 'connected' | 'expired' | 'error' | null;
   message: string;
   hasRefreshToken?: boolean;
@@ -14,8 +14,8 @@ interface DropboxStatus {
   oauthUrl?: string;
 }
 
-const DropboxManager: React.FC = () => {
-  const [status, setStatus] = useState<DropboxStatus | null>(null);
+const CloudManager: React.FC = () => {
+  const [status, setStatus] = useState<CloudStatus | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [manualToken, setManualToken] = useState('');
   const [refreshing, setRefreshing] = useState(false);
@@ -34,10 +34,10 @@ const DropboxManager: React.FC = () => {
         oauthUrl: data.oauthUrl
       });
     } catch (error) {
-      console.error('Erreur lors de la vérification du statut Dropbox:', error);
+      console.error('Erreur lors de la vérification du statut Cloud:', error);
       setStatus({
         status: 'error',
-        message: 'Impossible de vérifier l\'état de la connexion Dropbox'
+        message: 'Impossible de vérifier l\'état de la connexion Cloud'
       });
     } finally {
       setIsLoading(false);
@@ -84,7 +84,7 @@ const DropboxManager: React.FC = () => {
         
         // Si la réponse indique qu'il faut réautoriser, afficher l'information dans le statut
         if (data.needsOAuth) {
-          setStatus(prev => ({
+          setStatus((prev: CloudStatus | null) => ({
             ...prev!,
             status: 'expired',
             message: data.message,
@@ -127,12 +127,12 @@ const DropboxManager: React.FC = () => {
       } else {
         toast({
           title: "Erreur de synchronisation",
-          description: data.message || "Erreur lors de la synchronisation avec Dropbox",
+          description: data.message || "Erreur lors de la synchronisation avec le Cloud",
           variant: "destructive"
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la synchronisation avec Dropbox:', error);
+      console.error('Erreur lors de la synchronisation avec le Cloud:', error);
       toast({
         title: "Erreur",
         description: "Impossible de communiquer avec le serveur",
@@ -145,13 +145,14 @@ const DropboxManager: React.FC = () => {
     <Card className="w-full max-w-xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <span>Dropbox</span>
+          <CloudIcon className="h-5 w-5" />
+          <span>Cloud</span>
           {status?.status === 'connected' && <CheckCircle2 className="w-5 h-5 text-green-500" />}
           {status?.status === 'expired' && <AlertTriangle className="w-5 h-5 text-amber-500" />}
           {status?.status === 'error' && <AlertTriangle className="w-5 h-5 text-red-500" />}
         </CardTitle>
         <CardDescription>
-          Gérez la connexion à Dropbox pour la sauvegarde et la synchronisation de vos livres
+          Gérez la connexion au Cloud pour la sauvegarde et la synchronisation de vos livres
         </CardDescription>
       </CardHeader>
       
@@ -163,7 +164,7 @@ const DropboxManager: React.FC = () => {
         )}
         
         {status && (
-          <Alert variant={status.status === 'connected' ? "default" : status.status === 'expired' ? "warning" : "destructive"}>
+          <Alert variant={status.status === 'connected' ? "default" : "destructive"}>
             <AlertTitle>Statut: {
               status.status === 'connected' ? 'Connecté' : 
               status.status === 'expired' ? 'Token expiré' : 
@@ -198,14 +199,14 @@ const DropboxManager: React.FC = () => {
                   variant="outline"
                 >
                   <LinkIcon className="w-4 h-4 mr-2" />
-                  Autoriser via Dropbox OAuth
+                  Autoriser via Cloud OAuth
                 </Button>
                 <div className="text-sm text-center my-2">ou</div>
                 <div className="flex space-x-2">
                   <Input
                     value={manualToken}
                     onChange={e => setManualToken(e.target.value)}
-                    placeholder="Access Token Dropbox"
+                    placeholder="Access Token Cloud"
                     className="flex-1"
                   />
                   <Button 
@@ -229,7 +230,7 @@ const DropboxManager: React.FC = () => {
               variant="outline"
             >
               <RefreshCw className="w-4 h-4 mr-2" />
-              Synchroniser les livres avec Dropbox
+              Enregistrer dans le Cloud
             </Button>
             
             <div className="text-sm text-center mt-2 opacity-70">
@@ -256,4 +257,4 @@ const DropboxManager: React.FC = () => {
   );
 };
 
-export default DropboxManager;
+export default CloudManager;

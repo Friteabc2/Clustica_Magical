@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { useAuth } from '../contexts/AuthContext';
-import DropboxManager from '../components/admin/DropboxManager';
+import CloudManager from '../components/admin/CloudManager';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function Admin() {
@@ -30,7 +30,7 @@ export default function Admin() {
         </TabsList>
         
         <TabsContent value="dropbox" className="py-4">
-          <DropboxManager />
+          <CloudManager />
         </TabsContent>
         
         <TabsContent value="users" className="py-4">
