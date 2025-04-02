@@ -84,7 +84,8 @@ export class ImageService {
           model: this.MODEL,
           prompt: enhancedPrompt,
           response_format: 'b64_json',
-          n: 1
+          n: 1,
+          ...(options.negativePrompt && { negative_prompt: options.negativePrompt })
         },
         {
           headers: {
@@ -176,7 +177,7 @@ export class ImageService {
           prompt: coverPrompt,
           aspectRatio: coverAspectRatio,
           style: imageStyle,
-          negativePrompt: 'text, words, title, author name, bad quality, deformed'
+          negativePrompt: 'watermark, overlaid text, title, author name, bad quality, deformed'
         });
         
         if (coverImageUrl) {
@@ -215,7 +216,7 @@ export class ImageService {
             prompt,
             aspectRatio: pageFormat,
             style: imageStyle,
-            negativePrompt: 'text, words, bad quality, deformed'
+            negativePrompt: 'watermark, overlaid text, signature, bad quality, deformed'
           });
           
           if (imageUrl) {
