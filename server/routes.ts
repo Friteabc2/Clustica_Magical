@@ -792,8 +792,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialiser les routes OAuth pour Dropbox
   DropboxOAuth.initializeRoutes(app);
   
-  // Ajouter un middleware pour gérer les tokens expirés
-  app.use('/api/dropbox', DropboxOAuth.checkAndRefreshToken);
+  // Ajouter un middleware pour gérer les tokens expirés sur TOUTES les routes API
+  // Ceci permet de rafraîchir le token sans redémarrer le serveur
+  app.use('/api', DropboxOAuth.checkAndRefreshToken);
   
   // Endpoint pour vérifier l'état de la connexion Dropbox
   app.get('/api/dropbox/status', async (_req: Request, res: Response) => {

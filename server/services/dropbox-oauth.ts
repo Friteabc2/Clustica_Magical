@@ -189,6 +189,8 @@ export class DropboxOAuth {
         return null;
       }
       
+      console.log('[dropbox-oauth] Tentative de rafraîchissement du token d\'accès...');
+      
       // Rafraîchir le token en effectuant une requête directe à l'API Dropbox
       const tokenUrl = 'https://api.dropboxapi.com/oauth2/token';
       const bodyParams = new URLSearchParams({
@@ -226,7 +228,7 @@ export class DropboxOAuth {
       // Mettre à jour le token dans les variables d'environnement
       process.env.DROPBOX_ACCESS_TOKEN = accessToken;
       
-      // Réinitialiser le service Dropbox
+      // Réinitialiser le service Dropbox et recréer l'instance avec le nouveau token
       DropboxService.resetTokenState();
       DropboxService.initialize();
       
@@ -239,35 +241,62 @@ export class DropboxOAuth {
   
   /**
    * Middleware Express pour vérifier et rafraîchir le token Dropbox si nécessaire
+   * Amélioration : vérifie toutes les routes pouvant utiliser Dropbox, pas uniquement /api/dropbox
    */
   static checkAndRefreshToken(req: Request, res: Response, next: NextFunction): void {
-    const isDropboxRoute = req.path.startsWith('/api/dropbox') && 
-                           !req.path.includes('/oauth');
+    // Protection contre les routes OAuth (pour éviter les boucles)
+    if (req.path.includes('/oauth')) {
+      return next();
+    }
     
-    if (isDropboxRoute && DropboxService.isExpired()) {
-      console.log('[dropbox-oauth] Token expiré détecté, tentative de rafraîchissement...');
+    // Détecter les routes qui peuvent utiliser Dropbox
+    // Inclut les routes Dropbox explicites et les routes de livres (qui peuvent utiliser Dropbox en arrière-plan)
+    const needsDropboxCheck = 
+      req.path.startsWith('/api/dropbox') || 
+      req.path.startsWith('/api/books') ||
+      req.path.includes('/profile');
+    
+    if (needsDropboxCheck && DropboxService.isExpired()) {
+      console.log('[dropbox-oauth] Token expiré détecté pour', req.path, '- tentative de rafraîchissement...');
       
       DropboxOAuth.refreshAccessToken()
         .then(newToken => {
           if (newToken) {
-            console.log('[dropbox-oauth] Token rafraîchi avec succès');
+            console.log('[dropbox-oauth] Token rafraîchi avec succès, poursuite de la requête');
             next();
           } else {
-            // En cas d'échec du rafraîchissement
-            res.status(401).json({ 
-              status: 'error',
-              message: 'Token Dropbox expiré et impossible à rafraîchir automatiquement',
-              needsReauth: true 
-            });
+            // Si le refresh a échoué, on continue quand même mais on informe le client
+            console.warn('[dropbox-oauth] Échec du rafraîchissement du token, continuation avec erreur');
+            
+            if (req.path.startsWith('/api/dropbox')) {
+              // Uniquement pour les routes Dropbox explicites, on renvoie une erreur
+              res.status(401).json({ 
+                status: 'error',
+                message: 'Token Dropbox expiré et impossible à rafraîchir automatiquement',
+                needsReauth: true 
+              });
+            } else {
+              // Pour les autres routes, on continue mais on ajoute un header d'avertissement
+              res.setHeader('X-Dropbox-Auth-Status', 'expired');
+              next();
+            }
           }
         })
         .catch(error => {
           console.error('[dropbox-oauth] Erreur lors du rafraîchissement:', error);
-          res.status(401).json({ 
-            status: 'error',
-            message: 'Erreur lors du rafraîchissement du token Dropbox',
-            needsReauth: true 
-          });
+          
+          if (req.path.startsWith('/api/dropbox')) {
+            // Uniquement pour les routes Dropbox explicites, on renvoie une erreur
+            res.status(401).json({ 
+              status: 'error',
+              message: 'Erreur lors du rafraîchissement du token Dropbox',
+              needsReauth: true 
+            });
+          } else {
+            // Pour les autres routes, on continue mais on ajoute un header d'avertissement
+            res.setHeader('X-Dropbox-Auth-Status', 'error');
+            next();
+          }
         });
     } else {
       // Pas besoin de rafraîchir, continuer

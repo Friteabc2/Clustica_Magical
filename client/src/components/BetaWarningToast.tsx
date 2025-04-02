@@ -9,23 +9,37 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
+// Durée en minutes entre chaque affichage du message
+const WARNING_INTERVAL_MINUTES = 10;
+
 export default function BetaWarningToast() {
   const [isOpen, setIsOpen] = useState(false);
   
   useEffect(() => {
-    // Vérifier si l'avertissement a déjà été affiché dans cette session
-    const hasBeenShown = sessionStorage.getItem('betaWarningShown');
-    
-    if (!hasBeenShown) {
-      // Afficher après un court délai pour ne pas bloquer le chargement initial
-      const timer = setTimeout(() => {
-        setIsOpen(true);
-        // Marquer comme affiché pour cette session
-        sessionStorage.setItem('betaWarningShown', 'true');
-      }, 1500);
+    // Fonction pour vérifier si le popup doit être affiché
+    const checkAndShowWarning = () => {
+      const lastShownTime = localStorage.getItem('betaWarningLastShown');
+      const currentTime = new Date().getTime();
       
-      return () => clearTimeout(timer);
-    }
+      // Si jamais affiché ou si l'intervalle est dépassé
+      if (!lastShownTime || (currentTime - parseInt(lastShownTime)) > (WARNING_INTERVAL_MINUTES * 60 * 1000)) {
+        // Afficher après un court délai pour ne pas bloquer le chargement initial
+        setTimeout(() => {
+          setIsOpen(true);
+          // Enregistrer le moment d'affichage
+          localStorage.setItem('betaWarningLastShown', currentTime.toString());
+        }, 1500);
+      }
+    };
+    
+    // Vérifier au chargement initial
+    checkAndShowWarning();
+    
+    // Configurer un intervalle pour vérifier régulièrement
+    const intervalId = setInterval(checkAndShowWarning, WARNING_INTERVAL_MINUTES * 60 * 1000);
+    
+    // Nettoyer l'intervalle lors du démontage du composant
+    return () => clearInterval(intervalId);
   }, []);
   
   return (
