@@ -114,7 +114,7 @@ export default function UserMenu() {
               Livres créés
             </div>
             <span>
-              {userInfo?.booksCreated || 0} / {userInfo?.plan === 'premium' ? 'Illimité' : '3'}
+              {userInfo?.booksCreated || 0} / {userInfo?.plan === 'premium' ? '10' : '3'}
             </span>
           </div>
           <div className="flex justify-between">
@@ -123,7 +123,7 @@ export default function UserMenu() {
               Livres IA
             </div>
             <span>
-              {userInfo?.aiBooksCreated || 0} / {userInfo?.plan === 'premium' ? 'Illimité' : '1'}
+              {userInfo?.aiBooksCreated || 0} / {userInfo?.plan === 'premium' ? '5' : '1'}
             </span>
           </div>
         </div>
