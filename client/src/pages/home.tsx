@@ -20,7 +20,7 @@ export default function Home() {
   const [newBookAuthor, setNewBookAuthor] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [isAIModalOpen, setIsAIModalOpen] = useState(false);
-  const [isDropboxSyncModalOpen, setIsDropboxSyncModalOpen] = useState(false);
+  const [isCloudSyncModalOpen, setIsCloudSyncModalOpen] = useState(false);
 
   const { userInfo, refreshUserInfo } = useAuth();
   
@@ -37,8 +37,8 @@ export default function Home() {
     enabled: !isCreating // Ne pas charger pendant la création d'un livre
   });
   
-  // Fetch Dropbox books (only when modal is open)
-  const { data: dropboxBooks, isLoading: isLoadingDropboxBooks, refetch: refetchDropboxBooks } = useQuery<{id: number, path: string, userId?: number}[]>({
+  // Fetch Cloud books (only when modal is open)
+  const { data: cloudBooks, isLoading: isLoadingCloudBooks, refetch: refetchCloudBooks } = useQuery<{id: number, path: string, userId?: number}[]>({
     queryKey: userInfo ? ['/api/dropbox/books', userInfo.id] : ['/api/dropbox/books'],
     queryFn: async () => {
       const endpoint = userInfo 
@@ -47,7 +47,7 @@ export default function Home() {
       const response = await apiRequest('GET', endpoint);
       return response.json();
     },
-    enabled: isDropboxSyncModalOpen,
+    enabled: isCloudSyncModalOpen,
   });
 
   // Create book mutation
@@ -130,7 +130,7 @@ export default function Home() {
   // Delete book mutation
   const deleteBook = useMutation({
     mutationFn: async (id: number) => {
-      // Inclure l'ID de l'utilisateur pour supprimer également du dossier utilisateur dans Dropbox
+      // Inclure l'ID de l'utilisateur pour supprimer également du dossier utilisateur dans le Cloud
       const endpoint = userInfo 
         ? `/api/books/${id}?userId=${userInfo.id}` 
         : `/api/books/${id}`;
@@ -180,8 +180,8 @@ export default function Home() {
     });
   };
 
-  // Sync books to Dropbox mutation
-  const syncToDropbox = useMutation({
+  // Sync books to Cloud mutation
+  const syncToCloud = useMutation({
     mutationFn: async () => {
       // Inclure l'ID utilisateur pour synchroniser uniquement les livres de l'utilisateur connecté
       const endpoint = userInfo 
@@ -193,10 +193,10 @@ export default function Home() {
     onSuccess: (data: { results: Array<{ status: string }> }) => {
       toast({
         title: "Synchronisation réussie",
-        description: `${data.results.filter((r: { status: string }) => r.status === 'success').length} livres synchronisés avec Dropbox.`,
+        description: `${data.results.filter((r: { status: string }) => r.status === 'success').length} livres synchronisés avec le Cloud.`,
       });
       
-      // Invalider la requête appropriée pour les livres Dropbox
+      // Invalider la requête appropriée pour les livres Cloud
       if (userInfo) {
         queryClient.invalidateQueries({ queryKey: ['/api/dropbox/books', userInfo.id] });
       } else {
@@ -213,7 +213,7 @@ export default function Home() {
     onError: (error) => {
       toast({
         title: "Erreur de synchronisation",
-        description: error.message || "Impossible de synchroniser avec Dropbox.",
+        description: error.message || "Impossible de synchroniser avec le Cloud.",
         variant: "destructive",
       });
     }
@@ -226,10 +226,10 @@ export default function Home() {
     setNewBookAuthor('');
   };
   
-  // Handle synchronization with Dropbox
-  const handleSyncToDropbox = () => {
-    if (window.confirm("Voulez-vous synchroniser tous vos livres avec Dropbox ?")) {
-      syncToDropbox.mutate();
+  // Handle synchronization with Cloud
+  const handleSyncToCloud = () => {
+    if (window.confirm("Voulez-vous synchroniser tous vos livres avec le Cloud ?")) {
+      syncToCloud.mutate();
     }
   };
 
@@ -246,13 +246,13 @@ export default function Home() {
                 <div className="flex space-x-2">
                   <FadeInElement delay={0.1}>
                     <Button 
-                      onClick={handleSyncToDropbox} 
-                      disabled={syncToDropbox.isPending}
+                      onClick={handleSyncToCloud} 
+                      disabled={syncToCloud.isPending}
                       className="bg-blue-500 hover:bg-blue-600 text-white" 
-                      title="Sauvegarder tous vos livres dans Dropbox"
+                      title="Sauvegarder tous vos livres dans le Cloud"
                     >
                       <Cloud className="h-4 w-4 mr-2" />
-                      {syncToDropbox.isPending ? 'Synchronisation...' : 'Synchroniser avec Dropbox'}
+                      {syncToCloud.isPending ? 'Synchronisation...' : 'Synchroniser avec le Cloud'}
                     </Button>
                   </FadeInElement>
                   
