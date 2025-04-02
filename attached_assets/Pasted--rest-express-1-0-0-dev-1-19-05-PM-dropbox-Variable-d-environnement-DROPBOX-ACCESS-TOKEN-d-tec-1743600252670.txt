@@ -1,0 +1,156 @@
+
+> rest-express@1.0.0 dev
+1:19:05 PM [dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+1:19:05 PM [dropbox] ✅ Variable d'environnement DROPBOX_REFRESH_TOKEN détectée
+[dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+[dropbox] ✅ Variables d'environnement pour refresh token détectées
+[dropbox] ✅ Service Dropbox initialisé avec succès
+1:19:05 PM [dropbox] ✅ Service Dropbox initialisé avec succès
+1:19:05 PM [express] serving on port 5000
+Chargement des livres depuis Dropbox...
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Livre 2 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 2 depuis Dropbox: Nouveau Livre
+Livre 7 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 7 depuis Dropbox: Nouveau Livre
+Livre 8 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 8 depuis Dropbox: Nouveau Livre
+1:19:16 PM [express] GET /api/theme 304 in 2ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:19:17 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Livre 9 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 9 depuis Dropbox: L'Écho des Ombres
+1:19:18 PM [express] GET /api/auth/user/7UOTFN10n0hL3OapkEtcIp2o6tl2 404 in 1ms :: {"message":"Utili…
+Livre 3 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 3 depuis Dropbox: Nouveau Livre
+Profil utilisateur 1 récupéré depuis Dropbox
+Profil Dropbox créé pour l'utilisateur 1: {
+  userId: 1,
+  email: 'nnie06884@gmail.com',
+  displayName: 'Friteabc',
+  plan: 'premium',
+  booksCreated: 5,
+  aiBooksCreated: 2,
+  createdAt: '2025-04-02T09:02:31.387Z',
+  updatedAt: '2025-04-02T13:19:19.535Z'
+}
+Livre 4 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 4 depuis Dropbox: Test _ 1
+Profil utilisateur 1 récupéré depuis Dropbox
+Livre 5 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 5 depuis Dropbox: Nouveau Livre
+Profil utilisateur 1 sauvegardé dans Dropbox
+1:19:21 PM [express] POST /api/auth/register 201 in 2473ms :: {"id":1,"email":"nnie06884@gmail.com",…
+1:19:21 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+1:19:21 PM [express] GET /api/books/12 404 in 1ms :: {"message":"Livre non trouvé"}
+Livre 6 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 6 depuis Dropbox: Nouveau Livre
+Livre 10 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 10 depuis Dropbox: Le teste premuim 
+Livre 11 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 11 depuis Dropbox: L'Inspiration Cachée
+1:19:23 PM [express] GET /api/auth/user/1/books 200 in 1ms :: [{"id":3,"title":"Nouveau Livre","auth…
+1:19:24 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Livre 12 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 12 depuis Dropbox: Le Festin Inattendu
+11 livres chargés depuis Dropbox.
+1:19:27 PM [express] GET /api/books/11 200 in 1ms :: {"id":11,"title":"L'Inspiration Cachée","author…
+Livre 11 trouvé dans le dossier de l'utilisateur 1
+1:19:28 PM [express] GET /api/books/11/content 304 in 850ms :: {"title":"L'Inspiration Cachée","auth…
+1:20:02 PM [express] GET /api/theme 304 in 0ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Profil utilisateur 1 récupéré depuis Dropbox
+[Limite AI] Utilisateur 1: 2/5 livres AI créés. Plan: premium
+Profil utilisateur 1 récupéré depuis Dropbox
+Profil utilisateur 1 sauvegardé dans Dropbox
+Profil Dropbox: livre AI créé pour l'utilisateur 1
+✅ Service PostImages initialisé
+✅ Service d'images initialisé avec stockage sur PostImages
+🖼️ Enrichissement du livre avec des images générées par IA...
+Style d'image sélectionné: realistic
+🎨 Enrichissement du livre "Rébellion Silicon" avec des images...
+Style d'image: realistic, Format de couverture: portrait, Format de page: landscape
+Génération de l'image de couverture...
+🖼️ Génération d'image: "Book cover for "Rébellion Silicon" by Aurélien Cyb..."
+❌ Erreur lors du téléchargement de l'image sur PostImage.me: <!doctype html>
+<html data-adblockkey="MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_HDvTzOC+/O9Qf1dWY8KzwlnHeARvU4xL6JVD9jP+qdIovEgeDaxyF9QQd1rHAQgBAuuyd2dUtrBmIyn2QYhoZA==" lang="en" style="background: #2B2B2B;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC">
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+</head>
+<body>
+<div id="target" style="opacity: 0"></div>
+<script>window.park = "eyJ1dWlkIjoiMmEwNWY0YmUtMjk3YS00Yzk4LWEzOTAtMWNkZTBmYmE3MjMyIiwicGFnZV90aW1lIjoxNzQzNjAwMTYyLCJwYWdlX3VybCI6Imh0dHA6Ly93dzI1LnBvc3RpbWFnZXMubWUvYXBpLzEvdXBsb2FkP3N1YmlkMT0yMDI1MDQwMy0wMDIyLTQyZDgtYTVkNS1lZGRlZDc0MjhiNzUiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6eyJzdWJpZDEiOiIyMDI1MDQwMy0wMDIyLTQyZDgtYTVkNS1lZGRlZDc0MjhiNzUifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6Ind3MjUucG9zdGltYWdlcy5tZSIsImlwIjoiMzUuMjQ3Ljg1LjE4NSJ9Cg==";</script>
+<script src="/bemJWdvGE.js"></script>
+</body>
+</html>
+
+❌ Erreur lors du téléchargement sur PostImages
+Génération d'images pour le chapitre "L'Éveil de l'IA"...
+🖼️ Génération d'image: "Illustration for chapter "L'Éveil de l'IA" from bo..."
+❌ Erreur lors du téléchargement de l'image sur PostImage.me: <!doctype html>
+<html data-adblockkey="MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_ELiSfEEhlvkZYLoy1tMnnX1H8eoR3UlaMfclWf+w6WZzUeoS/xIATeKD8ZzNpgtsASKiqCbyOjY7FDEeMyIiFA==" lang="en" style="background: #2B2B2B;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC">
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+</head>
+<body>
+<div id="target" style="opacity: 0"></div>
+<script>window.park = "eyJ1dWlkIjoiZDQ0NThmNjMtNmFhNy00MjVkLWJjMDctNzJlNDVkMGEwZTVhIiwicGFnZV90aW1lIjoxNzQzNjAwMTc1LCJwYWdlX3VybCI6Imh0dHA6Ly93dzI1LnBvc3RpbWFnZXMubWUvYXBpLzEvdXBsb2FkP3N1YmlkMT0yMDI1MDQwMy0wMDIyLTU1NzQtOTc5Yy01YmY0ZDY4MzkzZjEiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6eyJzdWJpZDEiOiIyMDI1MDQwMy0wMDIyLTU1NzQtOTc5Yy01YmY0ZDY4MzkzZjEifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6Ind3MjUucG9zdGltYWdlcy5tZSIsImlwIjoiMzUuMjQ3Ljg1LjE4NSJ9Cg==";</script>
+<script src="/bGhXVUigE.js"></script>
+</body>
+</html>
+
+❌ Erreur lors du téléchargement sur PostImages
+Génération d'images pour le chapitre "La Menace Invisible"...
+🖼️ Génération d'image: "Illustration for chapter "La Menace Invisible" fro..."
+❌ Erreur lors du téléchargement de l'image sur PostImage.me: <!doctype html>
+<html data-adblockkey="MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_V99+WXEhJ/VjJR/Pk46U5s0PKRNNsNeeszYvpZQNgNrySXOC1a2k7CqaP8L3y6Ny/a2tr7DkByt0iJAT58gDYg==" lang="en" style="background: #2B2B2B;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC">
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+</head>
+<body>
+<div id="target" style="opacity: 0"></div>
+<script>window.park = "eyJ1dWlkIjoiYTZhMGIyMzUtMWE2OS00M2RlLTlmZDUtMmJjYWMwN2FiZjg0IiwicGFnZV90aW1lIjoxNzQzNjAwMTg4LCJwYWdlX3VybCI6Imh0dHA6Ly93dzI1LnBvc3RpbWFnZXMubWUvYXBpLzEvdXBsb2FkP3N1YmlkMT0yMDI1MDQwMy0wMDIzLTA4ZmItYWY5Yi0yZjI4MGFjOWY5OGYiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6eyJzdWJpZDEiOiIyMDI1MDQwMy0wMDIzLTA4ZmItYWY5Yi0yZjI4MGFjOWY5OGYifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6Ind3MjUucG9zdGltYWdlcy5tZSIsImlwIjoiMzUuMjQ3Ljg1LjE4NSJ9Cg==";</script>
+<script src="/bxtiRXUVi.js"></script>
+</body>
+</html>
+
+❌ Erreur lors du téléchargement sur PostImages
+Génération d'images pour le chapitre "La Bataille Finale"...
+🖼️ Génération d'image: "Illustration for chapter "La Bataille Finale" from..."
+❌ Erreur lors du téléchargement de l'image sur PostImage.me: <!doctype html>
+<html data-adblockkey="MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBANDrp2lz7AOmADaN8tA50LsWcjLFyQFcb/P2Txc58oYOeILb3vBw7J6f4pamkAQVSQuqYsKx3YzdUHCvbVZvFUsCAwEAAQ==_quzUhqifBg5BdTxCpf7v0zvpTX9/sD4lNQMzx/eS5kSTraYjSIUNrqhMCmZNSfHopeBOEBoEaju9iAu2qY49mw==" lang="en" style="background: #2B2B2B;">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQI12P4//8/AAX+Av7czFnnAAAAAElFTkSuQmCC">
+    <link rel="preconnect" href="https://www.google.com" crossorigin>
+</head>
+<body>
+<div id="target" style="opacity: 0"></div>
+<script>window.park = "eyJ1dWlkIjoiYTc2ZDU5OWUtYjM4YS00MzUyLWI4YjgtYWQxOTlkZTlhNmEwIiwicGFnZV90aW1lIjoxNzQzNjAwMjAxLCJwYWdlX3VybCI6Imh0dHA6Ly93dzI1LnBvc3RpbWFnZXMubWUvYXBpLzEvdXBsb2FkP3N1YmlkMT0yMDI1MDQwMy0wMDIzLTIxYjEtYTM1NS1hMWU2YWUwMGVlZTYiLCJwYWdlX21ldGhvZCI6IkdFVCIsInBhZ2VfcmVxdWVzdCI6eyJzdWJpZDEiOiIyMDI1MDQwMy0wMDIzLTIxYjEtYTM1NS1hMWU2YWUwMGVlZTYifSwicGFnZV9oZWFkZXJzIjp7fSwiaG9zdCI6Ind3MjUucG9zdGltYWdlcy5tZSIsImlwIjoiMzUuMjQ3Ljg1LjE4NSJ9Cg==";</script>
+<script src="/bSzCEuYCA.js"></script>
+</body>
+</html>
+
+❌ Erreur lors du téléchargement sur PostImages
+Livre 13 sauvegardé dans le dossier utilisateur Dropbox: /clustica_books/user_1/book_13.json
+Livre 13 créé pour l'utilisateur 1
+Livre 13 sauvegardé dans le dossier utilisateur Dropbox: /clustica_books/user_1/book_13.json
+Livre 13 mis à jour pour l'utilisateur 1
+1:23:23 PM [express] POST /api/books/generate-ai 201 in 130349ms :: {"title":"Rébellion Silicon","au…
+1:23:24 PM [express] GET /api/auth/user/7UOTFN10n0hL3OapkEtcIp2o6tl2 200 in 1ms :: {"id":1,"email":"…
+Profil utilisateur 1 récupéré depuis Dropbox
+1:23:25 PM [express] GET /api/user/1/profile 200 in 1384ms :: {"userId":1,"email":"nnie06884@gmail.c…
+1:23:26 PM [express] GET /api/auth/user/1/books 200 in 2ms :: [{"id":3,"title":"Nouveau Livre","auth…
+1:23:27 PM [express] GET /api/books/13 200 in 0ms :: {"title":"Rébellion Silicon","author":"Aurélien…
+Livre 13 trouvé dans le dossier de l'utilisateur 1
+1:23:27 PM [express] GET /api/books/13/content 200 in 651ms :: {"title":"Rébellion Silicon","author"…

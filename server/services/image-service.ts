@@ -1,7 +1,8 @@
 import { BookContent, PageContent } from '@shared/schema';
 import axios from 'axios';
+import * as fs from 'fs';
+import * as path from 'path';
 import * as crypto from 'crypto';
-import { PostImagesService } from './postimages-service';
 
 export interface ImageGenerationOptions {
   prompt: string;
@@ -11,21 +12,24 @@ export interface ImageGenerationOptions {
 }
 
 /**
- * Service pour générer des images avec NetMind.ai et les stocker sur PostImages
+ * Service pour générer des images avec NetMind.ai
  */
 export class ImageService {
   private static readonly API_KEY = process.env.NETMIND_API_KEY;
   private static readonly API_URL = 'https://api.netmind.ai/inference-api/openai/v1/images/generations';
   private static readonly MODEL = 'black-forest-labs/FLUX.1-schnell';
+  private static readonly IMAGE_FOLDER = path.join(process.cwd(), 'public', 'generated-images');
   
   /**
    * Initialise le service d'images
    */
   static initialize() {
-    // Initialise le service PostImages
-    PostImagesService.initialize();
+    // Crée le dossier de stockage des images si nécessaire
+    if (!fs.existsSync(this.IMAGE_FOLDER)) {
+      fs.mkdirSync(this.IMAGE_FOLDER, { recursive: true });
+    }
     
-    console.log(`✅ Service d'images initialisé avec stockage sur PostImages`);
+    console.log(`✅ Service d'images initialisé - dossier: ${this.IMAGE_FOLDER}`);
   }
   
   /**
@@ -35,7 +39,7 @@ export class ImageService {
     try {
       if (!this.API_KEY) {
         console.error('❌ Clé API NetMind manquante');
-        return null;
+        return this.generatePlaceholderImage(options.aspectRatio || 'landscape');
       }
       
       // Ajoute des informations sur le ratio d'aspect au prompt
@@ -95,29 +99,57 @@ export class ImageService {
         const b64Image = response.data.data[0].b64_json;
         const imageData = Buffer.from(b64Image, 'base64');
         
-        // Télécharger l'image sur PostImages au lieu de la stocker localement
-        const postImageResult = await PostImagesService.uploadImage({
-          source: imageData,
-          title: `Image générée pour Clustica - ${options.prompt.substring(0, 30)}`,
-          description: options.prompt,
-          tags: ['clustica', 'ai-generated', options.aspectRatio || 'landscape']
-        });
+        // Crée un nom de fichier unique basé sur un hash du prompt
+        const hash = crypto.createHash('md5').update(options.prompt).digest('hex').substring(0, 10);
+        const filename = `image_${hash}_${Date.now()}.png`;
+        const filePath = path.join(this.IMAGE_FOLDER, filename);
         
-        if (postImageResult) {
-          // On utilise l'URL de l'image téléchargée
-          return postImageResult.display_url;
-        }
+        // Écrit l'image sur le disque
+        fs.writeFileSync(filePath, imageData);
         
-        console.error('❌ Erreur lors du téléchargement sur PostImages');
-        return null;
+        // Retourne l'URL relative de l'image
+        return `/generated-images/${filename}`;
       }
       
       console.error('❌ Aucune image générée dans la réponse');
-      return null;
+      return this.generatePlaceholderImage(options.aspectRatio || 'landscape');
     } catch (error) {
       console.error('❌ Erreur lors de la génération d\'image:', error);
-      return null;
+      return this.generatePlaceholderImage(options.aspectRatio || 'landscape');
     }
+  }
+  
+  /**
+   * Génère une image placeholder au cas où la génération d'image échoue
+   */
+  private static generatePlaceholderImage(aspectRatio: 'square' | 'portrait' | 'landscape' | 'panoramic'): string {
+    // On utilise des images placeholder préexistantes en fonction du ratio
+    const placeholderFilename = `placeholder_${aspectRatio}.png`;
+    const placeholderPath = path.join(this.IMAGE_FOLDER, placeholderFilename);
+    
+    // Vérifie si le placeholder existe déjà, sinon le crée
+    if (!fs.existsSync(placeholderPath)) {
+      // Crée une image placeholder simple avec du texte
+      const width = aspectRatio === 'square' ? 512 : 
+                   aspectRatio === 'portrait' ? 512 :
+                   aspectRatio === 'panoramic' ? 1024 : 768;
+      const height = aspectRatio === 'square' ? 512 : 
+                    aspectRatio === 'portrait' ? 768 :
+                    aspectRatio === 'panoramic' ? 384 : 512;
+      
+      // Créer un SVG basique pour le placeholder
+      const svgContent = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#f0f0f0"/>
+        <text x="50%" y="50%" font-family="Arial" font-size="24" fill="#666" text-anchor="middle" dominant-baseline="middle">
+          Image ${aspectRatio}
+        </text>
+      </svg>`;
+      
+      // Sauvegarder le SVG comme fichier PNG placeholder
+      fs.writeFileSync(placeholderPath, Buffer.from(svgContent));
+    }
+    
+    return `/generated-images/${placeholderFilename}`;
   }
   
   /**
