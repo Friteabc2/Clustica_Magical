@@ -229,7 +229,7 @@ export default function Landing() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
             <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
               <div className="p-6 border-b">
                 <h3 className="text-2xl font-bold text-gray-900">Gratuit</h3>
@@ -309,7 +309,7 @@ export default function Landing() {
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Exportation EPUB, PDF, HTML</p>
+                  <p className="ml-3 text-gray-700">Exportation EPUB</p>
                 </div>
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
@@ -351,57 +351,7 @@ export default function Landing() {
               </div>
             </div>
 
-            <div className="bg-white border border-gray-200 rounded-lg shadow-sm overflow-hidden">
-              <div className="p-6 border-b">
-                <h3 className="text-2xl font-bold text-gray-900">Professionnel</h3>
-                <div className="mt-4 flex items-baseline">
-                  <span className="text-4xl font-extrabold">29,99€</span>
-                  <span className="ml-1 text-gray-500">/mois</span>
-                </div>
-                <p className="mt-2 text-gray-500">Pour les auteurs professionnels</p>
-              </div>
-              <div className="p-6 space-y-4">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Tout dans Premium</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Générations AI illimitées</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Formats personnalisés</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Collaboration en temps réel</p>
-                </div>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 h-5 w-5 text-green-500">✓</div>
-                  <p className="ml-3 text-gray-700">Support dédié 24/7</p>
-                </div>
-              </div>
-              <div className="p-6">
-                {currentUser ? (
-                  <Button 
-                    onClick={() => navigate('/dashboard')} 
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Accéder à mon espace
-                  </Button>
-                ) : (
-                  <Button 
-                    onClick={() => navigate('/register')} 
-                    className="w-full"
-                    variant="outline"
-                  >
-                    Contacter les ventes
-                  </Button>
-                )}
-              </div>
-            </div>
+
           </div>
         </div>
       </section>
