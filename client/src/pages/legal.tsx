@@ -36,7 +36,7 @@ export default function Legal() {
                     Ce service est actuellement en phase de développement pré-bêta.
                   </p>
                   <p className="mt-2">
-                    <strong>Directeur de la publication :</strong> [Votre nom]
+                    <strong>Directeur de la publication :</strong> friteabc
                   </p>
                 </section>
                 
@@ -71,7 +71,7 @@ export default function Legal() {
                   </p>
                   <p className="mt-2">
                     Pour exercer ces droits ou pour toute question sur le traitement de vos données, vous pouvez me contacter 
-                    directement à l'adresse email : [Votre adresse email]
+                    directement à l'adresse email : clustica.x@gmail.com
                   </p>
                   <p className="mt-2">
                     Pour plus d'informations, veuillez consulter la Politique de Confidentialité accessible depuis notre site web.
@@ -118,7 +118,7 @@ export default function Legal() {
                   <h2 className="text-xl font-bold mb-4">8. Contact</h2>
                   <p>
                     Pour toute question relative au service ou pour signaler un problème, 
-                    vous pouvez me contacter par email à l'adresse : [Votre adresse email]
+                    vous pouvez me contacter par email à l'adresse : clustica.x@gmail.com
                   </p>
                 </section>
               </div>

@@ -12,6 +12,10 @@ import Settings from "@/pages/settings";
 import Profile from "@/pages/profile";
 import Landing from "@/pages/landing";
 import Legal from "@/pages/legal";
+import Privacy from "@/pages/privacy";
+import Terms from "@/pages/terms";
+import Guides from "@/pages/guides";
+import Community from "@/pages/community";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import PrivateRoute from "@/components/auth/PrivateRoute";
@@ -56,6 +60,38 @@ function Router() {
           {() => (
             <PageTransition>
               <Legal />
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/privacy">
+          {() => (
+            <PageTransition>
+              <Privacy />
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/terms">
+          {() => (
+            <PageTransition>
+              <Terms />
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/guides">
+          {() => (
+            <PageTransition>
+              <Guides />
+            </PageTransition>
+          )}
+        </Route>
+
+        <Route path="/community">
+          {() => (
+            <PageTransition>
+              <Community />
             </PageTransition>
           )}
         </Route>
