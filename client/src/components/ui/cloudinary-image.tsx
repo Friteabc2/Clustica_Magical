@@ -5,7 +5,7 @@ import { fill, scale } from '@cloudinary/url-gen/actions/resize';
 import { autoGravity, focusOn } from '@cloudinary/url-gen/qualifiers/gravity';
 import { format, quality } from '@cloudinary/url-gen/actions/delivery';
 import { auto } from '@cloudinary/url-gen/qualifiers/quality';
-import { auto as autoFormat } from '@cloudinary/url-gen/qualifiers/format';
+import { webp } from '@cloudinary/url-gen/qualifiers/format';
 
 // Initialiser l'instance Cloudinary
 const cld = new Cloudinary({
@@ -78,7 +78,7 @@ export function CloudinaryImage({
   
   // Appliquer des transformations
   myImage.delivery(quality(auto())); // Qualité automatique
-  myImage.delivery(format(autoFormat())); // Format automatique
+  myImage.delivery(format(webp())); // Format WebP
   
   // Appliquer le redimensionnement selon le fit
   if (fit === 'fill') {

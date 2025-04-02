@@ -1,0 +1,102 @@
+
+> rest-express@1.0.0 dev
+> tsx server/index.ts
+
+1:42:45 PM [dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+1:42:45 PM [dropbox] ✅ Variable d'environnement DROPBOX_REFRESH_TOKEN détectée
+[dropbox] ✅ Variable d'environnement DROPBOX_ACCESS_TOKEN détectée
+[dropbox] ✅ Variables d'environnement pour refresh token détectées
+[dropbox] ✅ Service Dropbox initialisé avec succès
+1:42:45 PM [dropbox] ✅ Service Dropbox initialisé avec succès
+Chargement des livres depuis Dropbox...
+1:42:45 PM [express] serving on port 5000
+Browserslist: browsers data (caniuse-lite) is 6 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+Livre 2 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 2 depuis Dropbox: Nouveau Livre
+1:42:56 PM [express] GET /api/theme 304 in 6ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Livre 7 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 7 depuis Dropbox: Nouveau Livre
+1:42:58 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Livre 8 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 8 depuis Dropbox: Nouveau Livre
+Livre 9 trouvé dans le dossier de l'utilisateur 2
+Chargement du livre 9 depuis Dropbox: L'Écho des Ombres
+Livre 3 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 3 depuis Dropbox: Nouveau Livre
+Livre 4 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 4 depuis Dropbox: Test _ 1
+Livre 5 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 5 depuis Dropbox: Nouveau Livre
+Livre 6 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 6 depuis Dropbox: Nouveau Livre
+Livre 10 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 10 depuis Dropbox: Le teste premuim 
+1:43:05 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Livre 11 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 11 depuis Dropbox: L'Inspiration Cachée
+1:43:06 PM [express] GET /api/auth/user/7UOTFN10n0hL3OapkEtcIp2o6tl2 404 in 1ms :: {"message":"Utili…
+Livre 12 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 12 depuis Dropbox: Le Festin Inattendu
+Profil utilisateur 1 récupéré depuis Dropbox
+Profil Dropbox créé pour l'utilisateur 1: {
+  userId: 1,
+  email: 'nnie06884@gmail.com',
+  displayName: 'Friteabc',
+  plan: 'premium',
+  booksCreated: 5,
+  aiBooksCreated: 4,
+  createdAt: '2025-04-02T09:02:31.387Z',
+  updatedAt: '2025-04-02T13:43:06.947Z'
+}
+Livre 13 trouvé dans le dossier de l'utilisateur 1
+Chargement du livre 13 depuis Dropbox: Rébellion Silicon
+12 livres chargés depuis Dropbox.
+Profil utilisateur 1 récupéré depuis Dropbox
+Profil utilisateur 1 sauvegardé dans Dropbox
+1:43:08 PM [express] POST /api/auth/register 201 in 2410ms :: {"id":1,"email":"nnie06884@gmail.com",…
+1:43:09 PM [express] GET /api/auth/user/1/books 200 in 1ms :: [{"id":3,"title":"Nouveau Livre","auth…
+1:43:12 PM [express] GET /api/books/13 200 in 1ms :: {"id":13,"title":"Rébellion Silicon","author":"…
+Livre 13 trouvé dans le dossier de l'utilisateur 1
+1:43:14 PM [express] GET /api/books/13/content 304 in 890ms :: {"title":"Rébellion Silicon","author"…
+1:43:29 PM [express] GET /api/theme 304 in 1ms :: {"success":true,"theme":{"primary":"hsl(260 60% 60…
+Profil utilisateur 1 récupéré depuis Dropbox
+[Limite AI] Utilisateur 1: 4/5 livres AI créés. Plan: premium
+Profil utilisateur 1 récupéré depuis Dropbox
+Profil utilisateur 1 sauvegardé dans Dropbox
+Profil Dropbox: livre AI créé pour l'utilisateur 1
+✅ Service Cloudinary initialisé avec succès
+✅ Service d'images initialisé avec stockage sur Cloudinary
+🖼️ Enrichissement du livre avec des images générées par IA...
+Style d'image sélectionné: realistic
+🎨 Enrichissement du livre "Lune : Le Cauchemar Éveillé" avec des images...
+Style d'image: realistic, Format de couverture: portrait, Format de page: landscape
+Génération de l'image de couverture...
+🖼️ Génération d'image: "Book cover for "Lune : Le Cauchemar Éveillé" by Ém..."
+❌ Erreur lors du téléchargement sur Cloudinary: {
+  message: 'Invalid extension in transformation: auto',
+  name: 'Error',
+  http_code: 400
+}
+❌ Échec du téléchargement sur Cloudinary
+Génération d'images pour le chapitre "L'Éclipse de la Raison"...
+🖼️ Génération d'image: "Illustration for chapter "L'Éclipse de la Raison" ..."
+❌ Erreur lors du téléchargement sur Cloudinary: {
+  message: 'Invalid extension in transformation: auto',
+  name: 'Error',
+  http_code: 400
+}
+❌ Échec du téléchargement sur Cloudinary
+Livre 14 sauvegardé dans le dossier utilisateur Dropbox: /clustica_books/user_1/book_14.json
+Livre 14 créé pour l'utilisateur 1
+Livre 14 sauvegardé dans le dossier utilisateur Dropbox: /clustica_books/user_1/book_14.json
+Livre 14 mis à jour pour l'utilisateur 1
+1:45:15 PM [express] POST /api/books/generate-ai 201 in 61865ms :: {"title":"Lune : Le Cauchemar Éve…
+1:45:16 PM [express] GET /api/auth/user/7UOTFN10n0hL3OapkEtcIp2o6tl2 200 in 1ms :: {"id":1,"email":"…
+Profil utilisateur 1 récupéré depuis Dropbox
+1:45:17 PM [express] GET /api/user/1/profile 200 in 685ms :: {"userId":1,"email":"nnie06884@gmail.co…
+1:45:17 PM [express] GET /api/auth/user/1/books 200 in 2ms :: [{"id":3,"title":"Nouveau Livre","auth…
+1:45:18 PM [express] GET /api/books/14 200 in 0ms :: {"title":"Lune : Le Cauchemar Éveillé","author"…
+Livre 14 trouvé dans le dossier de l'utilisateur 1
+1:45:19 PM [express] GET /api/books/14/content 200 in 1061ms :: {"title":"Lune : Le Cauchemar Éveill…

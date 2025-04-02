@@ -111,7 +111,7 @@ export class ImageService {
             crop: 'fill',
             gravity: 'auto',
             quality: 'auto',
-            format: 'auto'
+            format: 'webp'
           }
         });
         

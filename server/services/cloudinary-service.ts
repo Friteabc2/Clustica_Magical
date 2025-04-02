@@ -127,10 +127,10 @@ export class CloudinaryService {
     crop?: 'fill' | 'crop' | 'scale' | 'pad';
     gravity?: 'auto' | 'face' | 'center';
     quality?: string | number;
-    format?: 'auto' | 'webp' | 'png' | 'jpg';
+    format?: 'webp' | 'png' | 'jpg';
   }): string {
     try {
-      let transformation = 'q_auto,f_auto'; // Qualité et format automatiques par défaut
+      let transformation = 'q_auto,f_webp'; // Qualité auto et format webp par défaut
       
       if (options) {
         const { width, height, crop, gravity, quality, format } = options;
