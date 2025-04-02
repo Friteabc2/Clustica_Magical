@@ -150,14 +150,7 @@ export default function UserMenu() {
           <Settings className="mr-2 h-4 w-4" />
           <span>Paramètres</span>
         </DropdownMenuItem>
-        {/* Ajout de l'option Admin */}
-        <DropdownMenuItem 
-          className="cursor-pointer"
-          onClick={() => navigate("/admin")}
-        >
-          <Database className="mr-2 h-4 w-4" />
-          <span>Admin</span>
-        </DropdownMenuItem>
+        {/* Admin option is removed/disabled */}
         <DropdownMenuSeparator />
         {/* Option de thème */}
         <div className="px-2 py-2 flex items-center justify-between">
