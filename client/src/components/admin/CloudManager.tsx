@@ -24,7 +24,7 @@ const CloudManager: React.FC = () => {
   const checkStatus = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch('/api/cloud/status');
+      const res = await fetch('/api/dropbox/status');
       const data = await res.json();
       setStatus({
         status: data.status,
@@ -51,7 +51,7 @@ const CloudManager: React.FC = () => {
   const refreshToken = async () => {
     setRefreshing(true);
     try {
-      const res = await fetch('/api/cloud/refresh-token', {
+      const res = await fetch('/api/dropbox/refresh-token', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -88,7 +88,7 @@ const CloudManager: React.FC = () => {
             ...prev!,
             status: 'expired',
             message: data.message,
-            oauthUrl: '/api/cloud/oauth'
+            oauthUrl: '/api/dropbox/oauth'
           }));
         }
       }
@@ -112,7 +112,7 @@ const CloudManager: React.FC = () => {
 
   const syncBooks = async () => {
     try {
-      const res = await fetch('/api/cloud/sync', {
+      const res = await fetch('/api/dropbox/sync', {
         method: 'POST'
       });
       

@@ -14,9 +14,9 @@ import Epub from 'epub-gen';
 // Service d'IA pour la génération de livres
 import { AIService, AIBookRequest } from "./services/ai-service";
 
-// Services Cloud pour la synchronisation des livres, l'authentification OAuth et la gestion des profils utilisateurs
-import { CloudService, UserProfileManager, UserProfileData } from "./services/cloud-service";
-import { CloudOAuth } from "./services/cloud-oauth";
+// Services Dropbox pour la synchronisation des livres, l'authentification OAuth et la gestion des profils utilisateurs
+import { DropboxService, UserProfileManager, UserProfileData } from "./services/dropbox-service";
+import { DropboxOAuth } from "./services/dropbox-oauth";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -252,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (book.userId) {
         try {
           // S'assurer que le dossier utilisateur existe
-          await CloudService.ensureUserFolderExists(book.userId);
+          await DropboxService.ensureUserFolderExists(book.userId);
           
           // Récupérer/créer le profil utilisateur pour mettre à jour les stats
           const user = await storage.getUser(book.userId);
@@ -393,7 +393,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Supprimer également le livre de Dropbox (dans le dossier de l'utilisateur si spécifié)
       try {
-        await CloudService.deleteBook(id, userId);
+        await DropboxService.deleteBook(id, userId);
       } catch (dropboxError) {
         console.error("Erreur lors de la suppression du livre dans Dropbox:", dropboxError);
         // On ne bloque pas la réponse, le livre a déjà été supprimé du stockage principal
@@ -537,7 +537,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Vérifier et créer le dossier utilisateur dans Dropbox
         try {
           // S'assurer que le dossier utilisateur existe dans Dropbox
-          await CloudService.ensureUserFolderExists(userId);
+          await DropboxService.ensureUserFolderExists(userId);
           
           // Mettre à jour le profil utilisateur dans Dropbox pour les statistiques de livres AI
           await UserProfileManager.incrementAIBooksCreated(userId);
@@ -789,22 +789,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Initialiser les routes OAuth pour Cloud
-  CloudOAuth.initializeRoutes(app);
+  // Initialiser les routes OAuth pour Dropbox
+  DropboxOAuth.initializeRoutes(app);
   
   // Ajouter un middleware pour gérer les tokens expirés sur TOUTES les routes API
   // Ceci permet de rafraîchir le token sans redémarrer le serveur
-  app.use('/api', CloudOAuth.checkAndRefreshToken);
+  app.use('/api', DropboxOAuth.checkAndRefreshToken);
   
-  // Endpoint pour vérifier l'état de la connexion Cloud
-  app.get('/api/cloud/status', async (_req: Request, res: Response) => {
+  // Endpoint pour vérifier l'état de la connexion Dropbox
+  app.get('/api/dropbox/status', async (_req: Request, res: Response) => {
     try {
       // Vérifier les tokens disponibles
       const hasAccessToken = !!process.env.DROPBOX_ACCESS_TOKEN;
       const hasRefreshToken = !!process.env.DROPBOX_REFRESH_TOKEN;
       
       // Vérifier si le token est déjà marqué comme expiré
-      if (CloudService.isExpired()) {
+      if (DropboxService.isExpired()) {
         return res.status(401).json({ 
           status: 'expired',
           message: 'Le token d\'accès Dropbox a expiré. Veuillez le mettre à jour.',
@@ -815,7 +815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Test simple pour vérifier si le token est valide
-      await CloudService.ensureRootFolderExists();
+      await DropboxService.ensureRootFolderExists();
       
       res.json({ 
         status: 'connected',
