@@ -32,17 +32,11 @@ export default function Legal() {
                 <section>
                   <h2 className="text-xl font-bold mb-4">1. Informations sur l'éditeur</h2>
                   <p>
-                    Clustica - Magical est un service édité par la société Clustica SAS, une société par actions simplifiée au capital de 10 000 €,
-                    immatriculée au Registre du Commerce et des Sociétés sous le numéro RCS Paris 123 456 789.
+                    Clustica - Magical est un service édité par un particulier et proposé à titre expérimental.
+                    Ce service est actuellement en phase de développement pré-bêta.
                   </p>
                   <p className="mt-2">
-                    <strong>Siège social :</strong> 42 Avenue de la République, 75011 Paris, France
-                  </p>
-                  <p className="mt-2">
-                    <strong>Numéro de TVA intracommunautaire :</strong> FR 12 345 678 901
-                  </p>
-                  <p className="mt-2">
-                    <strong>Directeur de la publication :</strong> Jean Dupont, Président
+                    <strong>Directeur de la publication :</strong> [Votre nom]
                   </p>
                 </section>
                 
@@ -60,10 +54,10 @@ export default function Legal() {
                   <h2 className="text-xl font-bold mb-4">3. Propriété intellectuelle</h2>
                   <p>
                     L'ensemble des éléments composant le site Clustica - Magical (textes, graphismes, logiciels, photographies, images, vidéos, sons, plans, logos, marques, etc.) 
-                    ainsi que le site lui-même, sont la propriété exclusive de Clustica SAS ou de ses partenaires.
+                    ainsi que le site lui-même, sont la propriété exclusive de l'éditeur ou de ses partenaires.
                   </p>
                   <p className="mt-2">
-                    Toute représentation totale ou partielle de ce site par quelque procédé que ce soit, sans l'autorisation expresse de Clustica SAS, 
+                    Toute représentation totale ou partielle de ce site par quelque procédé que ce soit, sans l'autorisation expresse de l'éditeur, 
                     est interdite et constituerait une contrefaçon sanctionnée par les articles L.335-2 et suivants du Code de la propriété intellectuelle.
                   </p>
                 </section>
@@ -76,11 +70,11 @@ export default function Legal() {
                     ainsi que d'un droit d'opposition et de limitation du traitement vous concernant.
                   </p>
                   <p className="mt-2">
-                    Pour exercer ces droits ou pour toute question sur le traitement de vos données, vous pouvez contacter notre 
-                    Délégué à la Protection des Données (DPO) par email à l'adresse : privacy@clustica.com
+                    Pour exercer ces droits ou pour toute question sur le traitement de vos données, vous pouvez me contacter 
+                    directement à l'adresse email : [Votre adresse email]
                   </p>
                   <p className="mt-2">
-                    Pour plus d'informations, veuillez consulter notre Politique de Confidentialité accessible depuis notre site web.
+                    Pour plus d'informations, veuillez consulter la Politique de Confidentialité accessible depuis notre site web.
                   </p>
                 </section>
                 
@@ -101,14 +95,14 @@ export default function Legal() {
                   <h2 className="text-xl font-bold mb-4">6. Limitation de responsabilité</h2>
                   <p>
                     Clustica - Magical est actuellement en phase de développement pré-bêta. 
-                    Bien que nous nous efforcions de fournir un service de qualité, le site peut présenter des bugs, des erreurs ou des interruptions temporaires.
+                    Bien que je m'efforce de fournir un service de qualité, le site peut présenter des bugs, des erreurs ou des interruptions temporaires.
                   </p>
                   <p className="mt-2">
                     Les informations contenues sur le site sont aussi précises que possible, mais peuvent contenir des inexactitudes ou des omissions. 
                     Elles sont fournies à titre indicatif et sont susceptibles d'évoluer.
                   </p>
                   <p className="mt-2">
-                    Clustica SAS ne pourra être tenue responsable des dommages directs ou indirects résultant de l'utilisation du site.
+                    Le service ne pourra être tenu responsable des dommages directs ou indirects résultant de l'utilisation du site.
                   </p>
                 </section>
                 
@@ -123,8 +117,8 @@ export default function Legal() {
                 <section>
                   <h2 className="text-xl font-bold mb-4">8. Contact</h2>
                   <p>
-                    Pour toute question relative à nos services ou pour nous signaler un problème, 
-                    vous pouvez nous contacter par email à l'adresse : contact@clustica.com
+                    Pour toute question relative au service ou pour signaler un problème, 
+                    vous pouvez me contacter par email à l'adresse : [Votre adresse email]
                   </p>
                 </section>
               </div>

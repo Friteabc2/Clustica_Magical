@@ -516,12 +516,10 @@ export default function Landing() {
               </ul>
             </div>
             <div>
-              <h3 className="text-white text-lg font-bold mb-4">Entreprise</h3>
+              <h3 className="text-white text-lg font-bold mb-4">Informations légales</h3>
               <ul className="space-y-2">
-                <li><a href="#" className="text-gray-400 hover:text-white transition">À propos</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Équipe</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition">Confidentialité</a></li>
-                <li><a href="#" className="text-gray-400 hover:text-white transition">Conditions</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition">Conditions d'utilisation</a></li>
                 <li><a href="/legal" className="text-gray-400 hover:text-white transition">Mentions légales</a></li>
               </ul>
             </div>
